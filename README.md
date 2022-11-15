@@ -12,3 +12,6 @@
 | 103530 | André Gabriel Butuc             | Team Manager  |
 
 ## Links
+
+https://nudibranchicb.atlassian.net/jira/software/projects/IP/boards/1
+https://bit.ly/3FwcKd8
