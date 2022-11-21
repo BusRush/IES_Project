@@ -8,10 +8,6 @@ https://reactnative.dev/docs/environment-setup
 
 ## Run the app
 
-```bash
-
-### Run the app
-```bash
 To start Metro, the JavaScript bundler that ships with React Native, run:
 ```bash
 npx react-native start
