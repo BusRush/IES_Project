@@ -8,8 +8,7 @@ export const busesLive = [
       timestamp: new Date(),
       position: [40.63309, -8.65878],
       speed: 50,
-      fuelConsumption: 4,
-      fuelLevel: 40,
+      fuel: 40,
       passengers: 10,
     }
   }
