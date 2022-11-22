@@ -28,12 +28,12 @@ export const MarkerStopIcon = (props) => {
 };
 
 export const MarkerBusIcon = (props) => {
-  const { name, position } = props;
+  const { busId, name, position, updateSelectedBus } = props;
 
   const customIcon = new L.Icon({
     iconUrl: '/static/images/icons/bus.png',
     iconSize: [30, 30],
-    popupAnchor: [0, -15],
+    popupAnchor: [0, -15]
   });
 
   const map = useMap();
@@ -42,7 +42,12 @@ export const MarkerBusIcon = (props) => {
     <Marker
       position={position}
       icon={customIcon}
-      eventHandlers={{ click: () => {map.flyTo(position, 18);} }}
+      eventHandlers={{
+        click: () => {
+          map.flyTo(position, 18);
+          updateSelectedBus(busId);
+        }
+      }}
     >
       <Popup>
         {name}
