@@ -15,6 +15,7 @@ import {
 } from "react-native-paper";
 
 import { LatLng, LeafletView } from "react-native-leaflet-view";
+import MyComponent from "../components/bottomNavigation";
 
 const ChosenBusInformationScreen = () => {
   const navigation = useNavigation();
@@ -29,6 +30,22 @@ const ChosenBusInformationScreen = () => {
   return (
     <PaperProvider>
       <SafeAreaView>
+        <View style={{ flexDirection: "row" }}>
+          <View style={{ flex: 1, alignItems: "flex-start" }}>
+            <Button
+              labelStyle={{ fontSize: 30 }}
+              icon="arrow-left-thin"
+              onPress={() => navigation.navigate("Home")}
+            ></Button>
+          </View>
+          <View style={{ flex: 1, alignItems: "flex-end" }}>
+            <Button
+              labelStyle={{ fontSize: 30 }}
+              icon="account-circle"
+              onPress={() => navigation.navigate("Home")}
+            ></Button>
+          </View>
+        </View>
         <View style={{ margin: 15 }}>
           <Card>
             <Card.Content>
@@ -71,7 +88,7 @@ const ChosenBusInformationScreen = () => {
             Current Occupancy
           </Text>
         </View>
-        <View style={{ paddingTop: 10, flexDirection: "row", margin: 15 }}>
+        <View style={{ flexDirection: "row", margin: 15 }}>
           <View style={{ flex: 1 }}>
             <ProgressBar
               progress={0.5}
@@ -85,7 +102,7 @@ const ChosenBusInformationScreen = () => {
             paddingTop: 10,
             flexDirection: "row",
             margin: 15,
-            height: 350,
+            height: 225,
           }}
         >
           <LeafletView
@@ -95,6 +112,7 @@ const ChosenBusInformationScreen = () => {
           />
         </View>
       </SafeAreaView>
+      <MyComponent></MyComponent>
     </PaperProvider>
   );
 };
