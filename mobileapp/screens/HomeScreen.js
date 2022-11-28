@@ -126,31 +126,6 @@ const HomeScreen = () => {
               </Card>
             </TouchableOpacity>
           </View>
-          <View
-            style={{
-              backgroundColor: "white",
-              flex: 1,
-              margin: 15,
-            }}
-          >
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Custom Routes Page")}
-            >
-              <Card
-                style={{
-                  height: 160,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Card.Content>
-                  <Title style={{ textAlign: "center" }}>
-                    See Custom Routes
-                  </Title>
-                </Card.Content>
-              </Card>
-            </TouchableOpacity>
-          </View>
         </View>
       </SafeAreaView>
       <MyComponent></MyComponent>
