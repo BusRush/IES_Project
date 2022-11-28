@@ -97,6 +97,7 @@ def main(id_route, id_device):
         channel.basic_publish(exchange='',
                               routing_key='devices',
                               body=str(m))
+    conn.close()
 
 
 if __name__ == '__main__':
