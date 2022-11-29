@@ -23,6 +23,16 @@ const items = [
     title: 'Dashboard'
   },
   {
+    href: '/statistics',
+    icon: (<ChartBarIcon fontSize="small" />),
+    title: 'Statistics'
+  },
+  {
+    href: '/map',
+    icon: (<UsersIcon fontSize="small" />),
+    title: 'Live Map'
+  },
+  {
     href: '/customers',
     icon: (<UsersIcon fontSize="small" />),
     title: 'Customers'
