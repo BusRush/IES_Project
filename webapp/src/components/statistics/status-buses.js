@@ -2,6 +2,11 @@ import { Bar } from 'react-chartjs-2';
 import { Box, Button, Card, CardContent, CardHeader, Divider, useTheme } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import * as React from 'react';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select from '@mui/material/Select';
 
 export const StatsBus = (props) => {
   const theme = useTheme();
@@ -81,20 +86,35 @@ export const StatsBus = (props) => {
     }
   };
 
+    const [space, setAge] = React.useState('');
+
+    const handleChange = (event) => {
+        setAge(event.target.value);
+    };
+
   return (
     <Card {...props}>
-      <CardHeader
+      <CardHeader 
         action={(
-          <Button
-            endIcon={<ArrowDropDownIcon fontSize="small" />}
-            size="small"
-          >
-            Last 7 days
-          </Button>
-        )}
-        title="Last 7 days"
-      />
-      <Divider />
+            <Box sx={{ minWidth: 140 }}>
+                <FormControl fullWidth>
+                <InputLabel id="demo-simple-select-label">Time Period</InputLabel>
+                <Select
+                    labelId="demo-simple-select-label"
+                    id="demo-simple-select"
+                    value={space}
+                    label="Space"
+                    onChange={handleChange}
+                >
+                    <MenuItem status={"3 days"}>3 days</MenuItem>
+                    <MenuItem status={"5 days"}>5 days</MenuItem>
+                    <MenuItem status={"Week"}>Week</MenuItem>
+                    <MenuItem status={"2 Weeks"}>2 Weeks</MenuItem>
+                </Select>
+                </FormControl>
+            </Box>)}
+        title="Info Buses" />
+    <Divider />
       <CardContent>
         <Box
           sx={{
