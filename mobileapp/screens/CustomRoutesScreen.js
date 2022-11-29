@@ -10,8 +10,6 @@ import {
   Title,
   Paragraph,
   Button,
-  ProgressBar,
-  MD3Colors,
 } from "react-native-paper";
 
 import MyComponent from "../components/bottomNavigation";
