@@ -57,9 +57,7 @@ const HomeScreen = () => {
               margin: 15,
             }}
           >
-            <TouchableOpacity
-              onPress={() => navigation.navigate("Chosen Bus Information")}
-            >
+            <TouchableOpacity onPress={() => navigation.navigate("BusRoutes")}>
               <Card
                 style={{
                   height: 160,
@@ -68,32 +66,7 @@ const HomeScreen = () => {
                 }}
               >
                 <Card.Content>
-                  <Title style={{ textAlign: "center" }}>
-                    Chosen Bus Information
-                  </Title>
-                </Card.Content>
-              </Card>
-            </TouchableOpacity>
-          </View>
-          <View
-            style={{
-              backgroundColor: "white",
-              flex: 1,
-              margin: 15,
-            }}
-          >
-            <TouchableOpacity>
-              <Card
-                style={{
-                  height: 160,
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Card.Content>
-                  <Title style={{ textAlign: "center" }}>
-                    Build Custom Bus Route
-                  </Title>
+                  <Title style={{ textAlign: "center" }}>See Bus Routes</Title>
                 </Card.Content>
               </Card>
             </TouchableOpacity>
@@ -112,7 +85,9 @@ const HomeScreen = () => {
               margin: 15,
             }}
           >
-            <TouchableOpacity onPress={() => navigation.navigate("Home")}>
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Custom Routes")}
+            >
               <Card
                 style={{
                   height: 160,
@@ -121,7 +96,9 @@ const HomeScreen = () => {
                 }}
               >
                 <Card.Content>
-                  <Title style={{ textAlign: "center" }}>See Bus Routes</Title>
+                  <Title style={{ textAlign: "center" }}>
+                    See Custom Routes
+                  </Title>
                 </Card.Content>
               </Card>
             </TouchableOpacity>

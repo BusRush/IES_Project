@@ -1,37 +1,51 @@
-import React from 'react';
-import { SafeAreaView, View, FlatList, StyleSheet, Text, StatusBar } from 'react-native';
+import React from "react";
+import {
+  SafeAreaView,
+  View,
+  FlatList,
+  StyleSheet,
+  Text,
+  StatusBar,
+  TouchableOpacity,
+} from "react-native";
 
+import { useNavigation } from "@react-navigation/native";
 const DATA = [
   {
-    number: 'L11',
-    title: 'Universidade de Aveiro',
-    hour: '10:00',
+    number: "L11",
+    title: "Universidade de Aveiro",
+    hour: "10:00",
   },
   {
-    number: 'L3',
-    title: 'Cacia',
-    hour: '10:10',
+    number: "L3",
+    title: "Cacia",
+    hour: "10:10",
   },
   {
-    number: 'L7',
-    title: 'Estarreja',
-    hour: '10:20',
+    number: "L7",
+    title: "Estarreja",
+    hour: "10:20",
   },
 ];
 
 const NextBuses = () => {
+  const navigation = useNavigation();
   const renderItem = ({ item }) => (
-    <View style={styles.row}>
+    <TouchableOpacity
+      onPress={() => navigation.navigate("Chosen Bus Information")}
+    >
+      <View style={styles.row}>
         <View style={styles.number}>
-            <Text style={styles.title}>{item.number}</Text>
+          <Text style={styles.title}>{item.number}</Text>
         </View>
         <View style={styles.item}>
-            <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.title}>{item.title}</Text>
         </View>
         <View style={styles.hour}>
-            <Text style={styles.hour}>{item.hour}</Text>
+          <Text style={styles.hour}>{item.hour}</Text>
         </View>
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -39,11 +53,11 @@ const NextBuses = () => {
       <FlatList
         data={DATA}
         renderItem={renderItem}
-        keyExtractor={item => item.number}
+        keyExtractor={(item) => item.number}
       />
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -51,34 +65,34 @@ const styles = StyleSheet.create({
     marginTop: StatusBar.currentHeight || 0,
   },
   hour: {
-    color: '#000000',
+    color: "#000000",
     fontSize: 16,
   },
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderColor: '#dcdcdc',
-    backgroundColor: '#fff',
+    flexDirection: "row",
+    alignItems: "center",
+    borderColor: "#dcdcdc",
+    backgroundColor: "#fff",
     borderBottomWidth: 1,
     padding: 10,
-    justifyContent: 'space-between',
+    justifyContent: "space-between",
   },
   routeNumber: {
-    width: 20, 
+    width: 20,
     height: 20,
     borderRadius: 10,
-    color: '#245A8D',
+    color: "#245A8D",
   },
   item: {
-    backgroundColor: '#ffffff',
+    backgroundColor: "#ffffff",
     padding: 20,
     marginVertical: 1,
     marginHorizontal: 5,
   },
   title: {
     fontSize: 20,
-    color: '#245A8D'
+    color: "#245A8D",
   },
 });
 
-export {NextBuses};
+export { NextBuses };
