@@ -14,7 +14,6 @@ import {
   MD3Colors,
 } from "react-native-paper";
 
-import { LatLng, LeafletView } from "react-native-leaflet-view";
 import MyComponent from "../components/bottomNavigation";
 import SelectDropdown from "react-native-select-dropdown";
 import FontAwesome from "react-native-vector-icons/FontAwesome";
