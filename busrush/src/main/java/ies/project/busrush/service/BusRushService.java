@@ -5,7 +5,6 @@ import ies.project.busrush.dto.ScheduleDto;
 import ies.project.busrush.dto.StopDto;
 import ies.project.busrush.dto.StopWithDistanceDto;
 import ies.project.busrush.model.*;
-import ies.project.busrush.model.custom.ScheduleWithRouteId;
 import ies.project.busrush.model.custom.StopWithDistance;
 import ies.project.busrush.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
