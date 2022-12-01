@@ -1,2 +1,14 @@
 - Welcoming Screen: cute welcoming slider page with info about the app;
 - AveiroBus inspired https://www.aveirobus.pt/circuito-urbano
+
+
+TODO (Design):
+* Welcoming Screen;
+* Não faz sentido ter um homepage
+* Low navbar (favourite routes, bus routes screen)
+* Adaptar design da ChosenBusInformation para ficar parecido ao Bus Routes Screen
+
+
+TODO GERAL:
+* Adaptar screens à API
+* Global stylesheet

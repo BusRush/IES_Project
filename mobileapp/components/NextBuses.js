@@ -28,6 +28,10 @@ const DATA = [
   },
 ];
 
+const FETCHED_DATA = fetch(
+  "localhost:8080/api/schedules/next?origin_stop_id=1&destination_stop_id=2"
+);
+
 const NextBuses = () => {
   const navigation = useNavigation();
   const renderItem = ({ item }) => (
