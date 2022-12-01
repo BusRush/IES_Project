@@ -85,7 +85,7 @@ public class BusRushService {
 
     public ResponseEntity<List<ScheduleDto>> getNextSchedules(Optional<String> originStopId, Optional<String> destinationStopId) {
         List<Schedule> schedules = new ArrayList<>();
-        LocalTime currentTime = LocalTime.now();
+        LocalTime currentTime = LocalTime.of(8, 0, 0); // TODO: replace with LocalTime.now();
         if (originStopId.isPresent() && destinationStopId.isEmpty()) {
             // All schedules of routes that pass through the origin stop
             schedules = scheduleRepository.findSchedulesByStopAndCurrentTime(originStopId.get(), currentTime);
