@@ -1,24 +1,31 @@
 package ies.project.busrush.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 
-@Entity
-@Table(name = "stops")
+import java.util.Collection;
+
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "stops")
 public class Stop {
     @Id
     private String id;
 
-    @Column(name="designation", nullable = false)
+    @Column(name = "designation", nullable = false)
     private String designation;
 
-    @Column(name="latitude", nullable = false)
-    private double latitude;
+    @Column(name = "lat", nullable = false)
+    private Double lat;
 
-    @Column(name="longitude", nullable = false)
-    private double longitude;
+    @Column(name = "lon", nullable = false)
+    private Double lon;
+
+    @OneToMany(mappedBy = "stop")
+    private Collection<Schedule> schedules;
 }

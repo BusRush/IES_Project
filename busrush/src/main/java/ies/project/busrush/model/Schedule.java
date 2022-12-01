@@ -1,29 +1,32 @@
 package ies.project.busrush.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 
 import java.time.LocalTime;
 
-@Entity
-@Table(name = "schedules")
-@IdClass(ScheduleID.class)
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "schedules")
 public class Schedule {
-    @Id
-    @OneToOne(optional = false)
-    @JoinColumn(name = "route_id", nullable = false)
+    @EmbeddedId
+    private ScheduleId id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("routeId")
+    //@JoinColumn(name = "route_id")
     private Route route;
 
-    @Id
-    @OneToOne(optional = false)
-    @JoinColumn(name = "stop_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("stopId")
+    //@JoinColumn(name = "stop_id")
     private Stop stop;
 
-    @Column(name="time", nullable = false)
+    @Column(name = "time", nullable = false)
     private LocalTime time;
-
 }
