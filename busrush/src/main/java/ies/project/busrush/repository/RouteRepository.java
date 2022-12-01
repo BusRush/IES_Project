@@ -5,5 +5,4 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 @Repository
-public interface RouteRepository extends JpaRepository<Route, String> {
-}
+public interface RouteRepository extends JpaRepository<Route, String> {}
