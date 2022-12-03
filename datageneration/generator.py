@@ -18,8 +18,10 @@ BUS_CAPACITY = 90  # passengers
 
 class MockMetrics:
 
-    def __init__(self, id_device, init_timestamp, list_positions, list_speeds, init_fuel, init_passengers):
-        self.id_device = id_device
+    def __init__(self, device_id, route_id, route_shift, init_timestamp, list_positions, list_speeds, init_fuel, init_passengers):
+        self.device_id = device_id
+        self.route_id = route_id
+        self.route_shift = route_shift
         self.timestamp = init_timestamp
         self.positions = list_positions
         self.speeds = list_speeds
@@ -48,7 +50,9 @@ class MockMetrics:
             )
 
         return {
-            'id_device': self.id_device,
+            'device_id': self.device_id,
+            'route_id': self.route_id,
+            'route_shift': self.route_shift,
             'timestamp': self.timestamp,
             'position': self.positions.pop(0),
             'speed': self.speeds.pop(0),
@@ -63,12 +67,13 @@ class MockMetrics:
 
 
 @click.command()
-@click.option('--id_route', help='Id of the route to be simulated.')
-@click.option('--id_device', help='Id of the device on board of the bus.')
+@click.option('--device_id', help='Id of the device on board of the bus.')
+@click.option('--route_id', help='Id of the route to be simulated.')#
+@click.option('--route_shift', help='Shift of the route to be simulated.')
 #
-# Example: python3 generator.py --id_route AVRBUS-L11 --id_device AVRBUS-D0000
+# Example: python3 generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-L11 --route_shift 092000
 #
-def main(id_route, id_device):
+def main(device_id, route_id, route_shift):
 
     # Connect to RabbitMQ
     conn = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
@@ -77,14 +82,16 @@ def main(id_route, id_device):
 
     # Choose a random mock from the provided route
     route_mocks = [filename for filename in os.listdir('mock')
-                   if filename.startswith(id_route)]
+                   if filename.startswith(route_id)]
     chosen_mock = route_mocks[random.randint(0, len(route_mocks) - 1)]
 
     path = load_path_mock(chosen_mock)  # position and speed
 
     # Initialize the metrics generator
     metrics = MockMetrics(
-        id_device=id_device,
+        device_id=device_id,
+        route_id=route_id,
+        route_shift=route_shift,
         init_timestamp=int(datetime.now().timestamp()),
         list_positions=[p['position'] for p in path],
         list_speeds=[p['speed'] for p in path],
