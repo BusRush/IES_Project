@@ -28,10 +28,6 @@ const DATA = [
   },
 ];
 
-const FETCHED_DATA = fetch(
-  "localhost:8080/api/schedules/next?origin_stop_id=1&destination_stop_id=2"
-);
-
 const NextBuses = () => {
   const navigation = useNavigation();
   const renderItem = ({ item }) => (
@@ -53,13 +49,11 @@ const NextBuses = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={DATA}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.number}
-      />
-    </SafeAreaView>
+    <FlatList
+      data={DATA}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.number}
+    />
   );
 };
 
@@ -88,7 +82,6 @@ const styles = StyleSheet.create({
     color: "#245A8D",
   },
   item: {
-    backgroundColor: "#ffffff",
     padding: 20,
     marginVertical: 1,
     marginHorizontal: 5,

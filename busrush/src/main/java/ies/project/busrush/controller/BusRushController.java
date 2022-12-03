@@ -31,6 +31,7 @@ public class BusRushController {
             @RequestParam(value = "origin_stop_id") Optional<String> originStopId,
             @RequestParam(value = "destination_stop_id") Optional<String> destinationStopId
     ) {
+        System.out.println("origin_stop_id: " + originStopId);
         return busRushService.getNextSchedules(originStopId, destinationStopId);
     }
 }

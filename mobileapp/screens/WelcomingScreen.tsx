@@ -2,7 +2,6 @@ import { useNavigation } from "@react-navigation/native";
 import React, { useLayoutEffect, useState } from "react";
 import {
   Dimensions,
-  SafeAreaView,
   ScrollView,
   View,
   Image,
@@ -10,6 +9,9 @@ import {
   StyleSheet,
   PixelRatio,
 } from "react-native";
+import { Button } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Icon } from "@rneui/themed";
 
 const WelcomingScreen = () => {
   const [sliderState, setSliderState] = useState({ currentPage: 0 });
@@ -38,7 +40,7 @@ const WelcomingScreen = () => {
 
   return (
     <>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
         <ScrollView
           style={{ flex: 1 }}
           horizontal={true}
@@ -51,34 +53,31 @@ const WelcomingScreen = () => {
         >
           <View style={{ width, height }}>
             <Image
-              source={require("../assets/apple.jpeg")}
+              source={require("../assets/logo.jpeg")}
               style={styles.imageStyle}
             />
             <View style={styles.wrapper}>
-              <Text style={styles.header}>Nature Imitates Art</Text>
-              <Text style={styles.paragraph}>....something like that</Text>
+              <Icon name="arrow-right" size={50} />
             </View>
           </View>
           <View style={{ width, height }}>
             <Image
-              source={require("../assets/CAT.webp")}
+              source={require("../assets/nearest.png")}
               style={styles.imageStyle}
             />
             <View style={styles.wrapper}>
-              <Text style={styles.header}>High quality Art work</Text>
-              <Text style={styles.paragraph}>
-                ... for a fraction of the price
+              <Text style={styles.header}>Browse The Nearest Bus Stops</Text>
+            </View>
+          </View>
+          <View style={{ width, height }}>
+            <Image
+              source={require("../assets/businfo.png")}
+              style={styles.imageStyle}
+            />
+            <View style={styles.wrapper}>
+              <Text style={styles.header}>
+                See in real-time the information of the bus you need to catch.
               </Text>
-            </View>
-          </View>
-          <View style={{ width, height }}>
-            <Image
-              source={require("../assets/cool.webp")}
-              style={styles.imageStyle}
-            />
-            <View style={styles.wrapper}>
-              <Text style={styles.header}>Top Notch Artists</Text>
-              <Text style={styles.paragraph}>... all in one place</Text>
             </View>
           </View>
           <View style={{ width, height }}>
@@ -87,32 +86,40 @@ const WelcomingScreen = () => {
               style={styles.imageStyle}
             />
             <View style={styles.wrapper}>
-              <Text style={styles.header}>Best deal on the market</Text>
-              <Text style={styles.paragraph}>... let's find your next art</Text>
-            </View>
-          </View>
-          <View style={{ width, height }}>
-            <Image
-              source={require("../assets/yeah.jpeg")}
-              style={styles.imageStyle}
-            />
-            <View style={styles.wrapper}>
-              <Text style={styles.header}>It's all about art</Text>
-              <Text style={styles.paragraph}>... seriously, it is</Text>
+              <Text style={styles.header}>
+                Add your prefered route to your favourites list.
+              </Text>
+              <Text style={styles.paragraph}>
+                This way you can receive notifications from the app.
+              </Text>
             </View>
           </View>
         </ScrollView>
-        <View style={styles.paginationWrapper}>
-          {Array.from(Array(5).keys()).map((key, index) => (
-            <View
-              style={[
-                styles.paginationDots,
-                { opacity: pageIndex === index ? 1 : 0.2 },
-              ]}
-              key={index}
-            />
-          ))}
+        <View style={{ paddingBottom: 50 }}>
+          <View style={styles.paginationWrapper}>
+            {Array.from(Array(4).keys()).map((key, index) => (
+              <View
+                style={[
+                  styles.paginationDots,
+                  { opacity: pageIndex === index ? 1 : 0.2 },
+                ]}
+                key={index}
+              />
+            ))}
+          </View>
         </View>
+        <Button
+          onPress={() => navigation.navigate("Home")}
+          style={{
+            borderWidth: 1,
+            borderColor: "lightgrey",
+            width: 200,
+            alignSelf: "center",
+            marginBottom: 20,
+          }}
+        >
+          <Text style={{ fontSize: 18, color: "#245A8D" }}>Get Started</Text>
+        </Button>
       </SafeAreaView>
     </>
   );
@@ -121,7 +128,7 @@ export default WelcomingScreen;
 
 const styles = StyleSheet.create({
   imageStyle: {
-    height: PixelRatio.getPixelSizeForLayoutSize(135),
+    height: PixelRatio.getPixelSizeForLayoutSize(155),
     width: "100%",
   },
   wrapper: {
@@ -133,15 +140,13 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
     marginBottom: 20,
+    textAlign: "center",
   },
   paragraph: {
     fontSize: 17,
+    textAlign: "center",
   },
   paginationWrapper: {
-    position: "absolute",
-    bottom: 200,
-    left: 0,
-    right: 0,
     justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",
