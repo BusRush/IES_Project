@@ -39,6 +39,15 @@ public class CrudService {
         this.stopRepository = stopRepository;
         this.userRepository = userRepository;
 
+        // Clear all records on tables
+        // TODO: Remove this?
+        scheduleRepository.deleteAll();
+        stopRepository.deleteAll();
+        routeRepository.deleteAll();
+        driverRepository.deleteAll();
+        busRepository.deleteAll();
+        deviceRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     //
@@ -458,7 +467,7 @@ public class CrudService {
                         route.getDesignation(),
                         (route.getDriver() != null) ? route.getDriver().getId() : null,
                         (route.getBus() != null) ? route.getBus().getId() : null,
-                        route.getSchedules().stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getRoute().getId().getId(), schedule.getRoute().getId().getShift()), schedule.getStop().getId())).toArray(ScheduleIdDto[]::new)
+                        route.getSchedules().stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getId().getRouteId().getId(), schedule.getId().getRouteId().getShift()), schedule.getId().getStopId(), schedule.getId().getSequence())).toArray(ScheduleIdDto[]::new)
                 ));
             }
             return new ResponseEntity<>(routesCrudDto, HttpStatus.OK);
@@ -481,7 +490,7 @@ public class CrudService {
                     route.get().getDesignation(),
                     (route.get().getDriver() != null) ? route.get().getDriver().getId() : null,
                     (route.get().getBus() != null) ? route.get().getBus().getId() : null,
-                    route.get().getSchedules().stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getRoute().getId().getId(), schedule.getRoute().getId().getShift()), schedule.getStop().getId())).toArray(ScheduleIdDto[]::new)
+                    route.get().getSchedules().stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getId().getRouteId().getId(), schedule.getId().getRouteId().getShift()), schedule.getId().getStopId(), schedule.getId().getSequence())).toArray(ScheduleIdDto[]::new)
             );
             return new ResponseEntity<>(routeCrudDto, HttpStatus.OK);
         } catch (Exception e) {
@@ -519,7 +528,7 @@ public class CrudService {
             List<Schedule> _schedules = new ArrayList<>();
             if (routeCrudDto.getSchedulesId() != null) {
                 for (ScheduleIdDto scheduleIdDto : routeCrudDto.getSchedulesId()) {
-                    Optional<Schedule> _schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleIdDto.getRouteId().getId(), scheduleIdDto.getRouteId().getShift()), scheduleIdDto.getStopId()));
+                    Optional<Schedule> _schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleIdDto.getRouteId().getId(), scheduleIdDto.getRouteId().getShift()), scheduleIdDto.getStopId(), scheduleIdDto.getSequence()));
                     if (_schedule.isEmpty())
                         return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
                     _schedules.add(_schedule.get());
@@ -570,7 +579,7 @@ public class CrudService {
             List<Schedule> _schedules = new ArrayList<>();
             if (routeCrudDto.getSchedulesId() != null) {
                 for (ScheduleIdDto scheduleIdDto : routeCrudDto.getSchedulesId()) {
-                    Optional<Schedule> schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleIdDto.getRouteId().getId(), scheduleIdDto.getRouteId().getShift()), scheduleIdDto.getStopId()));
+                    Optional<Schedule> schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleIdDto.getRouteId().getId(), scheduleIdDto.getRouteId().getShift()), scheduleIdDto.getStopId(), scheduleIdDto.getSequence()));
                     if (schedule.isEmpty())
                         return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
                     _schedules.add(schedule.get());
@@ -618,7 +627,8 @@ public class CrudService {
                 schedulesCrudDto.add(new ScheduleCrudDto(
                         new ScheduleIdDto(
                                 new RouteIdDto(schedule.getId().getRouteId().getId(), schedule.getId().getRouteId().getShift()),
-                                schedule.getId().getStopId()
+                                schedule.getId().getStopId(),
+                                schedule.getId().getSequence()
                         ),
                         schedule.getTime()
                 ));
@@ -633,7 +643,7 @@ public class CrudService {
     public ResponseEntity<ScheduleCrudDto> getScheduleByScheduleId(String scheduleId) {
         try {
             String[] split = scheduleId.split("-");
-            ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2]);
+            ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
             Optional<Schedule> schedule = scheduleRepository.findByScheduleId(_scheduleId);
             if (schedule.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -641,7 +651,8 @@ public class CrudService {
             ScheduleCrudDto scheduleCrudDto = new ScheduleCrudDto(
                     new ScheduleIdDto(
                             new RouteIdDto(schedule.get().getId().getRouteId().getId(), schedule.get().getId().getRouteId().getShift()),
-                            schedule.get().getId().getStopId()
+                            schedule.get().getId().getStopId(),
+                            schedule.get().getId().getSequence()
                     ),
                     schedule.get().getTime()
             );
@@ -655,7 +666,7 @@ public class CrudService {
     public ResponseEntity<ScheduleCrudDto> createSchedule(ScheduleCrudDto scheduleCrudDto) {
         try {
             // Check if schedule already exists
-            Optional<Schedule> schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleCrudDto.getId().getRouteId().getId(), scheduleCrudDto.getId().getRouteId().getShift()), scheduleCrudDto.getId().getStopId()));
+            Optional<Schedule> schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleCrudDto.getId().getRouteId().getId(), scheduleCrudDto.getId().getRouteId().getShift()), scheduleCrudDto.getId().getStopId(), scheduleCrudDto.getId().getSequence()));
             if (schedule.isPresent())
                 return new ResponseEntity<>(HttpStatus.CONFLICT);
 
@@ -677,13 +688,16 @@ public class CrudService {
                 _stop = stop.get();
             }
 
-            if (_route == null || _stop == null)
+            Integer _sequence = scheduleCrudDto.getId().getSequence();
+
+            if (_route == null || _stop == null || _sequence == null)
                 return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 
             scheduleRepository.save(new Schedule(
                     new ScheduleId(
                             _route.getId(),
-                            _stop.getId()
+                            _stop.getId(),
+                            _sequence
                     ),
                     _route,
                     _stop,
@@ -699,7 +713,7 @@ public class CrudService {
     public ResponseEntity<ScheduleCrudDto> updateSchedule(String scheduleId, ScheduleCrudDto scheduleCrudDto) {
         try {
             String[] split = scheduleId.split("-");
-            ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2]);
+            ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
             Optional<Schedule> schedule = scheduleRepository.findByScheduleId(_scheduleId);
             if (schedule.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -722,7 +736,9 @@ public class CrudService {
                 _stop = stop.get();
             }
 
-            if (_route == null || _stop == null)
+            Integer _sequence = scheduleCrudDto.getId().getSequence();
+
+            if (_route == null || _stop == null || _sequence == null)
                 return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 
             Schedule _schedule = schedule.get();
@@ -733,7 +749,8 @@ public class CrudService {
 
             scheduleCrudDto.setId(new ScheduleIdDto(
                     new RouteIdDto(_schedule.getId().getRouteId().getId(), _schedule.getId().getRouteId().getShift()),
-                    _schedule.getId().getStopId()
+                    _schedule.getId().getStopId(),
+                    _schedule.getId().getSequence()
             ));
             return new ResponseEntity<>(scheduleCrudDto, HttpStatus.OK);
         } catch (Exception e) {
@@ -745,7 +762,7 @@ public class CrudService {
     public ResponseEntity<HttpStatus> deleteSchedule(String scheduleId) {
         try {
             String[] split = scheduleId.split("-");
-            ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2]);
+            ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
             scheduleRepository.deleteByScheduleId(_scheduleId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
@@ -769,7 +786,7 @@ public class CrudService {
                         stop.getId(),
                         stop.getDesignation(),
                         new Double[]{stop.getLat(), stop.getLon()},
-                        stop.getSchedules().stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getRoute().getId().getId(), schedule.getRoute().getId().getShift()), schedule.getStop().getId())).toArray(ScheduleIdDto[]::new)
+                        stop.getSchedules().stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getId().getRouteId().getId(), schedule.getId().getRouteId().getShift()), schedule.getId().getStopId(), schedule.getId().getSequence())).toArray(ScheduleIdDto[]::new)
                 ));
             }
             return new ResponseEntity<>(stopsCrudDto, HttpStatus.OK);
@@ -789,7 +806,7 @@ public class CrudService {
                     stop.get().getId(),
                     stop.get().getDesignation(),
                     new Double[]{stop.get().getLat(), stop.get().getLon()},
-                    stop.get().getSchedules().stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getRoute().getId().getId(), schedule.getRoute().getId().getShift()), schedule.getStop().getId())).toArray(ScheduleIdDto[]::new)
+                    stop.get().getSchedules().stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getId().getRouteId().getId(), schedule.getId().getRouteId().getShift()), schedule.getId().getStopId(), schedule.getId().getSequence())).toArray(ScheduleIdDto[]::new)
             );
             return new ResponseEntity<>(stopCrudDto, HttpStatus.OK);
         } catch (Exception e) {
@@ -809,7 +826,7 @@ public class CrudService {
             List<Schedule> _schedules = new ArrayList<>();
             if (stopCrudDto.getSchedulesId() != null) {
                 for (ScheduleIdDto scheduleIdDto : stopCrudDto.getSchedulesId()) {
-                    Optional<Schedule> _schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleIdDto.getRouteId().getId(), scheduleIdDto.getRouteId().getShift()), scheduleIdDto.getStopId()));
+                    Optional<Schedule> _schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleIdDto.getRouteId().getId(), scheduleIdDto.getRouteId().getShift()), scheduleIdDto.getStopId(), scheduleIdDto.getSequence()));
                     if (_schedule.isEmpty())
                         return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
                     _schedules.add(_schedule.get());
@@ -840,7 +857,7 @@ public class CrudService {
             List<Schedule> _schedules = new ArrayList<>();
             if (stopCrudDto.getSchedulesId() != null) {
                 for (ScheduleIdDto scheduleIdDto : stopCrudDto.getSchedulesId()) {
-                    Optional<Schedule> _schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleIdDto.getRouteId().getId(), scheduleIdDto.getRouteId().getShift()), scheduleIdDto.getStopId()));
+                    Optional<Schedule> _schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleIdDto.getRouteId().getId(), scheduleIdDto.getRouteId().getShift()), scheduleIdDto.getStopId(), scheduleIdDto.getSequence()));
                     if (_schedule.isEmpty())
                         return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
                     _schedules.add(_schedule.get());
