@@ -27,6 +27,38 @@ services:
       MYSQL_PASSWORD: admin
     networks:
       - bus-net
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - type: bind
+        source: ./rabbitmq-enabled-plugins
+        target: /etc/rabbitmq/enabled_plugins
+      - type: bind
+        source: ./rabbitmq.config
+        target: /etc/rabbitmq/rabbitmq.config
+      - type: bind
+        source: ./rabbitmq-defs.json
+        target: /etc/rabbitmq/rabbitmq-defs.json
+    networks:
+      - bus-net
+  cassandra:
+    container_name: cassandra
+    image: cassandra:4.0
+    ports:
+      - '9042:9042'
+    volumes:
+      - ~/apps/cassandra:/var/lib/cassandra
+    environment:
+        CASSANDRA_CLUSTER_NAME: 'busrush'
+    networks:
+        - bus-net
+
+
+
 
 volumes:
   busrush-db:
