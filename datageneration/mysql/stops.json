@@ -1,0 +1,138 @@
+[
+  {
+    "id": "AVRBUS-S0000",
+    "designation": "Terminal Rodoviário de Aveiro",
+    "position": [
+      40.64404,
+      -8.63906
+    ]
+  },
+  {
+    "id": "AVRBUS-S0001",
+    "designation": "Av. Dr. Lourenço Peixinho - CTT B",
+    "position": [
+      40.6434,
+      -8.64491
+    ]
+  },
+  {
+    "id": "AVRBUS-S0002",
+    "designation": "Av. Dr. Lourenço Peixinho - Oita B",
+    "position": [
+      40.64289,
+      -8.6475
+    ]
+  },
+  {
+    "id": "AVRBUS-S0003",
+    "designation": "Av. Dr. Lourenço Peixinho - Capitania B",
+    "position": [
+      40.64195,
+      -8.65185
+    ]
+  },
+  {
+    "id": "AVRBUS-S0004",
+    "designation": "Caçadores 10 - Misericórdia",
+    "position": [
+      40.64081,
+      -8.65299
+    ]
+  },
+  {
+    "id": "AVRBUS-S0005",
+    "designation": "Av. de Santa Joana B",
+    "position": [
+      40.63834,
+      -8.6518
+    ]
+  },
+  {
+    "id": "AVRBUS-S0006",
+    "designation": "Universidade - Antiga Reitoria A",
+    "position": [
+      40.63496,
+      -8.65693
+    ]
+  },
+  {
+    "id": "AVRBUS-S0007",
+    "designation": "Universidade - Reitoria A",
+    "position": [
+      40.63208,
+      -8.65802
+    ]
+  },
+  {
+    "id": "AVRBUS-S0008",
+    "designation": "Universidade - Pavilhão A",
+    "position": [
+      40.63017,
+      -8.65501
+    ]
+  },
+  {
+    "id": "AVRBUS-S0009",
+    "designation": "Universidade - Santiago A",
+    "position": [
+      40.62979,
+      -8.65955
+    ]
+  },
+  {
+    "id": "AVRBUS-S0010",
+    "designation": "Universidade - Crasto",
+    "position": [
+      40.62316,
+      -8.65772
+    ]
+  },
+  {
+    "id": "AVRBUS-S0011",
+    "designation": "Universidade - Santiago B",
+    "position": [
+      40.62978,
+      -8.65953
+    ]
+  },
+  {
+    "id": "AVRBUS-S0012",
+    "designation": "Universidade - ISCAUA A",
+    "position": [
+      40.63076,
+      -8.65341
+    ]
+  },
+  {
+    "id": "AVRBUS-S0013",
+    "designation": "Universidade - ISCAUA B",
+    "position": [
+      40.63083,
+      -8.65325
+    ]
+  },
+  {
+    "id": "AVRBUS-S0014",
+    "designation": "Universidade - Pavilhão B",
+    "position": [
+      40.63018,
+      -8.65499
+    ]
+  },
+  {
+    "id": "AVRBUS-S0015",
+    "designation": "Universidade - Reitoria B",
+    "position": [
+      40.63212,
+      -8.65804
+    ]
+  },
+  {
+    "id": "AVRBUS-S0016",
+    "designation": "Universidade - Antiga Reitoria B",
+    "position": [
+      40.63492,
+      -8.65686
+    ]
+  }
+]
