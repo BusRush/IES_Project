@@ -16,7 +16,7 @@ import java.util.Collection;
 
 @Data
 @NoArgsConstructor
-@Table("busMetrics")
+@Table("bus_metrics")
 public class BusMetrics {
 
     @PrimaryKeyColumn(
