@@ -43,3 +43,13 @@ def save_path_mock(path, filename):
         f.write('[\n')
         f.write(',\n'.join([json.dumps(p) for p in path]))
         f.write('\n]')
+
+def load_mysql_collection(filename):
+    #
+    # Loads a collection of data from a JSON file.
+    # Returns a list with the objects.
+    #
+
+    with open('mysql/' + filename, 'r') as f:
+        data = f.read()
+    return json.loads(data)
