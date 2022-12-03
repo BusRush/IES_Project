@@ -56,7 +56,18 @@ services:
         CASSANDRA_CLUSTER_NAME: 'busrush'
     networks:
         - bus-net
-
+  osrm:
+    container_name: osrm
+    image: ghcr.io/project-osrm/osrm-backend
+    ports:
+      - '5000:5000'
+    command: osrm-routed --algorithm mld /data/portugal-latest.osrm
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data
+    networks:
+      - bus-net
 
 
 
