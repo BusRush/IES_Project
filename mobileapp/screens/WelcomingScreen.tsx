@@ -82,15 +82,18 @@ const WelcomingScreen = () => {
           </View>
           <View style={{ width, height }}>
             <Image
-              source={require("../assets/cool2.jpeg")}
+              source={require("../assets/aveirobus.jpg")}
               style={styles.imageStyle}
             />
             <View style={styles.wrapper}>
-              <Text style={styles.header}>
+              {/*<Text style={styles.header}>
                 Add your prefered route to your favourites list.
               </Text>
               <Text style={styles.paragraph}>
                 This way you can receive notifications from the app.
+              </Text>*/}
+              <Text style={styles.header}>
+                Never miss a bus again!
               </Text>
             </View>
           </View>
