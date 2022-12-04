@@ -9,6 +9,7 @@ import { NextBuses } from "../components/NextBuses.js";
 import CalendarStrip from "react-native-calendar-strip";
 import { addDays } from "date-fns";
 import { Provider as PaperProvider } from "react-native-paper";
+import { Dimensions } from "react-native";
 import * as Location from "expo-location";
 datesWhitelist = [
   {
@@ -24,6 +25,7 @@ function getClosestStop() {
 function BusRoutes() {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [closestBusStop, setClosestBusStop] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -38,12 +40,22 @@ function BusRoutes() {
     })();
   }, []);
 
-  let text = "Waiting..";
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location) {
-    text = JSON.stringify(location);
-  }
+  const getClosestLocation = async () => {
+    let lat = location["coords"]["latitude"];
+    let lon = location["coords"]["longitude"];
+    try {
+      const response = await fetch(
+        "http://10.0.2.2:8080/api/stops/closest?lat=" + lat + "&lon=" + lon
+      );
+      const json = await response.json();
+      setClosestBusStop(json.designation);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  getClosestLocation();
+  console.log(closestBusStop);
 
   const navigation = useNavigation();
   const [selectedDate, setSelectedDate] = useState("");
@@ -104,9 +116,16 @@ function BusRoutes() {
               color="#245A8D"
               onPress={() => getClosestStop()}
             />
-
-            <Text style={Styles.subtextStyle}>Paragem mais próxima: </Text>
-            <Text style={Styles.subtextStyle}>{text}</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                width: Dimensions.get("window").width - 100,
+              }}
+            >
+              <Text style={Styles.subtextStyle}>
+                Paragem mais próxima: {closestBusStop}
+              </Text>
+            </View>
           </View>
 
           <View style={{ paddingTop: 5, backgroundColor: "white" }}>
@@ -148,11 +167,11 @@ const Styles = {
     fontWeight: "bold",
   },
   subtextStyle: {
+    flex: 1,
     marginTop: 10,
     color: "#fff",
     fontSize: 14,
     fontWeight: "bold",
-    alignItems: "center",
     marginBottom: 10,
   },
   container: {
