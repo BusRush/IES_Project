@@ -18,14 +18,10 @@ datesWhitelist = [
   },
 ];
 
-function getClosestStop() {
-  console.log("Getting closest stop");
-}
-
 function BusRoutes() {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
-  const [closestBusStop, setClosestBusStop] = useState(null);
+  const [closestBusStop, setClosestBusStop] = useState("Waiting...");
 
   useEffect(() => {
     (async () => {
@@ -54,15 +50,13 @@ function BusRoutes() {
     }
   };
 
-  getClosestLocation();
-  console.log(closestBusStop);
-
   const navigation = useNavigation();
   const [selectedDate, setSelectedDate] = useState("");
   const [partida_search, setPartidaSearch] = useState("");
 
   const updatePartidaSearch = (partida_search) => {
     setPartidaSearch(partida_search);
+    console.log(partida_search);
   };
 
   const [chegada_search, setChegadaSearch] = useState("");
@@ -114,7 +108,7 @@ function BusRoutes() {
               reverse
               name="my-location"
               color="#245A8D"
-              onPress={() => getClosestStop()}
+              onPress={() => getClosestLocation()}
             />
             <View
               style={{
