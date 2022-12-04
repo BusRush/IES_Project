@@ -1,18 +1,15 @@
 package ies.project.busrush.model.cassandra;
 
-import java.sql.Date;
+import java.util.Date;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
+import org.springframework.data.cassandra.core.mapping.Column;
 import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
 import org.springframework.data.cassandra.core.mapping.Table;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 import org.springframework.data.cassandra.core.cql.Ordering;
-
-import javax.persistence.*;
-
-import java.util.Collection;
 
 @Data
 @NoArgsConstructor
@@ -24,12 +21,6 @@ public class BusMetrics {
         ordinal = 0, 
         type = PrimaryKeyType.PARTITIONED)
     private String bus_id;
-
-    @PrimaryKeyColumn(
-        name = "device_id", 
-        ordinal = 0, 
-        type = PrimaryKeyType.PARTITIONED)
-    private String device_id;
 
     @PrimaryKeyColumn(
         name = "date", 
@@ -44,11 +35,10 @@ public class BusMetrics {
         ordering = Ordering.ASCENDING)
     private long timestamp;
     
-    private int passengers;
-    private Double speed;
-    private Double fuel; 
-    private Double lat;
-    private Double lon;
-
-
+    @Column("speed") private Double speed;
+    @Column("device_id") private String device_id;
+    @Column("lat") private Double lat;
+    @Column("lon") private Double lon;
+    @Column("passengers") private int passengers;
+    @Column("fuel") private Double fuel;
 }
