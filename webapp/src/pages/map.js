@@ -1,10 +1,12 @@
 import Head from 'next/head';
+import { Component } from 'react';
 import { Box, Container, Grid } from '@mui/material';
+import dynamic from 'next/dynamic';
 import { DashboardLayout } from '../components/dashboard-layout';
-import { MapWidget } from '../components/map/map-widget';
+// import { MapWidget } from '../components/map/map-widget';
+const MapWidget = dynamic(() => import("../components/map/map-widget"), { ssr: false });
 import { busesLive } from '../__mocks__/buses-live';
 import { busRoutes } from '../__mocks__/bus-routes';
-import { Component } from 'react';
 import { BusMetrics } from '../components/map/bus-metrics';
 
 class Page extends Component {
