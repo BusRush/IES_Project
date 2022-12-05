@@ -1,0 +1,23 @@
+[
+  {
+    "id": "AVRBUS-B0000",
+    "registration": "31-RS-97",
+    "brand": "Setra",
+    "model": "MultiClass S 415 LE business",
+    "deviceId": "AVRBUS-D0000"
+  },
+  {
+    "id": "AVRBUS-B0001",
+    "registration": "74-NU-71",
+    "brand": "MAN",
+    "model": "Lion's Intercity LE",
+    "deviceId": "AVRBUS-D0001"
+  },
+  {
+    "id": "AVRBUS-B0002",
+    "registration": "10-VR-81",
+    "brand": "Caetano",
+    "model": "e.City Gold",
+    "deviceId": "AVRBUS-D0002"
+  }
+]

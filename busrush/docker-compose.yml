@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  app:
+    container_name: busrush
+    build: .
+    ports:
+      - '8080:8080'
+    volumes:
+      - .:/busrush
+    # environment:
+    #  FLASK_DEBUG: True
+    networks:
+      - bus-net
+
+networks:
+  bus-net:

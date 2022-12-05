@@ -43,29 +43,6 @@ public class BusRushService {
         this.scheduleRepository = scheduleRepository;
         this.stopRepository = stopRepository;
         this.userRepository = userRepository;
-
-        // Clear all records on tables
-        busRepository.deleteAll();
-        deviceRepository.deleteAll();
-        driverRepository.deleteAll();
-        scheduleRepository.deleteAll(); // Delete before route and stop repositories (FK constraint)
-        routeRepository.deleteAll();
-        stopRepository.deleteAll();
-        userRepository.deleteAll();
-        // Insert in stops
-        List<Stop> stops = new ArrayList<>();
-        stops.add(new Stop("1", "Terminal Rodoviário de Aveiro", 40.64404, -8.63906, null));
-        stops.add(new Stop("2", "Av. Dr. Lourenço Peixinho - CTT B", 40.6434, -8.64491, null));
-        stopRepository.saveAll(stops);
-        // Insert in routes
-        List<Route> routes = new ArrayList<>();
-        routes.add(new Route(new RouteId("AVRBUS-L0011", "092000"), "Linha 11", null, null, null));
-        routeRepository.saveAll(routes);
-        // Insert in schedules
-        List<Schedule> schedules = new ArrayList<>();
-        schedules.add(new Schedule(new ScheduleId(routes.get(0).getId(), stops.get(0).getId()), routes.get(0), stops.get(0), LocalTime.of(9, 20, 0)));
-        schedules.add(new Schedule(new ScheduleId(routes.get(0).getId(), stops.get(1).getId()), routes.get(0), stops.get(1), LocalTime.of(9, 21, 0)));
-        scheduleRepository.saveAll(schedules);
     }
 
 
@@ -85,7 +62,7 @@ public class BusRushService {
 
     public ResponseEntity<List<ScheduleDto>> getNextSchedules(Optional<String> originStopId, Optional<String> destinationStopId) {
         List<Schedule> schedules = new ArrayList<>();
-        LocalTime currentTime = LocalTime.now();
+        LocalTime currentTime = LocalTime.of(8, 0, 0); // TODO: replace with LocalTime.now();
         if (originStopId.isPresent() && destinationStopId.isEmpty()) {
             // All schedules of routes that pass through the origin stop
             schedules = scheduleRepository.findSchedulesByStopAndCurrentTime(originStopId.get(), currentTime);
