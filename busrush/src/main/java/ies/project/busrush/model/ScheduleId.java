@@ -16,4 +16,6 @@ public class ScheduleId implements Serializable {
     private RouteId routeId;
     @Column(name = "stop_id")
     private String stopId;
+    @Column(name = "sequence")
+    private Integer sequence;
 }

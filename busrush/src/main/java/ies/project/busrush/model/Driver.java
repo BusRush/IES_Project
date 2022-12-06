@@ -1,15 +1,17 @@
 package ies.project.busrush.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-import java.util.Collection;
+import java.util.List;
 
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "drivers")
 public class Driver {
@@ -23,5 +25,5 @@ public class Driver {
     private String lastName;
 
     @OneToMany
-    private Collection<Route> routes;
+    private List<Route> routes;
 }
