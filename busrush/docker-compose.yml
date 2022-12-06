@@ -70,6 +70,16 @@ services:
         target: /data
     networks:
       - bus-net
+  init:
+    image: cassandra:4.0
+    depends_on:
+      - cassandra
+    restart: "no"
+    entrypoint: [ "/init_cassandra.sh" ]
+    volumes:
+      - ./init_cassandra.sh:/init_cassandra.sh
+    networks:
+        - bus-net
 
 
 
