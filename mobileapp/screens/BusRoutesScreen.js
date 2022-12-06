@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, SafeAreaView } from "react-native";
+import { View, Text, SafeAreaView, AsyncStorage } from "react-native";
 import { useLayoutEffect } from "react";
 import { SearchBar } from "@rneui/themed";
 import { Icon } from "@rneui/themed";
@@ -8,7 +8,7 @@ import { RouteNumbers } from "../components/RouteNumbers.js";
 import { NextBuses } from "../components/NextBuses.js";
 import CalendarStrip from "react-native-calendar-strip";
 import { addDays } from "date-fns";
-import { Provider as PaperProvider } from "react-native-paper";
+import { Button, Provider as PaperProvider } from "react-native-paper";
 import { Dimensions } from "react-native";
 import * as Location from "expo-location";
 import SearchableDropdown from "react-native-searchable-dropdown";
@@ -24,8 +24,9 @@ function BusRoutes() {
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [closestBusStop, setClosestBusStop] = useState("Waiting...");
+  const [closestBusStopID, setClosestBusStopID] = useState(null);
   const [busStops, setBusStops] = useState([]);
-  const [nextBuses, setNextBuses] = useState([])
+  const [nextBuses, setNextBuses] = useState([]);
 
   useEffect(() => {
     (async () => {
@@ -38,50 +39,69 @@ function BusRoutes() {
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location);
     })();
-  }, []);
+
+    (async () => {
+      try {
+        let busStops = [];
+        const response = await fetch("http://10.0.2.2:8080/api/stops");
+        const json = await response.json();
+        for (let i = 0; i < json.length; i++) {
+          busStops.push({ id: json[i].id, name: json[i].designation });
+        }
+        setBusStops(busStops);
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
 
   const getClosestLocation = async () => {
     let lat = location["coords"]["latitude"];
     let lon = location["coords"]["longitude"];
+    console.log("hallo");
     try {
       const response = await fetch(
         "http://10.0.2.2:8080/api/stops/closest?lat=" + lat + "&lon=" + lon
       );
       const json = await response.json();
+      console.log(json);
       setClosestBusStop(json.designation);
+      setClosestBusStopID(json.id);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const getAllStops = async () => {
+  const getBusRoutes = async () => {
+    let lat = location["coords"]["latitude"];
+    let lon = location["coords"]["longitude"];
+    console.log("hallo");
     try {
-      let busStops = [];
-      const response = await fetch("http://10.0.2.2:8080/api/stops");
+      let nextBuses = [];
+      const response = await fetch(
+        "http://10.0.2.2:8080/api/schedules/next?origin_stop_id=" +
+          closestBusStopID +
+          "&destination_stop_id=AVRBUS-S0005"
+      );
       const json = await response.json();
       for (let i = 0; i < json.length; i++) {
-        busStops.push({ id: json[i].id, name: json[i].designation });
+        nextBuses.push({
+          linha: json[i].route.designation,
+          paragem: json[i].stop.designation,
+          time: json[i].time,
+        });
       }
-      setBusStops(busStops);
+      console.log(nextBuses);
+      setNextBuses(nextBuses);
     } catch (error) {
+      console.log("here");
       console.error(error);
     }
   };
 
-
-
-
-  getAllStops();
-  // console.log(busStops);
-
-  const getBusRoutes = async (stopOrigin) => {
-    try {
-      const response = await fetch("http://10.2.2.2:8080/api/schedules/next?origin_stop_id=" + stopOrigin.id + "&destination_stop_id=AVRBUS-S0005")
-      const json = await response.json();
-
-    }
-    console.log(stopOrigin);
-  };
   const navigation = useNavigation();
   const [selectedDate, setSelectedDate] = useState("");
   const [partida_search, setPartidaSearch] = useState("");
@@ -97,32 +117,21 @@ function BusRoutes() {
     setChegadaSearch(chegada_search);
   };
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-
   return (
     <PaperProvider>
       <SafeAreaView className="pt-5">
-        <View style={{ backgroundColor: "#245A8D" }}>
+        <View style={{ backgroundColor: "#245A8D", paddingTop: 40 }}>
           <SearchableDropdown
             onTextChange={(text) => console.log(text)}
-            //On text change listner on the searchable input
-            onItemSelect={(item) => getBusRoutes(item)}
-            //onItemSelect called after the selection from the dropdown
+            onItemSelect={(item) => getBusRoutes()}
             containerStyle={{ padding: 5 }}
-            //suggestion container style
             textInputStyle={{
-              //inserted text style
               padding: 12,
               borderWidth: 1,
               borderColor: "#ccc",
               backgroundColor: "#FAF7F6",
             }}
             itemStyle={{
-              //single dropdown item style
               padding: 10,
               marginTop: 2,
               backgroundColor: "#FAF9F8",
@@ -130,37 +139,16 @@ function BusRoutes() {
               borderWidth: 1,
             }}
             itemTextStyle={{
-              //text style of a single dropdown item
               color: "#222",
             }}
             itemsContainerStyle={{
-              //items container style you can pass maxHeight
-              //to restrict the items dropdown hieght
-              maxHeight: "50%",
+              maxHeight: "60%",
             }}
             items={busStops}
-            //mapping of item array
-            defaultIndex={2}
-            //default selected item index
-            placeholder="placeholder"
-            //place holder for the search input
+            defaultIndex={1}
+            placeholder="Inserir Partida"
             resetValue={false}
-            //reset textInput Value with true and false state
             underlineColorAndroid="transparent"
-            //To remove the underline from the android input
-          />
-          <SearchBar
-            placeholder="Inserir partida"
-            containerStyle={{
-              height: 55,
-              backgroundColor: "#245A8D",
-              borderTopWidth: 0,
-              marginTop: 25,
-              borderBottomWidth: 0,
-            }}
-            onChangeText={updatePartidaSearch}
-            value={partida_search}
-            //inputStyle={{backgroundColor: '#3B71CA, height: 40, borderRadius: 10}}
           />
         </View>
         <View>
@@ -200,10 +188,14 @@ function BusRoutes() {
             <RouteNumbers />
           </View>
 
+          <View>
+            <Button onPress={getBusRoutes}>Get Routes</Button>
+          </View>
+
           {/* <CalendarStrip datesWhitelist={datesWhitelist} /> */}
 
           <View>
-            <NextBuses />
+            <NextBuses dados={nextBuses} />
           </View>
         </View>
       </SafeAreaView>
