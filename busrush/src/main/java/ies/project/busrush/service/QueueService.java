@@ -12,7 +12,7 @@ public class QueueService {
 
     @Bean
     public Queue create() {
-        return new Queue("devices", false);
+        return new Queue("devices", true);
     }
 
     @RabbitListener(queues = "devices")
