@@ -535,13 +535,24 @@ public class CrudService {
                 }
             }
 
-            routeRepository.save(new Route(
+            Route _route = new Route(
                     new RouteId(routeCrudDto.getId().getId(), routeCrudDto.getId().getShift()),
                     routeCrudDto.getDesignation(),
                     _driver,
                     _bus,
                     _schedules
-            ));
+            );
+            routeRepository.save(_route);
+
+            if (_driver != null) {
+                _driver.getRoutes().add(_route);
+                driverRepository.save(_driver);
+            }
+
+            if (_bus != null) {
+                _bus.getRoutes().add(_route);
+                busRepository.save(_bus);
+            }
             return new ResponseEntity<>(routeCrudDto, HttpStatus.CREATED);
         } catch (Exception e) {
             System.out.println(e.getMessage());

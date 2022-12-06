@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-import java.util.Collection;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -27,5 +27,5 @@ public class Stop {
     private Double lon;
 
     @OneToMany(mappedBy = "stop")
-    private Collection<Schedule> schedules;
+    private List<Schedule> schedules;
 }
