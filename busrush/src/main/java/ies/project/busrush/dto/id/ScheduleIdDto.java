@@ -1,4 +1,4 @@
-package ies.project.busrush.dto;
+package ies.project.busrush.dto.id;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

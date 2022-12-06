@@ -1,9 +1,9 @@
 package ies.project.busrush.service;
 
-import ies.project.busrush.dto.RouteDto;
-import ies.project.busrush.dto.ScheduleDto;
-import ies.project.busrush.dto.StopDto;
-import ies.project.busrush.dto.StopWithDistanceDto;
+import ies.project.busrush.dto.basic.RouteBasicDto;
+import ies.project.busrush.dto.busrush.NextScheduleDto;
+import ies.project.busrush.dto.busrush.ClosestStopDto;
+import ies.project.busrush.dto.id.RouteIdDto;
 import ies.project.busrush.model.*;
 import ies.project.busrush.model.custom.StopWithDistance;
 import ies.project.busrush.repository.*;
@@ -46,21 +46,21 @@ public class BusRushService {
     }
 
 
-    public ResponseEntity<StopWithDistanceDto> getClosestStop(Double lat, Double lon) {
+    public ResponseEntity<ClosestStopDto> getClosestStop(Double lat, Double lon) {
         List<StopWithDistance> stopWithDistance = stopRepository.findClosest(lat, lon, PageRequest.of(0, 1));
         if (stopWithDistance.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         StopWithDistance _stopWithDistance = stopWithDistance.get(0);
-        StopWithDistanceDto stopWithDistanceDto = new StopWithDistanceDto(
+        ClosestStopDto closestStopDto = new ClosestStopDto(
                 _stopWithDistance.getStop().getId(),
                 _stopWithDistance.getStop().getDesignation(),
                 new Double[]{_stopWithDistance.getStop().getLat(), _stopWithDistance.getStop().getLon()},
                 _stopWithDistance.getDistance());
-        return new ResponseEntity<>(stopWithDistanceDto, HttpStatus.OK);
+        return new ResponseEntity<>(closestStopDto, HttpStatus.OK);
     }
 
-    public ResponseEntity<List<ScheduleDto>> getNextSchedules(Optional<String> originStopId, Optional<String> destinationStopId) {
+    public ResponseEntity<List<NextScheduleDto>> getNextSchedules(Optional<String> originStopId, Optional<String> destinationStopId) {
         List<Schedule> schedules = new ArrayList<>();
         LocalTime currentTime = LocalTime.of(8, 0, 0); // TODO: replace with LocalTime.now();
         if (originStopId.isPresent() && destinationStopId.isEmpty()) {
@@ -79,20 +79,17 @@ public class BusRushService {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
 
-        List<ScheduleDto> schedulesDto = new ArrayList<>();
+        List<NextScheduleDto> schedulesDto = new ArrayList<>();
         Set<String> seenRouteIds = new HashSet<>();
         for (Schedule schedule : schedules) {
             if (!seenRouteIds.contains(schedule.getRoute().getId().getId())) {
-                RouteDto routeDto = new RouteDto(
-                        schedule.getRoute().getId().getId(),
+                RouteBasicDto routeBasicDto = new RouteBasicDto(
+                        new RouteIdDto(
+                                schedule.getRoute().getId().getId(),
+                                schedule.getRoute().getId().getShift()),
                         schedule.getRoute().getDesignation());
-                StopDto stopDto = new StopDto(
-                        schedule.getStop().getId(),
-                        schedule.getStop().getDesignation(),
-                        new Double[]{schedule.getStop().getLat(), schedule.getStop().getLon()});
-                schedulesDto.add(new ScheduleDto(
-                        routeDto,
-                        stopDto,
+                schedulesDto.add(new NextScheduleDto(
+                        routeBasicDto,
                         schedule.getTime()));
                 seenRouteIds.add(schedule.getRoute().getId().getId());
             }

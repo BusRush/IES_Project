@@ -1,11 +1,11 @@
-package ies.project.busrush.dto;
+package ies.project.busrush.dto.id;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class RouteDto {
+public class RouteIdDto {
     private String id;
-    private String designation;
+    private String shift;
 }

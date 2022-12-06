@@ -1,7 +1,8 @@
 package ies.project.busrush.service;
 
-import ies.project.busrush.dto.*;
 import ies.project.busrush.dto.crud.*;
+import ies.project.busrush.dto.id.RouteIdDto;
+import ies.project.busrush.dto.id.ScheduleIdDto;
 import ies.project.busrush.model.*;
 import ies.project.busrush.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,14 +41,13 @@ public class CrudService {
         this.userRepository = userRepository;
 
         // Clear all records on tables
-        // TODO: Remove this?
-        scheduleRepository.deleteAll();
-        stopRepository.deleteAll();
-        routeRepository.deleteAll();
-        driverRepository.deleteAll();
-        busRepository.deleteAll();
-        deviceRepository.deleteAll();
-        userRepository.deleteAll();
+        // scheduleRepository.deleteAll();
+        // stopRepository.deleteAll();
+        // routeRepository.deleteAll();
+        // driverRepository.deleteAll();
+        // busRepository.deleteAll();
+        // deviceRepository.deleteAll();
+        // userRepository.deleteAll();
     }
 
     //
