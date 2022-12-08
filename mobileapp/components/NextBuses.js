@@ -28,7 +28,7 @@ const DATA = [
   },
 ];
 
-const NextBuses = () => {
+const NextBuses = (props) => {
   const navigation = useNavigation();
   const renderItem = ({ item }) => (
     <TouchableOpacity
@@ -36,26 +36,24 @@ const NextBuses = () => {
     >
       <View style={styles.row}>
         <View style={styles.number}>
-          <Text style={styles.title}>{item.number}</Text>
+          <Text style={styles.title}>{item.linha}</Text>
         </View>
         <View style={styles.item}>
-          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.title}>{item.paragem}</Text>
         </View>
         <View style={styles.hour}>
-          <Text style={styles.hour}>{item.hour}</Text>
+          <Text style={styles.title}>{item.time}</Text>
         </View>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <FlatList
-        data={DATA}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.number}
-      />
-    </SafeAreaView>
+    <FlatList
+      data={props.dados}
+      renderItem={renderItem}
+      keyExtractor={(item) => item.linha}
+    />
   );
 };
 
@@ -84,10 +82,10 @@ const styles = StyleSheet.create({
     color: "#245A8D",
   },
   item: {
-    backgroundColor: "#ffffff",
     padding: 20,
     marginVertical: 1,
     marginHorizontal: 5,
+    width: 200,
   },
   title: {
     fontSize: 20,
