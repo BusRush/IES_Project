@@ -1,5 +1,6 @@
 package ies.project.busrush.service;
 
+
 import ies.project.busrush.dto.basic.RouteBasicDto;
 import ies.project.busrush.dto.busrush.NextScheduleDto;
 import ies.project.busrush.dto.busrush.ClosestStopDto;
@@ -52,11 +53,13 @@ public class BusRushService {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         StopWithDistance _stopWithDistance = stopWithDistance.get(0);
+
         ClosestStopDto closestStopDto = new ClosestStopDto(
                 _stopWithDistance.getStop().getId(),
                 _stopWithDistance.getStop().getDesignation(),
                 new Double[]{_stopWithDistance.getStop().getLat(), _stopWithDistance.getStop().getLon()},
                 _stopWithDistance.getDistance());
+
         return new ResponseEntity<>(closestStopDto, HttpStatus.OK);
     }
 
@@ -78,6 +81,7 @@ public class BusRushService {
         if (schedules.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
+
 
         List<NextScheduleDto> schedulesDto = new ArrayList<>();
         Set<String> seenRouteIds = new HashSet<>();

@@ -1,15 +1,12 @@
-package ies.project.busrush.dto.crud;
+package ies.project.busrush.dto;
 
-
-import ies.project.busrush.dto.id.ScheduleIdDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class StopCrudDto {
+public class StopDto {
     private String id;
     private String designation;
     private Double[] position;
-    private ScheduleIdDto[] schedulesId;
 }

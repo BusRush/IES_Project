@@ -536,11 +536,13 @@ public class CrudService {
             }
 
             Route _route = new Route(
+
                     new RouteId(routeCrudDto.getId().getId(), routeCrudDto.getId().getShift()),
                     routeCrudDto.getDesignation(),
                     _driver,
                     _bus,
                     _schedules
+
             );
             routeRepository.save(_route);
 

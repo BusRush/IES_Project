@@ -1,2 +1,3 @@
-- Welcoming Screen: cute welcoming slider page with info about the app;
-- AveiroBus inspired https://www.aveirobus.pt/circuito-urbano
+TODO GERAL:
+* Adaptar screens à API
+* Global stylesheet

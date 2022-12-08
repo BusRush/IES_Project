@@ -10,6 +10,7 @@ services:
       - .:/busrush
     # environment:
     #  FLASK_DEBUG: True
+
     depends_on:
       - mysql-db
     networks:
@@ -85,6 +86,7 @@ services:
 
 volumes:
   busrush-db:
+
 
 networks:
   bus-net:
