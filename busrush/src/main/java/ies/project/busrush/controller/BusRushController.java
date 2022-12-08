@@ -27,7 +27,7 @@ public class BusRushController {
 
     @GetMapping("/schedules/next")
     public ResponseEntity<List<NextScheduleDto>> getNextSchedules(
-            @RequestParam(value = "origin_stop_id") Optional<String> originStopId,
+            @RequestParam(value = "origin_stop_id") String originStopId,
             @RequestParam(value = "destination_stop_id") Optional<String> destinationStopId
     ) {
         return busRushService.getNextSchedules(originStopId, destinationStopId);

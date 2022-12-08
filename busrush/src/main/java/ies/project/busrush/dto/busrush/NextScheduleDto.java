@@ -12,4 +12,5 @@ import java.time.LocalTime;
 public class NextScheduleDto {
     private RouteBasicDto route;
     private LocalTime time;
+    private Integer delay;
 }

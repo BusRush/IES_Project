@@ -1,5 +1,6 @@
 package ies.project.busrush.repository;
 
+import ies.project.busrush.model.ScheduleId;
 import ies.project.busrush.model.Stop;
 import ies.project.busrush.model.custom.StopWithDistance;
 import org.springframework.data.domain.Pageable;

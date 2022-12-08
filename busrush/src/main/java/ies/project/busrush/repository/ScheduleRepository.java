@@ -21,15 +21,13 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
     @Query("SELECT s " +
             "FROM Schedule s " +
             "WHERE s.stop.id = :stopId " +
-            "AND s.time >= :currentTime " +
-            "ORDER BY s.time")
-    List<Schedule> findSchedulesByStopAndCurrentTime(String stopId, LocalTime currentTime);
+            "ORDER BY s.time ASC")
+    List<Schedule> findAllByStopId(String stopId);
 
     @Query("SELECT s1 " +
             "FROM Schedule s1 " +
             "INNER JOIN Schedule s2 ON s1.route.id = s2.route.id " +
-            "WHERE s1.stop.id = :originStopId AND s2.stop.id = :destinationStopId " +
-            "AND s1.time >= :currentTime AND s1.time <= s2.time " +
-            "ORDER BY s1.time")
-    List<Schedule> findSchedulesByOriginStopAndDestinationStopAndCurrentTime(String originStopId, String destinationStopId, LocalTime currentTime);
+            "WHERE s1.stop.id = :originStopId AND s2.stop.id = :destinationStopId AND s1.id.sequence < s2.id.sequence " +
+            "ORDER BY s1.time ASC")
+    List<Schedule> findAllByOriginStopIdAndDestinationStopId(String originStopId, String destinationStopId);
 }
