@@ -10,8 +10,83 @@ services:
       - .:/busrush
     # environment:
     #  FLASK_DEBUG: True
+
+    depends_on:
+      - mysql-db
     networks:
       - bus-net
+  mysql-db:
+    container_name: busrush-db
+    image: mysql/mysql-server:5.7
+    ports:
+      - '3306:3306'
+    volumes:
+      - busrush-db:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: busrush
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+    networks:
+      - bus-net
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - type: bind
+        source: ./rabbitmq-enabled-plugins
+        target: /etc/rabbitmq/enabled_plugins
+      - type: bind
+        source: ./rabbitmq.config
+        target: /etc/rabbitmq/rabbitmq.config
+      - type: bind
+        source: ./rabbitmq-defs.json
+        target: /etc/rabbitmq/rabbitmq-defs.json
+    networks:
+      - bus-net
+  cassandra:
+    container_name: cassandra
+    image: cassandra:4.0
+    ports:
+      - '9042:9042'
+    volumes:
+      - ~/apps/cassandra:/var/lib/cassandra
+    environment:
+        CASSANDRA_CLUSTER_NAME: 'busrush'
+    networks:
+        - bus-net
+  osrm:
+    container_name: osrm
+    image: ghcr.io/project-osrm/osrm-backend
+    ports:
+      - '5000:5000'
+    command: osrm-routed --algorithm mld /data/portugal-latest.osrm
+    volumes:
+      - type: bind
+        source: ./data
+        target: /data
+    networks:
+      - bus-net
+  init:
+    image: cassandra:4.0
+    depends_on:
+      - cassandra
+    restart: "no"
+    entrypoint: [ "/init_cassandra.sh" ]
+    volumes:
+      - ./init_cassandra.sh:/init_cassandra.sh
+    networks:
+        - bus-net
+
+
+
+volumes:
+  busrush-db:
+
 
 networks:
   bus-net:

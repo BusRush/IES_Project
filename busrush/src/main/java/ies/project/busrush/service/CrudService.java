@@ -1,7 +1,8 @@
 package ies.project.busrush.service;
 
-import ies.project.busrush.dto.*;
 import ies.project.busrush.dto.crud.*;
+import ies.project.busrush.dto.id.RouteIdDto;
+import ies.project.busrush.dto.id.ScheduleIdDto;
 import ies.project.busrush.model.*;
 import ies.project.busrush.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,14 +41,13 @@ public class CrudService {
         this.userRepository = userRepository;
 
         // Clear all records on tables
-        // TODO: Remove this?
-        scheduleRepository.deleteAll();
-        stopRepository.deleteAll();
-        routeRepository.deleteAll();
-        driverRepository.deleteAll();
-        busRepository.deleteAll();
-        deviceRepository.deleteAll();
-        userRepository.deleteAll();
+        // scheduleRepository.deleteAll();
+        // stopRepository.deleteAll();
+        // routeRepository.deleteAll();
+        // driverRepository.deleteAll();
+        // busRepository.deleteAll();
+        // deviceRepository.deleteAll();
+        // userRepository.deleteAll();
     }
 
     //
@@ -535,13 +535,26 @@ public class CrudService {
                 }
             }
 
-            routeRepository.save(new Route(
+            Route _route = new Route(
+
                     new RouteId(routeCrudDto.getId().getId(), routeCrudDto.getId().getShift()),
                     routeCrudDto.getDesignation(),
                     _driver,
                     _bus,
                     _schedules
-            ));
+
+            );
+            routeRepository.save(_route);
+
+            if (_driver != null) {
+                _driver.getRoutes().add(_route);
+                driverRepository.save(_driver);
+            }
+
+            if (_bus != null) {
+                _bus.getRoutes().add(_route);
+                busRepository.save(_bus);
+            }
             return new ResponseEntity<>(routeCrudDto, HttpStatus.CREATED);
         } catch (Exception e) {
             System.out.println(e.getMessage());

@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import { MarkerBusIcon, MarkerStopIcon } from './marker-icon';
 
-export const MapWidget = (props) => {
+const MapWidget = (props) => {
 
   const [center, setCenter] = useState([40.64, -8.65]);
   const [map, setMap] = useState(null);
@@ -42,3 +42,4 @@ export const MapWidget = (props) => {
     </MapContainer>
   );
 };
+export default MapWidget;

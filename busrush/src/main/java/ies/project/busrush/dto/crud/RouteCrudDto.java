@@ -1,7 +1,7 @@
 package ies.project.busrush.dto.crud;
 
-import ies.project.busrush.dto.RouteIdDto;
-import ies.project.busrush.dto.ScheduleIdDto;
+import ies.project.busrush.dto.id.RouteIdDto;
+import ies.project.busrush.dto.id.ScheduleIdDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

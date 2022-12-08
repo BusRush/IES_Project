@@ -6,7 +6,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-import java.util.Collection;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -31,5 +32,5 @@ public class Bus {
     private Device device;
 
     @OneToMany
-    private Collection<Route> routes;
+    private List<Route> routes;
 }

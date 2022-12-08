@@ -6,7 +6,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
-import java.util.Collection;
+
+import java.util.List;
 
 
 @Data
@@ -25,5 +26,5 @@ public class Driver {
     private String lastName;
 
     @OneToMany
-    private Collection<Route> routes;
+    private List<Route> routes;
 }
