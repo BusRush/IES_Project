@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, SafeAreaView, AsyncStorage } from "react-native";
+import { View, Text } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useLayoutEffect } from "react";
 import { SearchBar } from "@rneui/themed";
 import { Icon } from "@rneui/themed";
@@ -9,9 +10,9 @@ import { NextBuses } from "../components/NextBuses.js";
 import CalendarStrip from "react-native-calendar-strip";
 import { addDays } from "date-fns";
 import { Button, Provider as PaperProvider } from "react-native-paper";
+import SearchableDropdown from "react-native-searchable-dropdown";
 import { Dimensions } from "react-native";
 import * as Location from "expo-location";
-import SearchableDropdown from "react-native-searchable-dropdown";
 
 datesWhitelist = [
   {
@@ -27,6 +28,7 @@ function BusRoutes() {
   const [closestBusStopID, setClosestBusStopID] = useState(null);
   const [busStops, setBusStops] = useState([]);
   const [nextBuses, setNextBuses] = useState([]);
+  const [selectedOrigin, setSelectedOrigin] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -120,10 +122,10 @@ function BusRoutes() {
   return (
     <PaperProvider>
       <SafeAreaView className="pt-5">
-        <View style={{ backgroundColor: "#245A8D", paddingTop: 40 }}>
+        {/* <View style={{ backgroundColor: "#245A8D", paddingTop: 40 }}>
           <SearchableDropdown
-            onTextChange={(text) => console.log(text)}
-            onItemSelect={(item) => getBusRoutes()}
+            onItemSelect={(item) => setSelectedOrigin(item)}
+            inputValue={selectedOrigin}
             containerStyle={{ padding: 5 }}
             textInputStyle={{
               padding: 12,
@@ -145,14 +147,12 @@ function BusRoutes() {
               maxHeight: "60%",
             }}
             items={busStops}
-            defaultIndex={1}
             placeholder="Inserir Partida"
-            resetValue={false}
             underlineColorAndroid="transparent"
           />
-        </View>
+        </View> */}
         <View>
-          <SearchBar
+          {/* <SearchBar
             placeholder="Inserir destino"
             containerStyle={{
               height: 55,
@@ -163,7 +163,7 @@ function BusRoutes() {
             onChangeText={updateChegadaSearch}
             value={chegada_search}
             //inputStyle={{backgroundColor: '#3B71CA, height: 40, borderRadius: 10}}
-          />
+          /> */}
 
           <View style={Styles.row}>
             <Icon

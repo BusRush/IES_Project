@@ -42,7 +42,7 @@ const NextBuses = (props) => {
           <Text style={styles.title}>{item.paragem}</Text>
         </View>
         <View style={styles.hour}>
-          <Text style={styles.hour}>{item.time}</Text>
+          <Text style={styles.title}>{item.time}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginVertical: 1,
     marginHorizontal: 5,
+    width: 200,
   },
   title: {
     fontSize: 20,
