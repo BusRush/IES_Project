@@ -1,6 +1,9 @@
 package ies.project.busrush.service;
 
+import ies.project.busrush.dto.basic.BusBasicDto;
 import ies.project.busrush.dto.basic.RouteBasicDto;
+import ies.project.busrush.dto.basic.StopBasicDto;
+import ies.project.busrush.dto.busrush.InfoScheduleDto;
 import ies.project.busrush.dto.busrush.NextScheduleDto;
 import ies.project.busrush.dto.busrush.ClosestStopDto;
 import ies.project.busrush.dto.id.RouteIdDto;
@@ -178,5 +181,75 @@ public class BusRushService {
             ));
         }
         return new ResponseEntity<>(originSchedulesDto, HttpStatus.OK);
+    }
+
+    public ResponseEntity<InfoScheduleDto> getInfoSchedule(String id) {
+
+        LocalTime currentTime = LocalTime.now().truncatedTo(ChronoUnit.SECONDS);
+        ScheduleId scheduleId = ScheduleId.fromString(id);
+
+        // Find the target schedule
+        Optional<Schedule> _ts = scheduleRepository.findByScheduleId(scheduleId);
+        if (_ts.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Schedule ts = _ts.get();
+        Integer tsSequence = ts.getId().getSequence();
+        LocalTime tsTime = ts.getTime();
+
+        // Find all other schedules and stops of this target schedule's route
+        List<Schedule> allRouteSchedules = ts.getRoute().getSchedules();
+        List<Stop> allRouteStops = allRouteSchedules.stream()
+                .map(Schedule::getStop)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        // Find the bus associated with the target schedule's route
+        Bus bus = ts.getRoute().getBus(); // Should never be null
+        // Find the current location of the bus
+        Coordinates busLocation = new Coordinates(40.643632, -8.643966); // TODO: Query Cassandra - use busId and routeId
+        // Find the current number of passengers on the bus
+        Integer busPassengers = 10; // TODO: Query Cassandra - use busId and routeId
+
+        // Find the next stop of the bus
+        StopDurationIndex busNext = OSRMAdapter.getNextStop(busLocation, allRouteStops);
+        // Find the schedule for the next stop of the bus
+        Schedule ns = allRouteSchedules.get(busNext.getIndex());
+        Integer nsSequence = ns.getId().getSequence();
+        if (nsSequence > tsSequence) {
+            // The bus has already passed by the target stop
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        LocalTime nsTime = ns.getTime();
+        // Find the time of arrival (in seconds without new day wrap) to next stop and target stop
+        Double nsTimeSeconds = (double) nsTime.toSecondOfDay();
+        Double tsTimeSeconds = (double) ((nsTime.isAfter(tsTime)) ? 86400 + tsTime.toSecondOfDay() : tsTime.toSecondOfDay());
+
+        // Compute the duration of the trip bus->next->target
+        Double busNextDuration = busNext.getDuration();
+        Double nextTargetDuration = tsTimeSeconds - nsTimeSeconds;
+        Double busTargetDuration = busNextDuration + nextTargetDuration;
+        // Compute the time of arrival of the bus to target stop
+        Double busTimeSeconds = currentTime.toSecondOfDay() + busTargetDuration;
+        LocalTime busTime = LocalTime.ofSecondOfDay(busTimeSeconds.longValue());
+        // Compute the delay of the bus to target stop
+        Double busDelay = busTimeSeconds - tsTimeSeconds;
+
+        InfoScheduleDto infoScheduleDto = new InfoScheduleDto(
+                ts.getId().toString(),
+                new BusBasicDto(
+                        bus.getId(),
+                        bus.getRegistration(),
+                        bus.getBrand(),
+                        bus.getModel()
+                ),
+                busPassengers,
+                new StopBasicDto(
+                        ns.getStop().getId(),
+                        ns.getStop().getDesignation()
+                ),
+                busTime,
+                busDelay
+        );
+        return new ResponseEntity<>(infoScheduleDto, HttpStatus.OK);
     }
 }
