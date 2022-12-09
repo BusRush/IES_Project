@@ -479,7 +479,7 @@ public class CrudService {
 
     public ResponseEntity<RouteCrudDto> getRouteByRouteId(String routeId) {
         try {
-            String[] split = routeId.split("-");
+            String[] split = routeId.split("_");
             RouteId _routeId = new RouteId(split[0], split[1]);
             Optional<Route> route = routeRepository.findByRouteId(_routeId);
             if (route.isEmpty())
@@ -536,13 +536,11 @@ public class CrudService {
             }
 
             Route _route = new Route(
-
                     new RouteId(routeCrudDto.getId().getId(), routeCrudDto.getId().getShift()),
                     routeCrudDto.getDesignation(),
                     _driver,
                     _bus,
                     _schedules
-
             );
             routeRepository.save(_route);
 
@@ -564,7 +562,7 @@ public class CrudService {
 
     public ResponseEntity<RouteCrudDto> updateRoute(String routeId, RouteCrudDto routeCrudDto) {
         try {
-            String[] split = routeId.split("-");
+            String[] split = routeId.split("_");
             RouteId _routeId = new RouteId(split[0], split[1]);
             Optional<Route> route = routeRepository.findByRouteId(_routeId);
             if (route.isEmpty())
@@ -616,7 +614,7 @@ public class CrudService {
 
     public ResponseEntity<HttpStatus> deleteRoute(String routeId) {
         try {
-            String[] split = routeId.split("-");
+            String[] split = routeId.split("_");
             RouteId _routeId = new RouteId(split[0], split[1]);
             routeRepository.deleteByRouteId(_routeId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -655,7 +653,7 @@ public class CrudService {
 
     public ResponseEntity<ScheduleCrudDto> getScheduleByScheduleId(String scheduleId) {
         try {
-            String[] split = scheduleId.split("-");
+            String[] split = scheduleId.split("_");
             ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
             Optional<Schedule> schedule = scheduleRepository.findByScheduleId(_scheduleId);
             if (schedule.isEmpty())
@@ -725,7 +723,7 @@ public class CrudService {
 
     public ResponseEntity<ScheduleCrudDto> updateSchedule(String scheduleId, ScheduleCrudDto scheduleCrudDto) {
         try {
-            String[] split = scheduleId.split("-");
+            String[] split = scheduleId.split("_");
             ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
             Optional<Schedule> schedule = scheduleRepository.findByScheduleId(_scheduleId);
             if (schedule.isEmpty())
@@ -774,7 +772,7 @@ public class CrudService {
 
     public ResponseEntity<HttpStatus> deleteSchedule(String scheduleId) {
         try {
-            String[] split = scheduleId.split("-");
+            String[] split = scheduleId.split("_");
             ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
             scheduleRepository.deleteByScheduleId(_scheduleId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
