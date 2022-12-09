@@ -8,7 +8,8 @@ import lombok.AllArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class StopDuration {
+public class StopDurationIndex {
     Stop stop;
     Double duration;
+    Integer index;
 }

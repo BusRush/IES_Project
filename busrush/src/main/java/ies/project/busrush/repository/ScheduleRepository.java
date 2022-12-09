@@ -1,5 +1,6 @@
 package ies.project.busrush.repository;
 
+import ies.project.busrush.model.RouteId;
 import ies.project.busrush.model.Schedule;
 import ies.project.busrush.model.ScheduleId;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +18,12 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
 
     @Query("DELETE FROM Schedule s WHERE s.id = :scheduleId")
     void deleteByScheduleId(ScheduleId scheduleId);
+
+    @Query("SELECT s " +
+            "FROM Schedule s " +
+            "WHERE s.id.routeId = :routeId " +
+            "ORDER BY s.id.sequence")
+    List<Schedule> findAllByRouteId(RouteId routeId);
 
     @Query("SELECT s " +
             "FROM Schedule s " +
