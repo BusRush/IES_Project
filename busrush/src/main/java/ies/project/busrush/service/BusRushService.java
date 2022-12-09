@@ -168,11 +168,9 @@ public class BusRushService {
             Double busDelay = busTimeSeconds - osTimeSeconds;
 
             originSchedulesDto.add(new NextScheduleDto(
+                    os.getId().toString(),
                     new RouteBasicDto(
-                            new RouteIdDto(
-                                    osRouteId.getId(),
-                                    osRouteId.getShift()
-                            ),
+                            osRouteId.toString(),
                             osRouteDesignation
                     ),
                     busTime,

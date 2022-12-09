@@ -10,6 +10,7 @@ import java.time.LocalTime;
 @AllArgsConstructor
 
 public class NextScheduleDto {
+    private String id;
     private RouteBasicDto route;
     private LocalTime time;
     private Double delay;

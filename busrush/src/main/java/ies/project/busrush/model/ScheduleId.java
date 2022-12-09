@@ -18,4 +18,8 @@ public class ScheduleId implements Serializable {
     private String stopId;
     @Column(name = "sequence")
     private Integer sequence;
+    @Override
+    public String toString() {
+        return routeId.toString() + "_" + stopId + "_" + sequence.toString();
+    }
 }

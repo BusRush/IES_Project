@@ -16,4 +16,8 @@ public class RouteId implements Serializable {
     private String id;
     @Column(name = "shift")
     private String shift;
+    @Override
+    public String toString() {
+        return id + "_" + shift;
+    }
 }
