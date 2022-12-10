@@ -134,5 +134,66 @@
       40.63492,
       -8.65686
     ]
+  },
+
+
+
+
+  
+  {
+    "id": "AVRBUS-S0017",
+    "designation": "Hospital / Universidade B",
+    "position": [
+      40.634901,
+      -8.655725
+    ]
+  },
+  {
+    "id": "AVRBUS-S0018",
+    "designation": "Av. de Santa Joana A",
+    "position": [
+      40.637783,
+      -8.652141
+    ]
+  },
+  {
+    "id": "AVRBUS-S0019",
+    "designation": "Caçadores 10 - Sé",
+    "position": [
+      40.639977,
+      -8.651170
+    ]
+  },
+  {
+    "id": "AVRBUS-S0020",
+    "designation": "Av. Dr. Lourenço Peixinho - Capitania A",
+    "position": [
+      40.641752,
+      -8.652012
+    ]
+  },
+  {
+    "id": "AVRBUS-S0021",
+    "designation": "Av. Dr. Lourenço Peixinho - Oita A",
+    "position": [
+      40.642720,
+      -8.647147
+    ]
+  },
+  {
+    "id": "AVRBUS-S0022",
+    "designation": "Av. Dr. Lourenço Peixinho - CTT A (Temporária)",
+    "position": [
+      40.642948,
+      -8.644567
+    ]
+  },
+  {
+    "id": "AVRBUS-S0023",
+    "designation": "Estação de Aveiro",
+    "position": [
+      40.643799,
+      -8.641053
+    ]
   }
 ]
