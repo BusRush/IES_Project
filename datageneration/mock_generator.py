@@ -2,6 +2,9 @@ import random
 from math import dist, sin
 import geopy.distance
 import numpy as np
+import json
+from datetime import datetime
+import click
 
 # to be called before writing on result on file
 
@@ -81,14 +84,55 @@ def generate_result_given_stops(stop1, stop2, expected_time_between_stops, step=
     return generate_result_struct(points, speeds)
 
 
+def load_stops(fname):
+    f = open(fname)
+    stops = json.load(f)
+    stops_dict = dict()
+    for stop in stops:
+        stops_dict[stop["id"]] = stop["position"]
+    return stops_dict
+    
+def load_schedule(fname, stops, route_id=None, shift=None):
+    f = open(fname)
+    schedules = json.load(f)
+    schedules_dict = dict()
+    for schedule in schedules:
+        if schedule["id"]["routeId"]["id"] == route_id and schedule["id"]["routeId"]["shift"] == shift:
+            schedules_dict[schedule["id"]["sequence"]] = {"stopId": schedule["id"]["stopId"], "stopCoords": stops[schedule["id"]["stopId"]], "time": schedule["time"]}
+    return schedules_dict
 
-stop1 = (40.64404, -8.63906)
-stop2 = (40.6434, -8.64491)
-expected_time_between_stops = 120
 
-result = generate_result_given_stops(stop1, stop2, expected_time_between_stops)
+@click.command()
+@click.option('--route_id', help='Id of the route to be simulated.')#
+@click.option('--route_shift', help='Shift of the route to be simulated.')
+@click.option('--name_of_file', help='Chosen name for output file.')
+#
+# Example: python3 mock_generator.py --route_id AVRBUS-R0001 --route_shift 064700 --name_of_file AVRBUS-L01-00.json
+#
+def main(route_id, route_shift, name_of_file):
+    result = []
+    stops_coords = load_stops("mysql/stops.json")
+    schedule = load_schedule("mysql/schedules.json", stops_coords, route_id, route_shift)
+    sequence = list(schedule.keys())
+    while len(sequence) != 1:
+        stop1 = tuple(schedule[sequence[0]]["stopCoords"])
+        stop2 = tuple(schedule[sequence[1]]["stopCoords"])
+        
+        time1 = schedule[sequence[0]]["time"]
+        time2 = schedule[sequence[1]]["time"]
 
-formated_result = format_result(result)
-fhandle = open("test.json", "w")
-fhandle.write(formated_result)
-fhandle.close()
+        time1 = datetime.strptime(time1, '%H:%M:%S')
+        time2 = datetime.strptime(time2, '%H:%M:%S')
+
+        time_difference = time2 - time1
+        result += generate_result_given_stops(stop1, stop2, time_difference.seconds)
+
+        sequence.pop(0)
+
+    formated_result = format_result(result)
+    fhandle = open("mock/" + str(name_of_file), "w")
+    fhandle.write(formated_result)
+    fhandle.close()
+
+if __name__ == '__main__':
+    main()

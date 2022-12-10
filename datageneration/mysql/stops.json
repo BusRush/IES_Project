@@ -195,5 +195,122 @@
       40.643799,
       -8.641053
     ]
+  },
+
+
+
+
+  {
+    "id": "AVRBUS-S0024",
+    "designation": "Cacia - EB23 Rio Novo do Príncipe",
+    "position": [
+    40.681521,
+    -8.599572
+    ]
+  },
+  {
+    "id": "AVRBUS-S0025",
+    "designation": "Sarrazola - Largo S.Bartolomeu",
+    "position": [
+    40.689738, 
+    -8.602083
+    ]
+  },
+  {
+    "id": "AVRBUS-S0026",
+    "designation": "Escolas de Póvoa do Paço A",
+    "position": [
+    40.676590, 
+    -8.627944
+    ]
+  },
+  {
+    "id": "AVRBUS-S0027",
+    "designation": "Escolas de Póvoa do Paço B",
+    "position": [
+    40.676387, 
+    -8.627892
+    ]
+  },
+  {
+    "id": "AVRBUS-S0028",
+    "designation": "Quinta Clementina",
+    "position": [
+    40.6704302, 
+    -8.6182198
+    ]
+  },
+  {
+    "id": "AVRBUS-S0029",
+    "designation": "Olho de Água A",
+    "position": [
+    40.653670, 
+    -8.624439
+    ]
+  },
+  {
+    "id": "AVRBUS-S0030",
+    "designation": "Olho de Água B",
+    "position": [
+    40.653670, 
+    -8.624310
+    ]
+  },
+  {
+    "id": "AVRBUS-S0031",
+    "designation": "Viaduto de Esgueira A",
+    "position": [
+    40.646020, 
+    -8.638871
+    ]
+  },
+  {
+    "id": "AVRBUS-S0032",
+    "designation": "Viaduto de Esgueira B",
+    "position": [
+    40.646123, 
+    -8.638888
+    ]
+  },
+  {
+    "id": "AVRBUS-S0033",
+    "designation": "Hospital / Universidade A",
+    "position": [
+    40.635133, 
+    -8.656023
+    ]
+  },
+  {
+    "id": "AVRBUS-S0034",
+    "designation": "R. de Ovar - URB de Santiago",
+    "position": [
+    40.629538, 
+    -8.650371
+    ]
+  },
+  {
+    "id": "AVRBUS-S0035",
+    "designation": "Ponte das Agras B",
+    "position": [
+    40.650884, 
+    -8.636891
+    ]
+  },
+  {
+    "id": "AVRBUS-S0036",
+    "designation": "Lavadouros de Sarrazola B",
+    "position": [
+    40.666033, 
+    -8.625079
+    ]
+  },
+  {
+    "id": "AVRBUS-S0037",
+    "designation": "Ponte das Agras A",
+    "position": [
+    40.650989, 
+    -8.637020
+    ]
   }
+
 ]
