@@ -166,7 +166,7 @@ public class BusRushService {
             Double busOriginDuration = busNextDuration + nextOriginDuration;
             // Compute the time of arrival of the bus to origin stop
             Double busTimeSeconds = currentTime.toSecondOfDay() + busOriginDuration;
-            LocalTime busTime = LocalTime.ofSecondOfDay(busTimeSeconds.longValue());
+            LocalTime busTime = LocalTime.ofSecondOfDay(busTimeSeconds.longValue() % 86400);
             // Compute the delay of the bus to origin stop
             Double busDelay = busTimeSeconds - osTimeSeconds;
 
@@ -230,7 +230,7 @@ public class BusRushService {
         Double busTargetDuration = busNextDuration + nextTargetDuration;
         // Compute the time of arrival of the bus to target stop
         Double busTimeSeconds = currentTime.toSecondOfDay() + busTargetDuration;
-        LocalTime busTime = LocalTime.ofSecondOfDay(busTimeSeconds.longValue());
+        LocalTime busTime = LocalTime.ofSecondOfDay(busTimeSeconds.longValue() % 86400);
         // Compute the delay of the bus to target stop
         Double busDelay = busTimeSeconds - tsTimeSeconds;
 
