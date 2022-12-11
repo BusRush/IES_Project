@@ -4,3 +4,5 @@ lxml
 numpy
 pika
 requests
+geopy
+numpy

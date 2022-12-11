@@ -7,6 +7,6 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class RouteBasicDto {
-    private RouteIdDto id;
+    private String id;
     private String designation;
 }

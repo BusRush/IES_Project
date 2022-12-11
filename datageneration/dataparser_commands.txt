@@ -1,0 +1,2 @@
+python3 dataparser.py --raw 20221109-092005.gpx --out AVRBUS-L11-00.json
+python3 dataparser.py --raw 20221207-183659.gpx --out AVRBUS-L04-00.json

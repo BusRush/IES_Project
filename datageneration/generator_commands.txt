@@ -1,0 +1,2 @@
+python3 generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-L11 --route_shift 092000
+python3 generator.py --device_id AVRBUS-D0001 --route_id AVRBUS-L04 --route_shift 083000
