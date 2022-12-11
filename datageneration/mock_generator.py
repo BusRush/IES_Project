@@ -12,9 +12,9 @@ def format_result(result):
     result_string = "[\n"
     for i, item in enumerate(result):
         if i == len(result) - 1:
-            result_string += str(item) + "\n]"
+            result_string += json.dumps(item) + "\n]"
             return result_string
-        result_string += str(item) + ",\n"
+        result_string += json.dumps(item) + ",\n"
 
 
 def generate_deviated_time(expected_time, max_deviation=0.2):
