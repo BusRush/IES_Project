@@ -11,6 +11,8 @@ import org.springframework.data.cassandra.core.mapping.Table;
 import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 import org.springframework.data.cassandra.core.cql.Ordering;
 
+// {'device_id': 'AVRBUS-D0001', 'route_id': 'AVRBUS-L04', 'route_shift': '083000', 'timestamp': 1670868915, 'position': [40.63554147, -8.65516931], 'speed': 15.156, 'fuel': 98.878, 'passengers': 15}
+
 @Data
 @NoArgsConstructor
 @Table("bus_metrics")
@@ -34,11 +36,12 @@ public class BusMetrics {
         type = PrimaryKeyType.CLUSTERED, 
         ordering = Ordering.ASCENDING)
     private long timestamp;
-    
-    @Column("speed") private Double speed;
+
+    @Column("route_id") private String route_id;
     @Column("device_id") private String device_id;
-    @Column("lat") private Double lat;
-    @Column("lon") private Double lon;
-    @Column("passengers") private int passengers;
+    @Column("position") private String[] position;
+    @Column("speed") private Double speed;
     @Column("fuel") private Double fuel;
+    @Column("passengers") private int passengers;
+    
 }
