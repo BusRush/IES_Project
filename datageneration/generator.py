@@ -4,6 +4,7 @@ import pika
 import random
 from datetime import datetime
 from time import sleep
+import json
 
 from utils import load_path_mock
 
@@ -78,7 +79,7 @@ def main(device_id, route_id, route_shift):
     # Connect to RabbitMQ
     conn = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = conn.channel()
-    channel.queue_declare(queue='devices')
+    channel.queue_declare(queue='devices', durable=True)
 
     # Choose a random mock from the provided route
     route_mocks = [filename for filename in os.listdir('mock')
@@ -102,8 +103,9 @@ def main(device_id, route_id, route_shift):
     for m in metrics.generate_metrics():
         # print('...', flush=True) - To print in Docker Terminal
         channel.basic_publish(exchange='',
-                              routing_key='devices',
-                              body=str(m))
+                             routing_key='devices',
+                             body=json.dumps(str(m)))
+        print(m)
     conn.close()
 
 
