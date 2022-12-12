@@ -1,4 +1,5 @@
 import click
+import json
 import os
 import pika
 import random
@@ -71,14 +72,14 @@ class MockMetrics:
 @click.option('--route_id', help='Id of the route to be simulated.')#
 @click.option('--route_shift', help='Shift of the route to be simulated.')
 #
-# Example: python3 generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-L11 --route_shift 092000
+# Example: python3 generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-R0011 --route_shift 092000
 #
 def main(device_id, route_id, route_shift):
 
     # Connect to RabbitMQ
     conn = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = conn.channel()
-    channel.queue_declare(queue='devices')
+    channel.queue_declare(queue='devices', durable=True)
 
     # Choose a random mock from the provided route
     route_mocks = [filename for filename in os.listdir('mock')
@@ -103,7 +104,8 @@ def main(device_id, route_id, route_shift):
         # print('...', flush=True) - To print in Docker Terminal
         channel.basic_publish(exchange='',
                               routing_key='devices',
-                              body=str(m))
+                              body=json.dumps(m))
+        print(json.dumps(m))
     conn.close()
 
 
