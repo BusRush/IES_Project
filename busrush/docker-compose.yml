@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   app:
     container_name: busrush
@@ -10,11 +8,13 @@ services:
       - .:/busrush
     # environment:
     #  FLASK_DEBUG: True
-
     depends_on:
-      - mysql-db
+      cassandra:
+        condition: service_healthy
+      mysql-db:
+        condition: service_healthy
     networks:
-      - bus-net
+      - api_bus-net
   mysql-db:
     container_name: busrush-db
     image: mysql/mysql-server:5.7
@@ -29,7 +29,7 @@ services:
       MYSQL_USER: admin
       MYSQL_PASSWORD: admin
     networks:
-      - bus-net
+      - api_bus-net
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3-management
@@ -47,18 +47,23 @@ services:
         source: ./rabbitmq-defs.json
         target: /etc/rabbitmq/rabbitmq-defs.json
     networks:
-      - bus-net
+      - api_bus-net
   cassandra:
     container_name: cassandra
     image: cassandra:4.0
     ports:
       - '9042:9042'
+    healthcheck:
+      test: ["CMD", "cqlsh", "-e", "SELECT now() FROM system.local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     volumes:
       - ~/apps/cassandra:/var/lib/cassandra
     environment:
-        CASSANDRA_CLUSTER_NAME: 'busrush'
+      CASSANDRA_CLUSTER_NAME: 'busrush'
     networks:
-        - bus-net
+      - api_bus-net
   osrm:
     container_name: osrm
     image: ghcr.io/project-osrm/osrm-backend
@@ -70,7 +75,7 @@ services:
         source: ./data
         target: /data
     networks:
-      - bus-net
+      - api_bus-net
   init:
     image: cassandra:4.0
     depends_on:
@@ -80,13 +85,13 @@ services:
     volumes:
       - ./init_cassandra.sh:/init_cassandra.sh
     networks:
-        - bus-net
+      - api_bus-net
 
 
 
 volumes:
   busrush-db:
 
-
 networks:
-  bus-net:
+  api_bus-net:
+    name: bus-net
