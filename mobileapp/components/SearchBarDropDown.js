@@ -34,20 +34,37 @@ const SearchBarDropDown = (props) => {
 
   const onSelectOption = (item) => {
     setSearch(item.name);
-    props.onItemSelect(item.id);
+    props.setQueryIsLoading(true);
+    props.setStop(item.id);
+    if (props.setOriginInput != undefined) {
+      props.setOriginInput(item.name);
+    }
+
+    if (props.destinationStop != null) {
+      props.getBusRoutes(item.id, props.destinationStop);
+      console.log(props.destinationStop);
+    } else {
+      props.getBusRoutes(item.id);
+    }
+
     setIsVisible(false);
   };
 
   const handleOnClear = () => {
     setSearch("");
-    props.onItemSelect(props.closestBusStopID);
+    if (props.setOriginInput != undefined) {
+      props.setOriginInput(null);
+    }
+    props.setQueryIsLoading(true);
+    props.setStop(props.closestBusStopID);
+    props.getBusRoutes(props.closestBusStopID);
     setIsVisible(false);
   };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => onSelectOption(item)}>
       <View style={styles.row}>
-        <View style={styles.number}>
+        <View>
           <Text style={styles.title}>{item.name}</Text>
         </View>
       </View>
@@ -64,6 +81,7 @@ const SearchBarDropDown = (props) => {
         inputContainerStyle={styles.inputContainer}
         inputStyle={styles.inputStyle}
         onClear={handleOnClear}
+        disabled={props.disabled}
       />
       {isVisible ? (
         <FlatList
@@ -80,7 +98,7 @@ export default SearchBarDropDown;
 
 const styles = StyleSheet.create({
   view: {
-    margin: 10,
+    marginHorizontal: 10,
   },
   container: {
     backgroundColor: "transparent",
@@ -104,10 +122,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#3B2E6E",
     borderRadius: 10,
-  },
-  number: {
-    color: "#000000",
-    fontSize: 16,
   },
   title: {
     fontSize: 20,

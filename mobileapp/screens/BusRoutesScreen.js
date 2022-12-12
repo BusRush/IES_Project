@@ -15,13 +15,14 @@ import {
   Title,
   Paragraph,
 } from "react-native-paper";
-import SearchableDropdown from "react-native-searchable-dropdown";
 import { Dimensions } from "react-native";
 import * as Location from "expo-location";
 import LoadingAnimation from "../components/LoadingAnimation.js";
 import ClosestBusStop from "../components/ClosestBusStop.js";
-import SearchBarDropdown from "../components/SearchBarDropDown.js";
 import SearchBarDropDown from "../components/SearchBarDropDown.js";
+import Loading from "../components/Loading.js";
+import HiddenSearchBar from "../components/HiddenSearchBar.js";
+import RouteBanner from "../components/RouteBanner.js";
 
 datesWhitelist = [
   {
@@ -37,8 +38,11 @@ function BusRoutes() {
   const [closestBusStopID, setClosestBusStopID] = useState(null);
   const [busStops, setBusStops] = useState([]);
   const [nextBuses, setNextBuses] = useState([]);
-  const [selectedOrigin, setSelectedOrigin] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [pageIsLoading, setPageIsLoading] = useState(true);
+  const [queryIsLoading, setQueryIsLoading] = useState(true);
+  const [originStop, setOriginStop] = useState(null);
+  const [destinationStop, setDestinationStop] = useState(null);
+  const [originInput, setOriginInput] = useState(null);
   const navigation = useNavigation();
   // on render this will be called
   useEffect(() => {
@@ -81,6 +85,7 @@ function BusRoutes() {
         "http://10.0.2.2:8080/api/stops/closest?lat=" + lat + "&lon=" + lon
       );
       const json = await response.json();
+      setOriginStop(json.id);
       setClosestBusStop(json.designation);
       setClosestBusStopID(json.id);
       return json.id;
@@ -116,7 +121,8 @@ function BusRoutes() {
         });
       }
       setNextBuses(nextBuses);
-      setIsLoading(false);
+      setPageIsLoading(false);
+      setQueryIsLoading(false);
       return;
     } catch (error) {
       console.error(error);
@@ -137,19 +143,17 @@ function BusRoutes() {
     }
   };
 
+  const getDesignationOfStop = (stop_id) => {
+    let bus_designation = null;
+    for (let i = 0; i < busStops.length; i++) {
+      if (busStops[i].id == stop_id) {
+        bus_designation = busStops[i].name;
+      }
+    }
+    return bus_designation;
+  };
+
   const [selectedDate, setSelectedDate] = useState("");
-  const [partida_search, setPartidaSearch] = useState("");
-
-  const updatePartidaSearch = (partida_search) => {
-    setPartidaSearch(partida_search);
-    console.log(partida_search);
-  };
-
-  const [chegada_search, setChegadaSearch] = useState("");
-
-  const updateChegadaSearch = (chegada_search) => {
-    setChegadaSearch(chegada_search);
-  };
 
   return (
     <PaperProvider>
@@ -157,21 +161,75 @@ function BusRoutes() {
         className="pt-5"
         style={{ flex: 1, backgroundColor: "white" }}
       >
-        {isLoading ? (
+        {pageIsLoading ? (
           <LoadingAnimation content="Preparing bus..." time={3000} />
         ) : (
           <View>
             <ClosestBusStop closestBusStop={closestBusStop} />
+
             <SearchBarDropDown
               placeholder="Search Origin Bus Stop"
               DATA={busStops}
-              onItemSelect={getBusRoutes}
+              getBusRoutes={getBusRoutes}
               closestBusStopID={closestBusStopID}
+              setQueryIsLoading={setQueryIsLoading}
+              setStop={setOriginStop}
+              originStop={originStop}
+              destinationStop={destinationStop}
+              setOriginInput={setOriginInput}
             />
-            {/* <CalendarStrip datesWhitelist={datesWhitelist} /> */}
+
+            <HiddenSearchBar
+              placeholder="Search Origin Bus Stop"
+              DATA={busStops}
+              getBusRoutes={getBusRoutes}
+              closestBusStopID={closestBusStopID}
+              setQueryIsLoading={setQueryIsLoading}
+              setStop={setDestinationStop}
+              originStop={originStop}
+              destinationStop={destinationStop}
+              originInput={originInput}
+            />
 
             <View>
-              <NextBuses dados={nextBuses} />
+              {queryIsLoading ? (
+                <Loading />
+              ) : (
+                <View>
+                  {nextBuses.length == 0 ? (
+                    <View style={{ paddingTop: 150 }}>
+                      <Text
+                        style={{
+                          textAlign: "center",
+                          fontSize: 20,
+                        }}
+                      >
+                        No buses available
+                      </Text>
+                    </View>
+                  ) : (
+                    <View>
+                      <View style={{ width: Dimensions.get("screen").width }}>
+                        <RouteBanner
+                          originStop={getDesignationOfStop(originStop)}
+                          destinationStop={getDesignationOfStop(
+                            destinationStop
+                          )}
+                        />
+                        {/* <Text style={styles.routeLabels}>
+                          Routes from "{getDesignationOfStop(originStop)}"
+                          {destinationStop != null && (
+                            <Text>
+                              to {getDesignationOfStop(destinationStop)}
+                            </Text>
+                          )}
+                        </Text> */}
+                      </View>
+                      <NextBuses dados={nextBuses} />
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           </View>
         )}
@@ -182,37 +240,15 @@ function BusRoutes() {
 
 export default BusRoutes;
 
-const Styles = {
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#3B2E6E",
-    justifyContent: "center", //Centered horizontally
-    alignItems: "center", //Centered vertically
-  },
-  titleStyle: {
-    alignItems: "center",
-    backgroundColor: "#245A8D",
-    height: 50,
-    marginTop: 25,
-    padding: 5,
-  },
-  textStyle: {
-    marginTop: 10,
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  subtextStyle: {
-    flex: 1,
-    marginTop: 10,
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  container: {
-    flex: 1,
-    paddingTop: 22,
+const styles = {
+  routeLabels: {
+    fontSize: 15,
+    textAlign: "center",
+    paddingTop: 20,
+    paddingBottom: 20,
   },
 };
+
+{
+  /* <CalendarStrip datesWhitelist={datesWhitelist} /> */
+}

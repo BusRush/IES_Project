@@ -1,50 +1,88 @@
 import React from "react";
 import {
-  SafeAreaView,
   View,
   FlatList,
   StyleSheet,
-  Text,
-  StatusBar,
   TouchableOpacity,
+  Text,
 } from "react-native";
 
+import { Card, Title, Paragraph } from "react-native-paper";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-const DATA = [
-  {
-    number: "L11",
-    title: "Universidade de Aveiro",
-    hour: "10:00",
-  },
-  {
-    number: "L3",
-    title: "Cacia",
-    hour: "10:10",
-  },
-  {
-    number: "L7",
-    title: "Estarreja",
-    hour: "10:20",
-  },
-];
 
 const NextBuses = (props) => {
   const navigation = useNavigation();
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate("Chosen Bus Information", {id: item.id, linha: item.linha})}
+      onPress={() =>
+        navigation.navigate("Chosen Bus Information", {
+          id: item.id,
+          linha: item.linha,
+        })
+      }
     >
-      <View style={styles.row}>
-        <View style={styles.number}>
-          <Text style={styles.title}>{item.linha}</Text>
-        </View>
-        <View style={styles.item}>
-          <Text style={styles.title}>{item.time}</Text>
-        </View>
-        <View style={styles.hour}>
-          <Text style={styles.title}>{item.delay}</Text>
-        </View>
-      </View>
+      <Card style={styles.card}>
+        <Card.Content style={{ flexDirection: "column" }}>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View style={styles.titleContainer}>
+              <Title style={styles.title}>{item.linha}</Title>
+              <View
+                style={{
+                  justifyContent: "flex-end",
+                  paddingLeft: 305,
+                }}
+              >
+                <Ionicons
+                  name="information-circle-outline"
+                  color="#3B2E6E"
+                  size={25}
+                />
+              </View>
+            </View>
+          </View>
+          <View
+            style={{ flexDirection: "row", justifyContent: "space-evenly" }}
+          >
+            <View style={{ flexDirection: "row" }}>
+              <Ionicons name="time" color="#3B2E6E" size={20} />
+              <View style={{ flexDirection: "column" }}>
+                <Paragraph
+                  style={{
+                    textAlign: "center",
+                    fontSize: 20,
+                    fontWeight: "700",
+                  }}
+                >
+                  {item.time}
+                </Paragraph>
+                <Text style={{ color: "grey" }}>(expected arrival)</Text>
+              </View>
+            </View>
+            <View style={{ flexDirection: "row" }}>
+              <Ionicons name="timer" color="#3B2E6E" size={20} />
+              <View style={{ flexDirection: "column" }}>
+                <Paragraph
+                  style={{
+                    textAlign: "center",
+                    fontSize: 20,
+                    fontWeight: "700",
+                  }}
+                >
+                  {(item.delay / 60).toFixed(0)} min.
+                </Paragraph>
+                <Text style={{ color: "grey" }}>(delayed time)</Text>
+              </View>
+            </View>
+          </View>
+        </Card.Content>
+      </Card>
     </TouchableOpacity>
   );
 
@@ -58,38 +96,19 @@ const NextBuses = (props) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    marginTop: StatusBar.currentHeight || 0,
-  },
-  hour: {
-    color: "#000000",
-    fontSize: 16,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderColor: "#dcdcdc",
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    padding: 10,
-    justifyContent: "space-between",
-  },
-  routeNumber: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    color: "#245A8D",
-  },
-  item: {
-    padding: 20,
-    marginVertical: 1,
-    marginHorizontal: 5,
-    width: 200,
+  card: {
+    margin: 15,
+    backgroundColor: "#F5F5F5",
+    borderRadius: 15,
   },
   title: {
+    textAlign: "center",
     fontSize: 20,
-    color: "#245A8D",
+    fontWeight: "700",
+  },
+  titleContainer: {
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
