@@ -107,7 +107,7 @@ def load_schedule(fname, stops, route_id=None, shift=None):
 @click.option('--route_shift', help='Shift of the route to be simulated.')
 @click.option('--name_of_file', help='Chosen name for output file.')
 #
-# Example: python3 mock_generator.py --route_id AVRBUS-R0001 --route_shift 064700 --name_of_file AVRBUS-L01-00.json
+# Example: python3 mock_generator.py --route_id AVRBUS-R0001 --route_shift 064700 --name_of_file AVRBUS-R0001-00.json
 #
 def main(route_id, route_shift, name_of_file):
     result = []
