@@ -1,24 +1,20 @@
 package ies.project.busrush.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 
-@Entity
-@Table(name = "users")
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "users")
 public class User {
     @Id
     private String username;
 
-    @Column(name="password", nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
-
-
-    public User(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
 }

@@ -1,22 +1,20 @@
 package ies.project.busrush.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 
-@Entity
-@Table(name = "devices")
 @Data
 @NoArgsConstructor
-
+@AllArgsConstructor
+@Entity
+@Table(name = "devices")
 public class Device {
     @Id
     private String id;
 
-    @Column(name="model", nullable = false)
-    private String model;
-
-    @Column(name="serial_number", nullable = false)
-    private Integer serialNumber;
+    @OneToOne(mappedBy = "device")
+    private Bus bus;
 }

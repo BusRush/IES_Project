@@ -1,27 +1,33 @@
 package ies.project.busrush.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
+import javax.persistence.*;
 
-@Entity
-@Table(name = "routes")
+import java.util.List;
+
 @Data
 @NoArgsConstructor
-
+@AllArgsConstructor
+@Entity
+@Table(name = "routes")
 public class Route {
-    @Id
-    private String id;
+    @EmbeddedId
+    private RouteId id;
 
-    @Column(name="designation", nullable = false)
+    @Column(name = "designation", nullable = false)
     private String designation;
 
-    @OneToOne(optional = false)
-    @JoinColumn(name = "driver_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "driver_id")
     private Driver driver;
 
-    @OneToOne(optional = false)
-    @JoinColumn(name = "bus_id", nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "bus_id")
     private Bus bus;
+
+    @OneToMany(mappedBy = "route")
+    private List<Schedule> schedules;
 }

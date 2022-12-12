@@ -1,4 +1,8 @@
 beautifulsoup4
 click
 lxml
+numpy
 pika
+requests
+geopy
+numpy
