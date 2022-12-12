@@ -39,8 +39,9 @@ function HomeTabs() {
         },
         tabBarActiveTintColor: "white",
         tabBarInactiveTintColor: "lightgray",
-        tabBarItemStyle: { backgroundColor: "#245A8D" },
+        tabBarItemStyle: { backgroundColor: "#3B2E6E" },
         tabBarLabelStyle: { fontSize: 14 },
+        tabBarHideOnKeyboard: true,
       })}
     >
       <Tab.Screen name="Bus Routes" component={BusRoutes} />

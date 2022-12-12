@@ -52,14 +52,26 @@ const WelcomingScreen = () => {
           }}
         >
           <View style={{ width, height }}>
-            <Image
-              source={require("../assets/logo.jpeg")}
-              style={styles.imageStyle}
-            />
-            <View style={styles.wrapper}>
-              <Icon name="arrow-right" size={50} />
+            <View>
+              <Image
+                source={require("../assets/logo.png")}
+                style={styles.imageStyle}
+              />
+              <View
+                style={{
+                  alignContent: "center",
+                  alignSelf: "center",
+                  paddingTop: 100,
+                }}
+              >
+                <Image
+                  source={require("../assets/swipe.png")}
+                  style={{ width: 200, height: 50 }}
+                />
+              </View>
             </View>
           </View>
+
           <View style={{ width, height }}>
             <Image
               source={require("../assets/nearest.png")}
@@ -67,6 +79,17 @@ const WelcomingScreen = () => {
             />
             <View style={styles.wrapper}>
               <Text style={styles.header}>Browse The Nearest Bus Stops</Text>
+            </View>
+            <View
+              style={{
+                alignContent: "center",
+                alignSelf: "center",
+              }}
+            >
+              <Image
+                source={require("../assets/swipe_smaller.png")}
+                style={{ width: 150, height: 40 }}
+              />
             </View>
           </View>
           <View style={{ width, height }}>
@@ -78,6 +101,17 @@ const WelcomingScreen = () => {
               <Text style={styles.header}>
                 See in real-time the information of the bus you need to catch.
               </Text>
+            </View>
+            <View
+              style={{
+                alignContent: "center",
+                alignSelf: "center",
+              }}
+            >
+              <Image
+                source={require("../assets/swipe_smaller.png")}
+                style={{ width: 150, height: 40 }}
+              />
             </View>
           </View>
           <View style={{ width, height }}>
@@ -92,9 +126,7 @@ const WelcomingScreen = () => {
               <Text style={styles.paragraph}>
                 This way you can receive notifications from the app.
               </Text>*/}
-              <Text style={styles.header}>
-                Never miss a bus again!
-              </Text>
+              <Text style={styles.header}>Never miss a bus again!</Text>
             </View>
           </View>
         </ScrollView>
@@ -119,9 +151,10 @@ const WelcomingScreen = () => {
             width: 200,
             alignSelf: "center",
             marginBottom: 20,
+            backgroundColor: "#3B2E6E",
           }}
         >
-          <Text style={{ fontSize: 18, color: "#245A8D" }}>Get Started</Text>
+          <Text style={{ fontSize: 18, color: "white" }}>Get Started</Text>
         </Button>
       </SafeAreaView>
     </>
@@ -131,16 +164,20 @@ export default WelcomingScreen;
 
 const styles = StyleSheet.create({
   imageStyle: {
-    height: PixelRatio.getPixelSizeForLayoutSize(155),
+    height: PixelRatio.getPixelSizeForLayoutSize(140),
     width: "100%",
+  },
+  swipeImage: {
+    width: 100,
+    height: 50,
   },
   wrapper: {
     justifyContent: "center",
     alignItems: "center",
-    marginVertical: 30,
+    marginTop: 30,
   },
   header: {
-    fontSize: 30,
+    fontSize: 25,
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",

@@ -32,17 +32,17 @@ const NextBuses = (props) => {
   const navigation = useNavigation();
   const renderItem = ({ item }) => (
     <TouchableOpacity
-      onPress={() => navigation.navigate("Chosen Bus Information")}
+      onPress={() => navigation.navigate("Chosen Bus Information", {id: item.id, linha: item.linha})}
     >
       <View style={styles.row}>
         <View style={styles.number}>
           <Text style={styles.title}>{item.linha}</Text>
         </View>
         <View style={styles.item}>
-          <Text style={styles.title}>{item.paragem}</Text>
+          <Text style={styles.title}>{item.time}</Text>
         </View>
         <View style={styles.hour}>
-          <Text style={styles.title}>{item.time}</Text>
+          <Text style={styles.title}>{item.delay}</Text>
         </View>
       </View>
     </TouchableOpacity>
