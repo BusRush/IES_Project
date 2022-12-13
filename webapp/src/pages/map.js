@@ -23,9 +23,10 @@ class Page extends Component {
 
 // Executes after the component is mounted in the DOM
   componentDidMount = () => {
-    this.fetchStops();
+    this.fetchAllStops()
+        .then(stops => this.updateStops(stops));
     // Setup buses
-    const stomp = Stomp.client('ws://172.21.0.3:5672/ws');
+    const stomp = Stomp.client('ws://localhost:15674/ws');
     const headers = {
       'login': 'guest',
       'passcode': 'guest',
@@ -35,11 +36,71 @@ class Page extends Component {
     stomp.connect(headers, () => {
         stomp.subscribe('/queue/devices', (msg) => {
           this.updateBuses(JSON.parse(msg.body));
+
+          const {selectedBus} = this.state;
+          if (selectedBus) {
+            const stateBus = this.state.buses[selectedBus.deviceId];
+            selectedBus.metrics = {
+              timestamp: stateBus.timestamp,
+              position: stateBus.position,
+              speed: stateBus.speed,
+              fuel: stateBus.fuel,
+              passengers: stateBus.passengers
+            }
+            this.updateSelectedBus(selectedBus);
+          }
         });
       },
       (err) => {
         console.log(err);
       });
+  };
+
+  fetchAllStops = async () => {
+    let stops = null;
+    await fetch('http://localhost:8080/api/stops')
+      .then(res => res.json())
+      .then(data => stops = data)
+      .catch(err => console.log(err))
+    ;
+    return stops;
+  };
+
+  fetchBusesByDeviceId = async (deviceId) => {
+    let buses = null;
+    await fetch(`http://localhost:8080/api/buses?device_id=${deviceId}`)
+      .then(res => res.json())
+      .then(data => buses = data)
+      .catch(err => console.log(err))
+    ;
+    return buses;
+  };
+
+  changeSelectedBus = (deviceId) => {
+    this.fetchBusesByDeviceId(deviceId)
+        .then(buses => {
+          const fetchBus = buses[0]; // Should be only one (1 device <-> 1 bus)
+          const stateBus = this.state.buses[deviceId];
+          const bus = {
+            id: fetchBus.id,
+            deviceId: fetchBus.deviceId,
+            registration: fetchBus.registration,
+            brand: fetchBus.brand,
+            model: fetchBus.model,
+            metrics: {
+              timestamp: stateBus.timestamp,
+              position: stateBus.position,
+              speed: stateBus.speed,
+              fuel: stateBus.fuel,
+              passengers: stateBus.passengers
+            }
+          };
+          this.updateSelectedBus(bus);
+        });
+  };
+
+  updateStops = (stops) => {
+    this.setState({ stops: stops });
   };
 
   updateBuses = (bus) => {
@@ -56,22 +117,12 @@ class Page extends Component {
     this.setState({ buses: buses });
   };
 
-  fetchStops = () => {
-    fetch('http://localhost:8080/api/stops')
-      .then(res => res.json())
-      .then(stops => this.setState({ stops: stops } ))
-      .catch(err => console.log(err));
-  };
-
-  updateSelectedBus = (id) => {
-    console.log('id:' + id);
-    const bus = this.state.buses.find(bus => bus.id === id);
+  updateSelectedBus = (bus) => {
     this.setState({ selectedBus: bus });
   };
 
   render = () => {
     const { buses, stops, selectedBus } = this.state;
-    console.log(stops)
     return (
       <>
         <Head>
@@ -101,7 +152,7 @@ class Page extends Component {
                 <MapWidget
                   buses={buses}
                   stops={stops}
-                  updateSelectedBus={this.updateSelectedBus}
+                  changeSelectedBus={this.changeSelectedBus}
                 />
               </Grid>
               <Grid

@@ -9,7 +9,7 @@ const MapWidget = (props) => {
   const [center, setCenter] = useState([40.64, -8.65]);
   const [map, setMap] = useState(null);
   const [zoom, setZoom] = useState(14);
-  const { buses, stops, updateSelectedBus } = props;
+  const { buses, stops, changeSelectedBus } = props;
 
   return (
     <MapContainer
@@ -32,10 +32,11 @@ const MapWidget = (props) => {
       {Object.entries(buses).map(([deviceId, bus]) => (
         <MarkerBusIcon
           key={deviceId}
+          deviceId={deviceId}
           busId=""
           name=""
           position={bus.position}
-          updateSelectedBus={updateSelectedBus}
+          changeSelectedBus={changeSelectedBus}
         />
       ))}
     </MapContainer>
