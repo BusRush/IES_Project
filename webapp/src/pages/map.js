@@ -23,8 +23,9 @@ class Page extends Component {
 
 // Executes after the component is mounted in the DOM
   componentDidMount = () => {
+    this.fetchStops();
     // Setup buses
-    const stomp = Stomp.client('ws://172.17.0.2:15674/ws');
+    const stomp = Stomp.client('ws://localhost:15674/ws');
     const headers = {
       'login': 'guest',
       'passcode': 'guest',
@@ -37,20 +38,6 @@ class Page extends Component {
         });
       },
       (err) => {
-        console.log(err);
-      });
-    // Setup stops
-    fetch('http://localhost:8080/api/stops')
-      .then(res => {
-        if (!res.ok) return;
-        res.json().then(stops => {
-          console.log(stops)
-          console.log(this.state.stops)
-          this.setStops([1])
-          console.log(this.state.stops)
-        });
-      })
-      .catch(err => {
         console.log(err);
       });
   };
@@ -69,8 +56,11 @@ class Page extends Component {
     this.setState({ buses: buses });
   };
 
-  setStops = (stops) => {
-    this.setState({ stops: stops });
+  fetchStops = () => {
+    fetch('http://localhost:8080/api/stops')
+      .then(res => res.json())
+      .then(stops => this.setState({ stops: stops } ))
+      .catch(err => console.log(err));
   };
 
   updateSelectedBus = (id) => {
@@ -81,7 +71,7 @@ class Page extends Component {
 
   render = () => {
     const { buses, stops, selectedBus } = this.state;
-    console.log("RENDER");
+    console.log(stops)
     return (
       <>
         <Head>
@@ -110,6 +100,7 @@ class Page extends Component {
               >
                 <MapWidget
                   buses={buses}
+                  stops={stops}
                   updateSelectedBus={this.updateSelectedBus}
                 />
               </Grid>

@@ -9,7 +9,7 @@ const MapWidget = (props) => {
   const [center, setCenter] = useState([40.64, -8.65]);
   const [map, setMap] = useState(null);
   const [zoom, setZoom] = useState(14);
-  const { buses, routes, updateSelectedBus } = props;
+  const { buses, stops, updateSelectedBus } = props;
 
   return (
     <MapContainer
@@ -22,13 +22,12 @@ const MapWidget = (props) => {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {routes.map((route) => (
-        route.stops.map((stop) => (
+      {stops.map((stop) => (
           <MarkerStopIcon
             key={stop.id}
-            name={stop.name}
+            designation={stop.designation}
             position={stop.position}
-          />))
+          />
       ))}
       {Object.entries(buses).map(([deviceId, bus]) => (
         <MarkerBusIcon
