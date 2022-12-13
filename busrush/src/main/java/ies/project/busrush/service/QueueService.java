@@ -1,10 +1,10 @@
 package ies.project.busrush.service;
 
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import org.json.JSONObject;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import ies.project.busrush.repository.cassandra.BusMetricsRepository;
 
 import ies.project.busrush.model.cassandra.BusMetrics;
@@ -17,8 +17,9 @@ public class QueueService {
     private final BusRushService busRushService;
     private final BusMetricsRepository busMetricsRepository;
 
+    @Autowired
     public QueueService(CassandraService cassandraService, BusRushService busRushService, BusMetricsRepository busMetricsRepository) {
-        this.cassandraService = cassandraService;
+        this.cassandraService = cassandraService; 
         this.busRushService = busRushService;
         this.busMetricsRepository = busMetricsRepository;
     }
@@ -29,9 +30,8 @@ public class QueueService {
         // msg : {'device_id': 'AVRBUS-D0001', 'route_id': 'AVRBUS-L04', 'route_shift': '083000', 'timestamp': 1670868915, 'position': [40.63554147, -8.65516931], 'speed': 15.156, 'fuel': 98.878, 'passengers': 15}
 
         System.out.println("Received: " + msg); 
-        cassandraService.createTable();
-        System.out.println("Table created");
-
+            System.out.println("NEW"); 
+        
         JSONObject json = new JSONObject(msg);
 
         String device_id = json.getString("device_id");
@@ -43,6 +43,8 @@ public class QueueService {
         Double speed = Double.parseDouble(json.getString("speed"));
         Double fuel = Double.parseDouble(json.getString("fuel"));
         int passengers = Integer.parseInt(json.getString("passengers"));
+
+        System.out.println("AQUIII");
 
         // Get field bus_id from MySQL
         String bus_id = busRushService.getBusID(device_id);
