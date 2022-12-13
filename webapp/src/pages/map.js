@@ -2,9 +2,10 @@ import Head from 'next/head';
 import { Component } from 'react';
 import { Box, Container, Grid } from '@mui/material';
 import dynamic from 'next/dynamic';
+import Stomp from 'stompjs';
 import { DashboardLayout } from '../components/dashboard-layout';
 // import { MapWidget } from '../components/map/map-widget';
-const MapWidget = dynamic(() => import("../components/map/map-widget"), { ssr: false });
+const MapWidget = dynamic(() => import('../components/map/map-widget'), { ssr: false });
 import { busesLive } from '../__mocks__/buses-live';
 import { busRoutes } from '../__mocks__/bus-routes';
 import { BusMetrics } from '../components/map/bus-metrics';
@@ -14,24 +15,62 @@ class Page extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      buses: busesLive,
-      routes: busRoutes,
+      buses: {},
+      stops: [],
       selectedBus: null
     };
   }
 
-  // TODO: call the API
-  updateBuses = () => {
+// Executes after the component is mounted in the DOM
+  componentDidMount = () => {
+    // Setup buses
+    const stomp = Stomp.client('ws://172.17.0.2:15674/ws');
+    const headers = {
+      'login': 'guest',
+      'passcode': 'guest',
+      'durable': true,
+      'auto-delete': false
+    };
+    stomp.connect(headers, () => {
+        stomp.subscribe('/queue/devices', (msg) => {
+          this.updateBuses(JSON.parse(msg.body));
+        });
+      },
+      (err) => {
+        console.log(err);
+      });
+    // Setup stops
+    fetch('http://localhost:8080/api/stops')
+      .then(res => {
+        if (!res.ok) return;
+        res.json().then(stops => {
+          console.log(stops)
+          console.log(this.state.stops)
+          this.setStops([1])
+          console.log(this.state.stops)
+        });
+      })
+      .catch(err => {
+        console.log(err);
+      });
+  };
+
+  updateBuses = (bus) => {
     const { buses } = this.state;
-    this.setState({
-      buses: buses.map(bus => ({
-        ...bus,
-        metrics: {
-          ...bus.metrics,
-          position: [bus.metrics.position[0] + 0.0001, bus.metrics.position[1] + 0.0001]
-        }
-      }))
-    });
+    buses[bus.device_id] = {
+      routeId: bus.route_id,
+      routeShift: bus.route_shift,
+      timestamp: bus.timestamp,
+      position: bus.position,
+      speed: bus.speed,
+      fuel: bus.fuel,
+      passengers: bus.passengers
+    };
+    this.setState({ buses: buses });
+  };
+
+  setStops = (stops) => {
+    this.setState({ stops: stops });
   };
 
   updateSelectedBus = (id) => {
@@ -40,16 +79,9 @@ class Page extends Component {
     this.setState({ selectedBus: bus });
   };
 
-// Executes after the component is mounted in the DOM
-  componentDidMount = () => {
-    setInterval(() => {
-      this.updateBuses();
-    }, 5000);
-  };
-
   render = () => {
-    const { buses, routes, selectedBus } = this.state;
-
+    const { buses, stops, selectedBus } = this.state;
+    console.log("RENDER");
     return (
       <>
         <Head>
@@ -78,7 +110,6 @@ class Page extends Component {
               >
                 <MapWidget
                   buses={buses}
-                  routes={routes}
                   updateSelectedBus={this.updateSelectedBus}
                 />
               </Grid>

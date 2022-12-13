@@ -30,12 +30,12 @@ const MapWidget = (props) => {
             position={stop.position}
           />))
       ))}
-      {buses.map((bus) => (
+      {Object.entries(buses).map(([deviceId, bus]) => (
         <MarkerBusIcon
-          key={bus.id}
-          busId={bus.id}
-          name={bus.name}
-          position={bus.metrics.position}
+          key={deviceId}
+          busId=""
+          name=""
+          position={bus.position}
           updateSelectedBus={updateSelectedBus}
         />
       ))}
