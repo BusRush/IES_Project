@@ -18,6 +18,10 @@ public class ScheduleId implements Serializable {
     private String stopId;
     @Column(name = "sequence")
     private Integer sequence;
+    public static ScheduleId fromString(String id) {
+        String[] split = id.split("_");
+        return new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
+    }
     @Override
     public String toString() {
         return routeId.toString() + "_" + stopId + "_" + sequence.toString();
