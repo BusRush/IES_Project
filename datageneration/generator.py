@@ -1,4 +1,5 @@
 import click
+import json
 import os
 import pika
 import random
@@ -72,7 +73,7 @@ class MockMetrics:
 @click.option('--route_id', help='Id of the route to be simulated.')#
 @click.option('--route_shift', help='Shift of the route to be simulated.')
 #
-# Example: python3 generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-L11 --route_shift 092000
+# Example: python3 generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-R0011 --route_shift 092000
 #
 def main(device_id, route_id, route_shift):
 
@@ -103,9 +104,15 @@ def main(device_id, route_id, route_shift):
     for m in metrics.generate_metrics():
         # print('...', flush=True) - To print in Docker Terminal
         channel.basic_publish(exchange='',
+<<<<<<< HEAD
                              routing_key='devices',
                              body=json.dumps(str(m)))
         print(m)
+=======
+                              routing_key='devices',
+                              body=json.dumps(m))
+        print(json.dumps(m))
+>>>>>>> 1b99803fc4cc1eb790649b06825f39096caed5e5
     conn.close()
 
 

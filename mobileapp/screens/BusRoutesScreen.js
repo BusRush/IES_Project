@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLayoutEffect } from "react";
-import { SearchBar } from "@rneui/themed";
-import { Icon } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
-import { RouteNumbers } from "../components/RouteNumbers.js";
 import { NextBuses } from "../components/NextBuses.js";
 import CalendarStrip from "react-native-calendar-strip";
 import { addDays } from "date-fns";
-import { Button, Provider as PaperProvider } from "react-native-paper";
-import SearchableDropdown from "react-native-searchable-dropdown";
+import { Provider as PaperProvider } from "react-native-paper";
 import { Dimensions } from "react-native";
 import * as Location from "expo-location";
+import LoadingAnimation from "../components/LoadingAnimation.js";
+import ClosestBusStop from "../components/ClosestBusStop.js";
+import SearchBarDropDown from "../components/SearchBarDropDown.js";
+import Loading from "../components/Loading.js";
+import HiddenSearchBar from "../components/HiddenSearchBar.js";
+import RouteBanner from "../components/RouteBanner.js";
 
 datesWhitelist = [
   {
@@ -22,182 +23,199 @@ datesWhitelist = [
 ];
 
 function BusRoutes() {
-  const [location, setLocation] = useState(null);
+  // constants and useStates declaration
   const [errorMsg, setErrorMsg] = useState(null);
   const [closestBusStop, setClosestBusStop] = useState("Waiting...");
   const [closestBusStopID, setClosestBusStopID] = useState(null);
   const [busStops, setBusStops] = useState([]);
   const [nextBuses, setNextBuses] = useState([]);
-  const [selectedOrigin, setSelectedOrigin] = useState(null);
+  const [pageIsLoading, setPageIsLoading] = useState(true);
+  const [queryIsLoading, setQueryIsLoading] = useState(true);
+  const [originStop, setOriginStop] = useState(null);
+  const [destinationStop, setDestinationStop] = useState(null);
+  const [originInput, setOriginInput] = useState(null);
+  const navigation = useNavigation();
 
+  // on render this will be called
   useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
-        return;
-      }
-
-      let location = await Location.getCurrentPositionAsync({});
-      setLocation(location);
-    })();
-
-    (async () => {
-      try {
-        let busStops = [];
-        const response = await fetch("http://10.0.2.2:8080/api/stops");
-        const json = await response.json();
-        for (let i = 0; i < json.length; i++) {
-          busStops.push({ id: json[i].id, name: json[i].designation });
-        }
-        setBusStops(busStops);
-      } catch (error) {
-        console.error(error);
-      }
-    })();
     navigation.setOptions({
       headerShown: false,
     });
-  }, [navigation]);
 
-  const getClosestLocation = async () => {
+    getBusStops();
+
+    (async () => {
+      const geo_loc = await getGeoLocation();
+      if (geo_loc != "error") {
+        const closestStop = await getClosestStop(geo_loc);
+        await getBusRoutes(closestStop);
+      }
+    })();
+  }, []);
+
+  // gets geolocation of the device
+  const getGeoLocation = async () => {
+    try {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
+        return "error";
+      }
+      let location = await Location.getCurrentPositionAsync({});
+      return location;
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  // gets closest stop given location of device
+  const getClosestStop = async (location) => {
     let lat = location["coords"]["latitude"];
     let lon = location["coords"]["longitude"];
-    console.log("hallo");
     try {
       const response = await fetch(
         "http://10.0.2.2:8080/api/stops/closest?lat=" + lat + "&lon=" + lon
       );
       const json = await response.json();
-      console.log(json);
+      setOriginStop(json.id);
       setClosestBusStop(json.designation);
       setClosestBusStopID(json.id);
+      return json.id;
     } catch (error) {
       console.error(error);
     }
   };
 
-  const getBusRoutes = async () => {
-    let lat = location["coords"]["latitude"];
-    let lon = location["coords"]["longitude"];
-    console.log("hallo");
+  // gets bus routes given by origin_stop_id and, optionally, designation_stop_id
+  const getBusRoutes = async (origin_stop_id, designation_stop_id = null) => {
     try {
       let nextBuses = [];
-      const response = await fetch(
-        "http://10.0.2.2:8080/api/schedules/next?origin_stop_id=" +
-          closestBusStopID +
-          "&destination_stop_id=AVRBUS-S0005"
-      );
+      if (designation_stop_id == null) {
+        var response = await fetch(
+          "http://10.0.2.2:8080/api/schedules/next?origin_stop_id=" +
+            origin_stop_id
+        );
+      } else {
+        var response = await fetch(
+          "http://10.0.2.2:8080/api/schedules/next?origin_stop_id=" +
+            origin_stop_id +
+            "&destination_stop_id=" +
+            designation_stop_id
+        );
+      }
       const json = await response.json();
       for (let i = 0; i < json.length; i++) {
         nextBuses.push({
+          id: json[i].id,
           linha: json[i].route.designation,
-          paragem: json[i].stop.designation,
           time: json[i].time,
+          delay: json[i].delay,
         });
       }
-      console.log(nextBuses);
       setNextBuses(nextBuses);
+      setPageIsLoading(false);
+      setQueryIsLoading(false);
+      return;
     } catch (error) {
-      console.log("here");
       console.error(error);
     }
   };
 
-  const navigation = useNavigation();
-  const [selectedDate, setSelectedDate] = useState("");
-  const [partida_search, setPartidaSearch] = useState("");
-
-  const updatePartidaSearch = (partida_search) => {
-    setPartidaSearch(partida_search);
-    console.log(partida_search);
+  const getBusStops = async () => {
+    try {
+      let busStops = [];
+      const response = await fetch("http://10.0.2.2:8080/api/stops");
+      const json = await response.json();
+      for (let i = 0; i < json.length; i++) {
+        busStops.push({ id: json[i].id, name: json[i].designation });
+      }
+      setBusStops(busStops);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const [chegada_search, setChegadaSearch] = useState("");
-
-  const updateChegadaSearch = (chegada_search) => {
-    setChegadaSearch(chegada_search);
+  const getDesignationOfStop = (stop_id) => {
+    let bus_designation = null;
+    for (let i = 0; i < busStops.length; i++) {
+      if (busStops[i].id == stop_id) {
+        bus_designation = busStops[i].name;
+      }
+    }
+    return bus_designation;
   };
 
   return (
     <PaperProvider>
-      <SafeAreaView className="pt-5">
-        {/* <View style={{ backgroundColor: "#245A8D", paddingTop: 40 }}>
-          <SearchableDropdown
-            onItemSelect={(item) => setSelectedOrigin(item)}
-            inputValue={selectedOrigin}
-            containerStyle={{ padding: 5 }}
-            textInputStyle={{
-              padding: 12,
-              borderWidth: 1,
-              borderColor: "#ccc",
-              backgroundColor: "#FAF7F6",
-            }}
-            itemStyle={{
-              padding: 10,
-              marginTop: 2,
-              backgroundColor: "#FAF9F8",
-              borderColor: "#bbb",
-              borderWidth: 1,
-            }}
-            itemTextStyle={{
-              color: "#222",
-            }}
-            itemsContainerStyle={{
-              maxHeight: "60%",
-            }}
-            items={busStops}
-            placeholder="Inserir Partida"
-            underlineColorAndroid="transparent"
-          />
-        </View> */}
-        <View>
-          {/* <SearchBar
-            placeholder="Inserir destino"
-            containerStyle={{
-              height: 55,
-              backgroundColor: "#245A8D",
-              borderTopWidth: 0,
-              borderBottomWidth: 0,
-            }}
-            onChangeText={updateChegadaSearch}
-            value={chegada_search}
-            //inputStyle={{backgroundColor: '#3B71CA, height: 40, borderRadius: 10}}
-          /> */}
+      <SafeAreaView
+        className="pt-5"
+        style={{ flex: 1, backgroundColor: "white" }}
+      >
+        {pageIsLoading ? (
+          <LoadingAnimation content="Preparing bus..." time={3000} />
+        ) : (
+          <View>
+            <ClosestBusStop closestBusStop={closestBusStop} />
 
-          <View style={Styles.row}>
-            <Icon
-              reverse
-              name="my-location"
-              color="#245A8D"
-              onPress={() => getClosestLocation()}
+            <SearchBarDropDown
+              placeholder="Search Origin Bus Stop"
+              DATA={busStops}
+              getBusRoutes={getBusRoutes}
+              closestBusStopID={closestBusStopID}
+              setQueryIsLoading={setQueryIsLoading}
+              setOriginStop={setOriginStop}
+              originStop={originStop}
+              destinationStop={destinationStop}
+              setOriginInput={setOriginInput}
             />
-            <View
-              style={{
-                flexDirection: "row",
-                width: Dimensions.get("window").width - 100,
-              }}
-            >
-              <Text style={Styles.subtextStyle}>
-                Paragem mais próxima: {closestBusStop}
-              </Text>
+
+            <HiddenSearchBar
+              placeholder="Search Origin Bus Stop"
+              DATA={busStops}
+              getBusRoutes={getBusRoutes}
+              closestBusStopID={closestBusStopID}
+              setQueryIsLoading={setQueryIsLoading}
+              setDestinationStop={setDestinationStop}
+              originStop={originStop}
+              destinationStop={destinationStop}
+              originInput={originInput}
+            />
+
+            <View>
+              {queryIsLoading ? (
+                <Loading />
+              ) : (
+                <View>
+                  {nextBuses.length == 0 ? (
+                    <View style={{ paddingTop: 150 }}>
+                      <Text
+                        style={{
+                          textAlign: "center",
+                          fontSize: 20,
+                        }}
+                      >
+                        No buses available
+                      </Text>
+                    </View>
+                  ) : (
+                    <View>
+                      <View style={{ width: Dimensions.get("screen").width }}>
+                        <RouteBanner
+                          originStop={getDesignationOfStop(originStop)}
+                          destinationStop={getDesignationOfStop(
+                            destinationStop
+                          )}
+                          buses={nextBuses}
+                        />
+                      </View>
+                      <NextBuses dados={nextBuses} />
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           </View>
-
-          <View style={{ paddingTop: 5, backgroundColor: "white" }}>
-            <RouteNumbers />
-          </View>
-
-          <View>
-            <Button onPress={getBusRoutes}>Get Routes</Button>
-          </View>
-
-          {/* <CalendarStrip datesWhitelist={datesWhitelist} /> */}
-
-          <View>
-            <NextBuses dados={nextBuses} />
-          </View>
-        </View>
+        )}
       </SafeAreaView>
     </PaperProvider>
   );
@@ -205,37 +223,15 @@ function BusRoutes() {
 
 export default BusRoutes;
 
-const Styles = {
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#245A8D",
-    justifyContent: "center", //Centered horizontally
-    alignItems: "center", //Centered vertically
-  },
-  titleStyle: {
-    alignItems: "center",
-    backgroundColor: "#245A8D",
-    height: 50,
-    marginTop: 25,
-    padding: 5,
-  },
-  textStyle: {
-    marginTop: 10,
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  subtextStyle: {
-    flex: 1,
-    marginTop: 10,
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-  container: {
-    flex: 1,
-    paddingTop: 22,
+const styles = {
+  routeLabels: {
+    fontSize: 15,
+    textAlign: "center",
+    paddingTop: 20,
+    paddingBottom: 20,
   },
 };
+
+{
+  /* <CalendarStrip datesWhitelist={datesWhitelist} /> */
+}

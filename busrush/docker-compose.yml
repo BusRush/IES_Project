@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1b99803fc4cc1eb790649b06825f39096caed5e5
 services:
   app:
     container_name: busrush
@@ -9,14 +12,13 @@ services:
       - .:/busrush
     # environment:
     #  FLASK_DEBUG: True
-
     depends_on:
       cassandra:
         condition: service_healthy
       mysql-db:
         condition: service_healthy
     networks:
-      - bus-net
+      - api_bus-net
   mysql-db:
     container_name: busrush-db
     image: mysql/mysql-server:5.7
@@ -31,7 +33,7 @@ services:
       MYSQL_USER: admin
       MYSQL_PASSWORD: admin
     networks:
-      - bus-net
+      - api_bus-net
   rabbitmq:
     container_name: rabbitmq
     image: rabbitmq:3-management
@@ -49,7 +51,7 @@ services:
         source: ./rabbitmq-defs.json
         target: /etc/rabbitmq/rabbitmq-defs.json
     networks:
-      - bus-net
+      - api_bus-net
   cassandra:
     container_name: cassandra
     image: cassandra:4.0
@@ -63,9 +65,9 @@ services:
     volumes:
       - ~/apps/cassandra:/var/lib/cassandra
     environment:
-        CASSANDRA_CLUSTER_NAME: 'busrush'
+      CASSANDRA_CLUSTER_NAME: 'busrush'
     networks:
-        - bus-net
+      - api_bus-net
   osrm:
     container_name: osrm
     image: ghcr.io/project-osrm/osrm-backend
@@ -77,7 +79,20 @@ services:
         source: ./data
         target: /data
     networks:
-      - bus-net
+      - api_bus-net
+  cache:
+    container_name: cache
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    environment:
+        REDIS_PASSWORD: eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes:
+      - cache:/data
+    networks:
+      - api_bus-net
   init:
     image: cassandra:4.0
     depends_on:
@@ -87,13 +102,15 @@ services:
     volumes:
       - ./init_cassandra.sh:/init_cassandra.sh
     networks:
-        - bus-net
+      - api_bus-net
 
 
 
 volumes:
   busrush-db:
-
+  cache:
+  cassandra:
 
 networks:
-  bus-net:
+  api_bus-net:
+    name: bus-net

@@ -13,9 +13,11 @@ import ies.project.busrush.model.cassandra.BusMetrics;
 public class QueueService {
 
     private final CassandraService cassandraService;
+    private final BusRushService busRushService;
 
-    public QueueService(CassandraService cassandraService) {
+    public QueueService(CassandraService cassandraService, BusRushService busRushService) {
         this.cassandraService = cassandraService;
+        this.busRushService = busRushService;
     }
 
     @RabbitListener(queues = "devices")
@@ -32,7 +34,9 @@ public class QueueService {
 
         // Parsing the JSON to get the fields
         ObjectMapper mapper = new ObjectMapper();
-        BusMetrics busMetrics = mapper.readValue(msg, BusMetrics.class);
+
+        
+        //BusMetrics busMetrics = mapper.readValue(msg, BusMetrics.class);
        
 
     }
