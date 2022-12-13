@@ -25,7 +25,7 @@ class Page extends Component {
   componentDidMount = () => {
     this.fetchStops();
     // Setup buses
-    const stomp = Stomp.client('ws://localhost:15674/ws');
+    const stomp = Stomp.client('ws://172.21.0.3:5672/ws');
     const headers = {
       'login': 'guest',
       'passcode': 'guest',
