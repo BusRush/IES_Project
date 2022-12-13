@@ -13,3 +13,7 @@ chmod +x init_osrm.sh && ./init_osrm.sh
 docker compose up
 
 #### This will initialize all the images to run the API
+
+#### To reconsrruct the images 
+
+docker compose up --build
