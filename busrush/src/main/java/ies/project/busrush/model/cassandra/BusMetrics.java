@@ -2,7 +2,7 @@ package ies.project.busrush.model.cassandra;
 
 import java.util.Date;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import org.springframework.data.cassandra.core.mapping.PrimaryKey;
 import org.springframework.data.cassandra.core.mapping.Column;
@@ -14,7 +14,7 @@ import org.springframework.data.cassandra.core.cql.Ordering;
 // {'device_id': 'AVRBUS-D0001', 'route_id': 'AVRBUS-L04', 'route_shift': '083000', 'timestamp': 1670868915, 'position': [40.63554147, -8.65516931], 'speed': 15.156, 'fuel': 98.878, 'passengers': 15}
 
 @Data
-@NoArgsConstructor
+@AllArgsConstructor
 @Table("bus_metrics")
 public class BusMetrics {
 
@@ -25,12 +25,6 @@ public class BusMetrics {
     private String bus_id;
 
     @PrimaryKeyColumn(
-        name = "date", 
-        ordinal = 0, 
-        type = PrimaryKeyType.PARTITIONED)
-    private Date date;
-
-    @PrimaryKeyColumn(
         name = "timestamp", 
         ordinal = 2, 
         type = PrimaryKeyType.CLUSTERED, 
@@ -38,6 +32,7 @@ public class BusMetrics {
     private long timestamp;
 
     @Column("route_id") private String route_id;
+    @Column("route_shift") private String route_shift;
     @Column("device_id") private String device_id;
     @Column("position") private String[] position;
     @Column("speed") private Double speed;

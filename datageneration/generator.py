@@ -104,15 +104,9 @@ def main(device_id, route_id, route_shift):
     for m in metrics.generate_metrics():
         # print('...', flush=True) - To print in Docker Terminal
         channel.basic_publish(exchange='',
-<<<<<<< HEAD
-                             routing_key='devices',
-                             body=json.dumps(str(m)))
-        print(m)
-=======
                               routing_key='devices',
                               body=json.dumps(m))
         print(json.dumps(m))
->>>>>>> 1b99803fc4cc1eb790649b06825f39096caed5e5
     conn.close()
 
 

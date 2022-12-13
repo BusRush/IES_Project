@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 @Repository
 public interface BusRepository extends JpaRepository<Bus, String> {
+    String findBusIdByDeviceId(String deviceId);
 }
