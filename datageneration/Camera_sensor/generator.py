@@ -1,13 +1,13 @@
 import click
-import json
 import os
 import pika
 import random
 from datetime import datetime
 from time import sleep
-import socket
 
 from utils import load_path_mock
+from camera_sensor import detectByCamera, detectByPathImage, detectByPathVideo
+
 
 TRANSMISSION_RATE = 5  # seconds
 FUEL_PROB = 0.5
@@ -15,8 +15,6 @@ FUEL_MAX = 0.3  # liters per TRANSMISSION_RATE seconds
 PASSENGER_PROB = 0.5
 PASSENGER_MAX = 5  # passengers per TRANSMISSION_RATE seconds
 BUS_CAPACITY = 90  # passengers
-CAMERA_ACTIVE = False
-client = None
 
 
 class MockMetrics:
@@ -47,12 +45,10 @@ class MockMetrics:
         change_passengers = self.speeds[0] < 1 and random.random(
         ) < PASSENGER_PROB
         if change_passengers:
-            if (CAMERA_ACTIVE):
-                request_data('my_request', {'param1': 'value1', 'param2': 'value2'})
-            else:         
-                self.passengers += random.randint(
-                    max(-PASSENGER_MAX, -self.passengers),
-                    min(PASSENGER_MAX, BUS_CAPACITY - self.passengers))
+            self.passengers += random.randint(
+                max(-PASSENGER_MAX, -self.passengers),
+                min(PASSENGER_MAX, BUS_CAPACITY - self.passengers)
+            )
 
         return {
             'device_id': self.device_id,
@@ -70,40 +66,36 @@ class MockMetrics:
             yield self._get_next_metrics()
             sleep(TRANSMISSION_RATE)
 
-
-# Connect to the camera sensor script
-def connect_camera_sensor(): 
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(('localhost', 4000))
-    return client
-
-# Send a request to the camera sensor script
-def request_data(request_name, timestamp):
-    # Write the message
-    msg = {'param1': 'value1', 'param2': 'value2'}
-    data = json.dumps(msg)
-    
-    # Use the SocketIO client to emit a request event with the given data
-    client.send(data)
-    
-    # Receive the response data using the socket
-    response = client.recv(1024)
+def getPassengersCount(ctx):
+    base, ext = os.path.splitext(ctx.params['bus_video'])
+    if ctx.params['bus_video'] is not None:
+        if ext.lower() in ['.jpg', '.jpeg', '.png', '.gif']:
+            detectByPathImage(ctx.params['bus_video'])
+        elif ext.lower() in ['.mp4', '.avi', '.mov', '.mkv']:
+            detectByPathVideo(ctx.params['bus_video'])
+        else:
+            print("Not valid input file!")
+            return 10
+    elif ctx.params['camera'] == 'True':
+        detectByCamera(None)
+    else:
+        return 10      
 
 @click.command()
 @click.option('--device_id', help='Id of the device on board of the bus.')
 @click.option('--route_id', help='Id of the route to be simulated.')#
 @click.option('--route_shift', help='Shift of the route to be simulated.')
-@click.option('--sensor_camera', required=False, default='False', help='Camera to be used to count passengers.')
-@click.option('--sensor_footage', required=False, default='bus_footage/AVR-B0001', help='Bus footage used to count passengers.')
+@click.option('--camera', required=False, default='False', help='Camera to be used to count passengers.')
+@click.option('--bus_footage', required=False, default='videos/video1.mp4', help='Bus footage used to count passengers.')
 #
-# Example: python3 generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-R0011 --route_shift 092000
+# Example: python3 generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-L11 --route_shift 092000
 #
-def main(device_id, route_id, route_shift, sensor_camera, sensor_footage):
+def main(device_id, route_id, route_shift, camera, bus_video):
 
     # Connect to RabbitMQ
     conn = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = conn.channel()
-    channel.queue_declare(queue='devices', durable=True)
+    channel.queue_declare(queue='devices')
 
     # Choose a random mock from the provided route
     route_mocks = [filename for filename in os.listdir('mock')
@@ -114,8 +106,7 @@ def main(device_id, route_id, route_shift, sensor_camera, sensor_footage):
 
     # Get values of click parameters
     ctx = click.get_current_context()
-    if ctx.params['sensor_footage'] is not None or sensor_camera == 'True':
-        client = connect_camera_sensor()
+    current_passengers = getPassengersCount(ctx)
 
     # Initialize the metrics generator
     metrics = MockMetrics(
@@ -126,15 +117,14 @@ def main(device_id, route_id, route_shift, sensor_camera, sensor_footage):
         list_positions=[p['position'] for p in path],
         list_speeds=[p['speed'] for p in path],
         init_fuel=100,
-        init_passengers=10)
+        init_passengers=current_passengers)
 
     # Generate metrics
     for m in metrics.generate_metrics():
         # print('...', flush=True) - To print in Docker Terminal
         channel.basic_publish(exchange='',
                               routing_key='devices',
-                              body=json.dumps(m))
-        print(json.dumps(m))
+                              body=str(m))
     conn.close()
 
 
