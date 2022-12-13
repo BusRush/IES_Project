@@ -29,7 +29,7 @@ export const BusMetrics = (props) => {
               color="textPrimary"
               variant="h4"
             >
-              {bus.name}
+              {bus.brand}
             </Typography>
             <Typography
               color="textSecondary"
