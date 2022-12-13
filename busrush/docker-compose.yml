@@ -35,7 +35,8 @@ services:
     image: rabbitmq:3-management
     ports:
       - '5672:5672'
-      - '15672:15672'
+      - '15674:15674'
+      - '61613:61613'
     volumes:
       - type: bind
         source: ./rabbitmq-enabled-plugins
@@ -59,7 +60,7 @@ services:
       timeout: 5s
       retries: 10
     volumes:
-      - ~/apps/cassandra:/var/lib/cassandra
+      - cassandra:/var/lib/cassandra
     environment:
       CASSANDRA_CLUSTER_NAME: 'busrush'
     networks:
