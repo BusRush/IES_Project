@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { SearchBar } from "@rneui/themed";
 import {
   FlatList,
@@ -35,7 +35,12 @@ const SearchBarDropDown = (props) => {
   const onSelectOption = (item) => {
     setSearch(item.name);
     props.setQueryIsLoading(true);
-    props.setStop(item.id);
+    if (props.setOriginStop != undefined) {
+      props.setOriginStop(item.id);
+    }
+    if (props.setDestinationStop != undefined) {
+      props.setDestinationStop(item.id);
+    }
     if (props.setOriginInput != undefined) {
       props.setOriginInput(item.name);
     }
@@ -56,7 +61,13 @@ const SearchBarDropDown = (props) => {
       props.setOriginInput(null);
     }
     props.setQueryIsLoading(true);
-    props.setStop(props.closestBusStopID);
+
+    if (props.setOriginStop != undefined) {
+      props.setOriginStop(props.closestBusStopID);
+    }
+    if (props.setDestinationStop != undefined) {
+      props.setDestinationStop(null);
+    }
     props.getBusRoutes(props.closestBusStopID);
     setIsVisible(false);
   };

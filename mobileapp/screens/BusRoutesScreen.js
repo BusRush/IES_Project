@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, ActivityIndicator, Image, Animated } from "react-native";
+import { View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useLayoutEffect } from "react";
-import { Icon } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
-import { RouteNumbers } from "../components/RouteNumbers.js";
 import { NextBuses } from "../components/NextBuses.js";
 import CalendarStrip from "react-native-calendar-strip";
 import { addDays } from "date-fns";
-import {
-  Button,
-  Provider as PaperProvider,
-  Card,
-  Title,
-  Paragraph,
-} from "react-native-paper";
+import { Provider as PaperProvider } from "react-native-paper";
 import { Dimensions } from "react-native";
 import * as Location from "expo-location";
 import LoadingAnimation from "../components/LoadingAnimation.js";
@@ -32,7 +23,7 @@ datesWhitelist = [
 ];
 
 function BusRoutes() {
-  // constant declaration
+  // constants and useStates declaration
   const [errorMsg, setErrorMsg] = useState(null);
   const [closestBusStop, setClosestBusStop] = useState("Waiting...");
   const [closestBusStopID, setClosestBusStopID] = useState(null);
@@ -44,6 +35,7 @@ function BusRoutes() {
   const [destinationStop, setDestinationStop] = useState(null);
   const [originInput, setOriginInput] = useState(null);
   const navigation = useNavigation();
+
   // on render this will be called
   useEffect(() => {
     navigation.setOptions({
@@ -153,8 +145,6 @@ function BusRoutes() {
     return bus_designation;
   };
 
-  const [selectedDate, setSelectedDate] = useState("");
-
   return (
     <PaperProvider>
       <SafeAreaView
@@ -173,7 +163,7 @@ function BusRoutes() {
               getBusRoutes={getBusRoutes}
               closestBusStopID={closestBusStopID}
               setQueryIsLoading={setQueryIsLoading}
-              setStop={setOriginStop}
+              setOriginStop={setOriginStop}
               originStop={originStop}
               destinationStop={destinationStop}
               setOriginInput={setOriginInput}
@@ -185,7 +175,7 @@ function BusRoutes() {
               getBusRoutes={getBusRoutes}
               closestBusStopID={closestBusStopID}
               setQueryIsLoading={setQueryIsLoading}
-              setStop={setDestinationStop}
+              setDestinationStop={setDestinationStop}
               originStop={originStop}
               destinationStop={destinationStop}
               originInput={originInput}
@@ -215,15 +205,8 @@ function BusRoutes() {
                           destinationStop={getDesignationOfStop(
                             destinationStop
                           )}
+                          buses={nextBuses}
                         />
-                        {/* <Text style={styles.routeLabels}>
-                          Routes from "{getDesignationOfStop(originStop)}"
-                          {destinationStop != null && (
-                            <Text>
-                              to {getDesignationOfStop(destinationStop)}
-                            </Text>
-                          )}
-                        </Text> */}
                       </View>
                       <NextBuses dados={nextBuses} />
                     </View>

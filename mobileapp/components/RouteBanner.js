@@ -9,7 +9,9 @@ const RouteBanner = (props) => {
       <Card style={styles.card}>
         <Card.Content style={{ flexDirection: "column" }}>
           <Title style={{ fontSize: 18, alignSelf: "center" }}>
-            Routes from:
+            {props.buses.length == 1
+              ? "Found 1 Route from:"
+              : "Found" + props.buses.length + " routes from:"}
           </Title>
           <View style={{ flexDirection: "column", alignItems: "center" }}>
             {props.originStop != null ? (

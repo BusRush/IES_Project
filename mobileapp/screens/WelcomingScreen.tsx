@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { Button } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Icon } from "@rneui/themed";
 
 const WelcomingScreen = () => {
   const [sliderState, setSliderState] = useState({ currentPage: 0 });
@@ -62,6 +61,7 @@ const WelcomingScreen = () => {
                   alignContent: "center",
                   alignSelf: "center",
                   paddingTop: 100,
+                  paddingLeft: 20,
                 }}
               >
                 <Image

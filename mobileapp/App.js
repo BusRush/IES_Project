@@ -13,48 +13,12 @@ const Stack = createNativeStackNavigator();
 
 const Tab = createBottomTabNavigator();
 
-function HomeTabs() {
-  const navigation = useNavigation();
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-  return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName;
-
-          if (route.name === "Bus Routes") {
-            iconName = focused ? "bus" : "bus-outline";
-          } else if (route.name === "Bus") {
-            iconName = focused ? "ios-list" : "ios-list-outline";
-          }
-
-          // You can return any component that you like here!
-          return (
-            <Ionicons name={iconName} size={30} fontSize={30} color={color} />
-          );
-        },
-        tabBarActiveTintColor: "white",
-        tabBarInactiveTintColor: "lightgray",
-        tabBarItemStyle: { backgroundColor: "#3B2E6E" },
-        tabBarLabelStyle: { fontSize: 14 },
-        tabBarHideOnKeyboard: true,
-      })}
-    >
-      <Tab.Screen name="Bus Routes" component={BusRoutes} />
-    </Tab.Navigator>
-  );
-}
-
 export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Welcome" component={WelcomingScreen} />
-        <Stack.Screen name="Home" component={HomeTabs} />
+        <Stack.Screen name="Home" component={BusRoutes} />
         <Stack.Screen
           name="Chosen Bus Information"
           component={ChosenBusInformationScreen}

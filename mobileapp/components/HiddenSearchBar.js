@@ -1,4 +1,4 @@
-import { View, Animated, TouchableOpacity, Text } from "react-native";
+import { View, TouchableOpacity } from "react-native";
 import { useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import SearchBarDropDown from "./SearchBarDropDown";
@@ -6,7 +6,6 @@ import SearchBarDropDown from "./SearchBarDropDown";
 const HiddenSearchBar = (props) => {
   const [searchBarVisible, setSearchBarVisible] = useState(false);
   const [disable, setDisable] = useState(false);
-  const fadeAnim = new Animated.Value(0);
 
   useEffect(() => {
     if (props.originInput == null) {
@@ -15,14 +14,6 @@ const HiddenSearchBar = (props) => {
       setDisable(false);
     }
   }, [props.originInput]);
-
-  const startFadeIn = () => {
-    fadeAnim.setValue(0);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 1000,
-    }).start();
-  };
 
   const toggleVisibility = () => {
     // Set the component's visibility to the opposite of its current value
@@ -38,7 +29,7 @@ const HiddenSearchBar = (props) => {
           getBusRoutes={props.getBusRoutes}
           closestBusStopID={props.closestBusStopID}
           setQueryIsLoading={props.setQueryIsLoading}
-          setStop={props.setStop}
+          setDestinationStop={props.setDestinationStop}
           originStop={props.originStop}
           destinationStop={props.destinationStop}
           disabled={disable}

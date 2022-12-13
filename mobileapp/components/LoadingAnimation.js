@@ -5,11 +5,13 @@ const LoadingAnimation = (props) => {
   const [animatedValue] = useState(new Animated.Value(0));
 
   useEffect(() => {
-    Animated.timing(animatedValue, {
-      toValue: 1,
-      duration: props.time,
-      useNativeDriver: true,
-    }).start();
+    Animated.loop(
+      Animated.timing(animatedValue, {
+        toValue: 1,
+        duration: props.time,
+        useNativeDriver: true,
+      })
+    ).start();
   }, []);
 
   const translateX = animatedValue.interpolate({
