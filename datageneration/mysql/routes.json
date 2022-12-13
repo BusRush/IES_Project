@@ -7,5 +7,25 @@
     "designation": "Linha 11",
     "driverId": "AVRBUS-C0000",
     "busId": "AVRBUS-B0000"
+  },
+
+  {
+    "id": {
+      "id": "AVRBUS-R0004",
+      "shift": "083000"
+    },
+    "designation": "Linha 4",
+    "driverId": "AVRBUS-C0001",
+    "busId": "AVRBUS-B0001"
+  },
+  
+  {
+    "id": {
+      "id": "AVRBUS-R0001",
+      "shift": "064700"
+    },
+    "designation": "Linha 1",
+    "driverId": "AVRBUS-C0002",
+    "busId": "AVRBUS-B0002"
   }
 ]
