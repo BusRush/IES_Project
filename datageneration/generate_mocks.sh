@@ -1,6 +1,5 @@
 #!/bin/bash
-# ./generate.sh AVRBUS-R0001 064700
-# Use the seq command to generate a sequence of numbers from 1 to 40
+# ./generate_mocks.sh AVRBUS-R0001 064700
 for i in $(seq 1 5)
 do
   for day in "monday" "tuesday" "wednesday" "thursday" "friday"
