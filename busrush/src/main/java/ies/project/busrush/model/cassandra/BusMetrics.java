@@ -1,5 +1,7 @@
 package ies.project.busrush.model.cassandra;
 
+import com.datastax.oss.driver.api.querybuilder.term.Term;
+
 // {'device_id': 'AVRBUS-D0001', 'route_id': 'AVRBUS-L04', 'route_shift': '083000', 'timestamp': 1670868915, 'position': [40.63554147, -8.65516931], 'speed': 15.156, 'fuel': 98.878, 'passengers': 15}
 
 public class BusMetrics {
