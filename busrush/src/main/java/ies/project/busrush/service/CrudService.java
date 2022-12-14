@@ -53,11 +53,14 @@ public class CrudService {
     //
     // Buses
     //
-    public ResponseEntity<List<BusCrudDto>> getAllBuses() {
+    public ResponseEntity<List<BusCrudDto>> getAllBuses(Optional<String> deviceId) {
         try {
             List<Bus> buses = busRepository.findAll();
             if (buses.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+
+            // Filters
+            deviceId.ifPresent(_deviceId -> buses.removeIf(bus -> !bus.getDevice().getId().equals(_deviceId)));
 
             List<BusCrudDto> busesCrudDto = new ArrayList<>();
             for (Bus bus : buses) {

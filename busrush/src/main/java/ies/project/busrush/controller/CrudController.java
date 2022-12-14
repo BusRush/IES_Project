@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -20,8 +21,10 @@ public class CrudController {
     // Buses
     //
     @GetMapping("/buses")
-    public ResponseEntity<List<BusCrudDto>> getAllBuses() {
-        return crudService.getAllBuses();
+    public ResponseEntity<List<BusCrudDto>> getAllBuses(
+            @RequestParam(value = "device_id") Optional<String> deviceId
+    ) {
+        return crudService.getAllBuses(deviceId);
     }
 
     @GetMapping("/buses/{id}")
