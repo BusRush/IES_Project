@@ -96,7 +96,7 @@ def request_data(request_name, timestamp):
 @click.option('--sensor_camera', required=False, default='False', help='Camera to be used to count passengers.')
 @click.option('--sensor_footage', required=False, default='bus_footage/AVR-B0001', help='Bus footage used to count passengers.')
 #
-# Example: python3 generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-R0011 --route_shift 092000
+# Example: python3 metric_generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-R0011 --route_shift 092000
 #
 def main(device_id, route_id, route_shift, sensor_camera, sensor_footage):
 

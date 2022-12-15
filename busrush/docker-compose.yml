@@ -35,7 +35,8 @@ services:
     image: rabbitmq:3-management
     ports:
       - '5672:5672'
-      - '15672:15672'
+      - '15674:15674'
+      - '61613:61613'
     volumes:
       - type: bind
         source: ./rabbitmq-enabled-plugins
@@ -59,7 +60,7 @@ services:
       timeout: 5s
       retries: 10
     volumes:
-      - ~/apps/cassandra:/var/lib/cassandra
+      - cassandra:/var/lib/cassandra
     environment:
       CASSANDRA_CLUSTER_NAME: 'busrush'
     networks:
@@ -74,6 +75,19 @@ services:
       - type: bind
         source: ./data
         target: /data
+    networks:
+      - api_bus-net
+  cache:
+    container_name: cache
+    image: redis:6.2-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    environment:
+        REDIS_PASSWORD: eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes:
+      - cache:/data
     networks:
       - api_bus-net
   init:
@@ -91,6 +105,8 @@ services:
 
 volumes:
   busrush-db:
+  cache:
+  cassandra:
 
 networks:
   api_bus-net:

@@ -16,6 +16,10 @@ public class RouteId implements Serializable {
     private String id;
     @Column(name = "shift")
     private String shift;
+    public static RouteId fromString(String id) {
+        String[] split = id.split("_");
+        return new RouteId(split[0], split[1]);
+    }
     @Override
     public String toString() {
         return id + "_" + shift;
