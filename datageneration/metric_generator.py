@@ -17,7 +17,7 @@ PASSENGER_MAX = 5  # passengers per TRANSMISSION_RATE seconds
 BUS_CAPACITY = 90  # passengers
 CAMERA_ACTIVE = False
 client = None
-
+ENCODING = 'utf-8'
 
 class MockMetrics:
 
@@ -48,7 +48,8 @@ class MockMetrics:
         ) < PASSENGER_PROB
         if change_passengers:
             if (CAMERA_ACTIVE):
-                request_data('my_request', {'param1': 'value1', 'param2': 'value2'})
+                send(client, {'command': 'people_in_out', 'passengers': self.passengers, 'timestamp': self.timestamp})
+                self.passengers += receive_data(client)
             else:         
                 self.passengers += random.randint(
                     max(-PASSENGER_MAX, -self.passengers),
@@ -72,22 +73,55 @@ class MockMetrics:
 
 
 # Connect to the camera sensor script
-def connect_camera_sensor(): 
+def connect_camera_sensor(ctx, init_passengers): 
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(('localhost', 4000))
-    return client
+    
+    try: 
+        client.connect(('localhost', 4000))
+        print(f"LOG: Connected to camera sensor script on port 4000")
+    except socket.error as e:
+        print(f"DEBUG; Could not connect to the camera sensor{str(e)}")
+    
+    # Sendind a message to the camera sensor script to activate the camera
+    camera = ctx.params['sensor_camera']
+    path = ctx.params['sensor_footage']
+
+    if camera == 'True':
+        send(client,{'command': 'activate_camera', 'init_passengers': init_passengers})
+    elif ctx.params['sensor_footage'] is not None and camera == 'False':
+        base, ext = os.path.splitext(ctx.params['sensor_footage'])
+        if ext.lower() in ['.jpg', '.jpeg', '.png', '.gif']:
+            send(client, {'command': 'detect_by_image', 'format': 'image', 'path': path})
+        elif ext.lower() in ['.mp4', '.avi', '.mov', '.mkv']:
+            send(client,{'command': 'detect_by_video', 'format': 'video', 'path': path})
 
 # Send a request to the camera sensor script
-def request_data(request_name, timestamp):
+def send(sock, msg):
     # Write the message
-    msg = {'param1': 'value1', 'param2': 'value2'}
     data = json.dumps(msg)
+    msg = str(data).encode(ENCODING)
     
     # Use the SocketIO client to emit a request event with the given data
-    client.send(data)
+    try:
+        sock.send(msg)
+        print(f"LOG: Sent message to the camera sensor script: {data}")
+    except socket.error as e:
+        print(f"DEBUG: Could not send message to the camera sensor: {str(e)}")
     
+# Receive a response from the camera sensor script
+def receive_data(sock):
     # Receive the response data using the socket
-    response = client.recv(1024)
+    response = sock.recv(1024)
+    response = json.loads(response)
+    print(f"RECEIVED: Received response from camera sensor script: {response}")
+    people_in = response["people_in"]
+    print(f"CAMERA SENSOR: {people_in} entered the bus")
+    people_out = response["people_out"]
+    print(f"CAMERA SENSOR: {people_in} exited the bus")
+    people_balance = people_in - people_out
+    print(f"PASSENGERS BALANCE: {people_balance} people")
+    return people_balance
+
 
 @click.command()
 @click.option('--device_id', help='Id of the device on board of the bus.')
@@ -115,7 +149,7 @@ def main(device_id, route_id, route_shift, sensor_camera, sensor_footage):
     # Get values of click parameters
     ctx = click.get_current_context()
     if ctx.params['sensor_footage'] is not None or sensor_camera == 'True':
-        client = connect_camera_sensor()
+        client = connect_camera_sensor(ctx, 10)
 
     # Initialize the metrics generator
     metrics = MockMetrics(

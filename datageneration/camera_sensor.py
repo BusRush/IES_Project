@@ -7,9 +7,12 @@ import csv
 import socket
 import selectors
 import logging
+import json
+import os
 
 HOGCV = cv2.HOGDescriptor()
 HOGCV.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+ENCODING = 'utf-8'
 
 class CameraSensor:
     def __init__(self):
@@ -17,63 +20,61 @@ class CameraSensor:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sel = selectors.DefaultSelector()
+        self.people_in = 0
+        self.people_out = 0
+        self.passengers = 0
 
         # Bind the socket to a host and port
         try:
             self.server.bind(('localhost', 4000))
-            print("Camera sensor server bind on (localhost, 4000)!")
+            print("BIND: Camera sensor server bind on (localhost, 4000)!")
         except Exception as e:
-            print(f"Failed to bind server: {e}")
+            print(f"DEBUG: Failed to bind server: {e}")
         
         # Listen for incoming connections
         try:
             self.server.listen()
-            print("Ready to receive connections!")
+            print("LISTEN: Ready to receive connections!")
         except Exception as e:
-            print(f"Failed to start listening: {e}")
+            print(f"DEBUG: Failed to start listening: {e}")
 
         self.sel.register(self.server, selectors.EVENT_READ, self.accept)
 
-    # Define a function to handle connections
+    # This function will be executed whenever a client connects to the server
     def accept(self, sock):
-        # This function will be executed whenever a client connects to the server
-        print('A new client has connected to the server')
-        # Accept the connection
         client, address = sock.accept()
-        #logging.debug(f"ACCEPTED: {conn} , {addr}")
-        self.sel.register(client, selectors.EVENT_READ, self.read)
+        #logging.debug(f"LOG: {conn} , {addr}")
+        print(f"ACCEPTED: Connection accepted from {address}")
+        self.sel.register(client, selectors.EVENT_READ, self.read)    
 
+    # This function is called whenever there is incoming data on the connection
     def read(self, connection): 
-        # This function is called whenever there is incoming data on the connection
         try:
-            # Receive data from the client
-            data = connection.recv(1024)
-            # If there is no data, the client has closed the connection
+            msg = connection.recv(1024)
+            data = json.loads(msg)
             if data:
-                # Do something with the data received
-                print(data)
+                print(f"RECEIVED: {data}")
+                if data['command'] == 'activate_camera':
+                    self.passengers = data['init_passengers']
+                    self.detectByCamera(connection)
+                elif data['command'] == 'detect_by_image':
+                    self.detectByPathImage(data['path'])
+                elif data['command'] == 'detect_by_video':
+                    self.detectByPathVideo(data['path'])
+                elif data['command'] == 'people_in_out':
+                    msg = {'command': 'update_passengers', 'people_in': self.people_in, 'people_out': self.people_out, 'passengers': self.passengers}
+                    self.send(connection, json.dumps(msg).encode())
             else:
-                # Close the connection
                 connection.close()
                 self.sel.unregister(connection)
         except Exception as e:
-            # Log the error
-            print(e)
-            # Close the connection
+            print(f"DEBUG: Failed to read data: {e}")
             connection.close()
             self.sel.unregister(connection)
 
     def send(self, connection, msg): 
-        connection.send(msg)
-
-
-    # Define a function to handle requests 
-    def on_request(request_name, data):
-        # Check the request name and handle the request as needed
-        if request_name == 'connection':
-            # Use the data to determine what data to send back to the client
-            response_data = {'response': 'my_response'}
-            print("Connected")
+        msg = json.dumps(msg)
+        connection.send(str(msg).encode(ENCODING))
 
     def loop(self): 
         try: 
@@ -85,28 +86,9 @@ class CameraSensor:
         except KeyboardInterrupt:
             self.server.close()
 
-        '''
-        base, ext = os.path.splitext(ctx.params['sensor_footage'])
-        if camera == 'True':
-            print("True")
-            detectByCamera(None)
-        elif ctx.params['sensor_footage'] is not None and camera == 'False':
-            if ext.lower() in ['.jpg', '.jpeg', '.png', '.gif']:
-                passengers = detectByPathImage(ctx.params['sensor_footage'])
-                return passengers
-            elif ext.lower() in ['.mp4', '.avi', '.mov', '.mkv']:
-                passengers = detectByPathVideo(ctx.params['sensor_footage'], "videooooo.txt")
-                return passengers
-            else:
-                print("Not valid input file!")
-                return random.randint(0, BUS_CAPACITY)
-        else:
-            return random.randint(0, BUS_CAPACITY)'''
-
-
     def detectByCamera(self, writer): 
         # Create a VideoCapture object
-        cap = cv2.VideoCapture(2)
+        cap = cv2.VideoCapture(0)
 
         # Set the width and height of the frame
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
