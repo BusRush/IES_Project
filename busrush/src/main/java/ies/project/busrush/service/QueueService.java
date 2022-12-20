@@ -58,44 +58,25 @@ public class QueueService {
 
         String device_id = json.getString("device_id");
         String route_id = json.getString("route_id");
-        System.out.println("route" + route_id); 
         String route_shift = json.getString("route_shift");
-        System.out.println("shift" + route_shift); 
         Long timestamp = json.getLong("timestamp"); 
-        System.out.println("timestamp" + timestamp); 
         JSONArray pos = json.getJSONArray("position");
         List<Double> position = new ArrayList<>(); 
         position.add(pos.getDouble(0));
         position.add(pos.getDouble(1));
-        System.out.println("pos_array" + position); 
         Double speed = json.getDouble("speed");
-        System.out.println("speed" + speed); 
         Double fuel = json.getDouble("fuel");
-        System.out.println("fuel" + fuel); 
         int passengers = json.getInt("passengers");
-        System.out.println("passengers" + passengers); 
 
         // Get field bus_id from MySQL
         //String bus_id = busRepository.findIdByDeviceId(device_id);
         String bus_id = "AVRBUS-B0001"; 
-        System.out.println("BUS ID: " + bus_id);
+    
 
         // Create an instance of BusMetrics with some values
         BusMetrics busMetrics = new BusMetrics(bus_id, timestamp, route_id, route_shift, device_id, position, speed, fuel, passengers);
         
-        System.out.println("NEW METRIC CREATED"); 
         busMetricsRepository.save(busMetrics);
-
-        /* 
-         * // Send to Cassandra - 1st method
-        insertIntoBusMetrisRepository("busrushdelays", busMetrics); 
-
-
-        // Send to Cassandra - 2nd method
-        // insertMetrics(session, bus_id, timestamp, route_id, route_shift, device_id, position, speed, fuel, passengers);
-
-        cassandra_connector.close(); 
-        */
 
     }
 
