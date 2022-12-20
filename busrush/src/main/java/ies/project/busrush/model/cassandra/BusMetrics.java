@@ -18,7 +18,7 @@ public class BusMetrics {
     private String route_id;
     private String route_shift;
     private String device_id;
-    @CassandraType(type = CassandraType.Name.LIST, typeArguments = CassandraType.Name.VARCHAR)
+    @CassandraType(type = CassandraType.Name.LIST, typeArguments = CassandraType.Name.DOUBLE)
     private List<Double> position;
     private Double speed;
     private Double fuel;
