@@ -30,7 +30,7 @@ const ChosenBusInformationScreen = ({ route }) => {
     (async () => {
       try {
         const response = await fetch(
-          "http://10.0.2.2:8080/api/schedules/info/" + id
+          "http://192.168.160.222:8080/api/schedules/info/" + id
         );
         const json = await response.json();
         setData(json);

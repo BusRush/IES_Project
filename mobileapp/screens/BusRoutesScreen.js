@@ -74,7 +74,7 @@ function BusRoutes() {
     let lon = location["coords"]["longitude"];
     try {
       const response = await fetch(
-        "http://10.0.2.2:8080/api/stops/closest?lat=" + lat + "&lon=" + lon
+        "http://192.168.160.222:8080/api/stops/closest?lat=" + lat + "&lon=" + lon
       );
       const json = await response.json();
       setOriginStop(json.id);
@@ -92,12 +92,12 @@ function BusRoutes() {
       let nextBuses = [];
       if (designation_stop_id == null) {
         var response = await fetch(
-          "http://10.0.2.2:8080/api/schedules/next?origin_stop_id=" +
+          "http://192.168.160.222:8080/api/schedules/next?origin_stop_id=" +
             origin_stop_id
         );
       } else {
         var response = await fetch(
-          "http://10.0.2.2:8080/api/schedules/next?origin_stop_id=" +
+          "http://192.168.160.222:8080/api/schedules/next?origin_stop_id=" +
             origin_stop_id +
             "&destination_stop_id=" +
             designation_stop_id
@@ -124,7 +124,7 @@ function BusRoutes() {
   const getBusStops = async () => {
     try {
       let busStops = [];
-      const response = await fetch("http://10.0.2.2:8080/api/stops");
+      const response = await fetch("http://192.168.160.222:8080/api/stops");
       const json = await response.json();
       for (let i = 0; i < json.length; i++) {
         busStops.push({ id: json[i].id, name: json[i].designation });
