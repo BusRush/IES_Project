@@ -69,11 +69,6 @@ public class BusRushService {
         return new ResponseEntity<>(closestStopDto, HttpStatus.OK);
     }
 
-    // Get the bus id from the device id
-    public String getBusID(String deviceId) {
-        return busRepository.findBusIdByDeviceId(deviceId);
-    }
-
     public ResponseEntity<List<NextScheduleDto>> getNextSchedules(String originStopId, Optional<String> destinationStopId) {
 
         LocalTime currentTime = LocalTime.now().truncatedTo(ChronoUnit.SECONDS);

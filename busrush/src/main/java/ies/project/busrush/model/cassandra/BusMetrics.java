@@ -1,21 +1,34 @@
 package ies.project.busrush.model.cassandra;
-
-import com.datastax.oss.driver.api.querybuilder.term.Term;
+import java.util.*; 
+import org.springframework.data.cassandra.core.mapping.PrimaryKey; 
+import org.springframework.data.cassandra.core.mapping.Table;
+import org.springframework.data.cassandra.core.mapping.CassandraType; 
+import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
+import org.springframework.data.cassandra.core.cql.Ordering;
+import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
 
 // {'device_id': 'AVRBUS-D0001', 'route_id': 'AVRBUS-L04', 'route_shift': '083000', 'timestamp': 1670868915, 'position': [40.63554147, -8.65516931], 'speed': 15.156, 'fuel': 98.878, 'passengers': 15}
 
+@Table("bus_metrics")
 public class BusMetrics {
+    @PrimaryKeyColumn(name = "bus_id", ordinal = 0, type = PrimaryKeyType.PARTITIONED)    
     private String bus_id;
+    @PrimaryKeyColumn(name = "timestamp", ordinal = 1, type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING)
     private Long timestamp;
     private String route_id;
     private String route_shift;
     private String device_id;
-    private String[] position;
+    @CassandraType(type = CassandraType.Name.LIST, typeArguments = CassandraType.Name.VARCHAR)
+    private List<Double> position;
     private Double speed;
     private Double fuel;
     private int passengers;
 
-    public BusMetrics(String bus_id, Long timestamp, String route_id, String route_shift, String device_id, String[] position, Double speed, Double fuel, int passengers) {
+    public BusMetrics() {
+
+    }
+
+    public BusMetrics(String bus_id, Long timestamp, String route_id, String route_shift, String device_id, List<Double> position, Double speed, Double fuel, int passengers) {
         this.bus_id = bus_id;
         this.timestamp = timestamp;
         this.route_id = route_id;
@@ -67,11 +80,11 @@ public class BusMetrics {
         this.device_id = device_id;
     }
 
-    public String[] getPosition() {
+    public List<Double> getPosition() {
         return position;
     }
 
-    public void setPosition(String[] position) {
+    public void setPosition(List<Double> position) {
         this.position = position;
     }
 

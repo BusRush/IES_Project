@@ -1,15 +1,23 @@
 package ies.project.busrush.repository.cassandra;
 
 import ies.project.busrush.model.cassandra.BusMetrics;
+import org.springframework.data.cassandra.repository.CassandraRepository;
 
-import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+/*
+ * import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.datastax.oss.driver.api.core.CqlIdentifier;
 import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.type.DataTypes;
 import com.datastax.oss.driver.api.querybuilder.SchemaBuilder;
 import com.datastax.oss.driver.api.querybuilder.schema.CreateTable;
+ * 
+ */
 
+public interface BusMetricsRepository extends CassandraRepository<BusMetrics, String> {
+}
+
+/* 
 public class BusMetricsRepository {
     private static final String TABLE_NAME = "bus_metrics";
     private final CqlSession session;
@@ -51,4 +59,4 @@ public class BusMetricsRepository {
         executeStatement(statement, keyspace);
     }
 }
-
+*/
