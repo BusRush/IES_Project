@@ -5,6 +5,7 @@ import pika
 import random
 from datetime import datetime
 from time import sleep
+import json
 
 from utils import load_path_mock
 
