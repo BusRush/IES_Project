@@ -76,8 +76,7 @@ public class QueueService {
         System.out.println("passengers" + passengers); 
 
         // Get field bus_id from MySQL
-        //String bus_id = busRepository.findIdByDeviceId(device_id);
-        String bus_id = "AVRBUS-B0001"; 
+        String bus_id = busRepository.findIdByDeviceId(device_id);
         System.out.println("BUS ID: " + bus_id);
 
         // Create an instance of BusMetrics with some values
