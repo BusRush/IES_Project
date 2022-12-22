@@ -31,6 +31,8 @@ export const InfoBuses = (props) => {
         setAge(event.target.value);
     };
 
+    const { buses } = props;
+
  return (
   <Card {...props}>
     <CardHeader 
@@ -63,27 +65,28 @@ export const InfoBuses = (props) => {
               <TableCell>
                 Name
               </TableCell>
-              <TableCell>
+              {/*<TableCell>
                 Time
               </TableCell>
               <TableCell>
                 Status
-              </TableCell>
-            </TableRow>
+              </TableCell>*/}
+        </TableRow>
           </TableHead>
           <TableBody>
-            {busesLive.map((bus) => (
+            {Object.entries(buses).map((bus) => (
+              console.log(bus),
               <TableRow
                 hover
                 key={bus.id}
               >
                 <TableCell>
-                  {bus.name}
+                  {bus.registration}
                 </TableCell>
                 <TableCell>
-                  {bus.routeId}
+                  {bus.brand}
                 </TableCell>
-                <TableCell>
+                {/*<TableCell>
                   {format(bus.metrics.timestamp, 'dd/MM/yyyy H:mma')}
                 </TableCell>
                 <TableCell>
@@ -93,7 +96,7 @@ export const InfoBuses = (props) => {
                   >
                     {bus.metrics.speed !== 0 ? 'In Route' : 'Stopped'}
                   </SeverityPill>
-                </TableCell>
+                </TableCell>*/}
               </TableRow>
             ))}
           </TableBody>

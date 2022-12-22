@@ -1,9 +1,13 @@
 import { Avatar, Card, CardContent, Grid, Typography } from '@mui/material';
 import PlaceIcon from '@mui/icons-material/Place';
-import { busesLive } from '../../__mocks__/buses-live';
-import { busRoutes } from '../../__mocks__/bus-routes';
+//import { busesLive } from '../../__mocks__/buses-live';
+//import { busRoutes } from '../../__mocks__/bus-routes';
 
-export const TotalStops = (props) => (
+export const TotalStops = (props) => {
+
+  const { stops } = props;
+
+  return (
   <Card {...props}>
     <CardContent>
       <Grid
@@ -23,7 +27,7 @@ export const TotalStops = (props) => (
             color="textPrimary"
             variant="h4"
           >
-            {busRoutes[0].stops.length}
+            {stops.length}
           </Typography>
         </Grid>
         <Grid item>
@@ -40,4 +44,5 @@ export const TotalStops = (props) => (
       </Grid>
     </CardContent>
   </Card>
-);
+  );
+};
