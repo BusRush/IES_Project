@@ -26,6 +26,7 @@ class Page extends Component {
         .then(buses => this.updateBuses(buses));
     this.fetchAllDrivers()
         .then(drivers => this.updateDrivers(drivers));
+    this.fetchAllDevices()
   };
 
   fetchAllStops = async () => {
@@ -35,7 +36,7 @@ class Page extends Component {
       .then(data => stops = data)
       .catch(err => console.log(err))
     ;
-    console.log(stops);
+    console.log(stops)
     return stops;
   };
 
@@ -46,7 +47,7 @@ class Page extends Component {
       .then(data => buses = data)
       .catch(err => console.log(err))
     ;
-    console.log(buses);
+    console.log(buses)
     return buses;
   };
 
@@ -57,8 +58,19 @@ class Page extends Component {
       .then(data => drivers = data)
       .catch(err => console.log(err))
     ;
-    console.log(drivers);
+    console.log(drivers)
     return drivers;
+  };
+
+  fetchAllDevices = async () => {
+    let devices = null;
+    await fetch('http://localhost:8080/api/devices')
+      .then(res => res.json())
+      .then(data => devices = data)
+      .catch(err => console.log(err))
+    ;
+    console.log(devices)
+    return devices;
   };
 
   updateStops = (stops) => {
