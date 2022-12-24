@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CrudService {
@@ -185,10 +186,23 @@ public class CrudService {
             bus.setBrand(busCrudDto.getBrand());
             bus.setModel(busCrudDto.getModel());
             bus.setDevice(device);
-            bus.setRoutes(routes);
             busRepository.save(bus);
 
+            for (Route route : bus.getRoutes()) {
+                route.setBus(null);
+                routeRepository.save(route);
+            }
+            for (Route route : routes) {
+                route.setBus(bus);
+                routeRepository.save(route);
+            }
+
             busCrudDto.setId(bus.getId());
+            busCrudDto.setRegistration(bus.getRegistration());
+            busCrudDto.setBrand(bus.getBrand());
+            busCrudDto.setModel(bus.getModel());
+            busCrudDto.setDeviceId((bus.getDevice() != null) ? bus.getDevice().getId() : null);
+            busCrudDto.setRoutesId(routes.stream().map(route -> new RouteIdDto(route.getId().getId(), route.getId().getShift())).toArray(RouteIdDto[]::new));
             return new ResponseEntity<>(busCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -202,6 +216,8 @@ public class CrudService {
             if (_bus.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             Bus bus = _bus.get();
+            if (bus.getRoutes() != null && !bus.getRoutes().isEmpty())
+                return new ResponseEntity<>(HttpStatus.CONFLICT);
 
             busRepository.delete(bus);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -311,6 +327,7 @@ public class CrudService {
             }
 
             deviceCrudDto.setId(device.getId());
+            deviceCrudDto.setBusId((bus != null) ? bus.getId() : null);
             return new ResponseEntity<>(deviceCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -324,11 +341,8 @@ public class CrudService {
             if (_device.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             Device device = _device.get();
-
-            // Set bus device to null
-            Bus bus = device.getBus();
-            bus.setDevice(null);
-            busRepository.save(bus);
+            if (device.getBus() != null)
+                return new ResponseEntity<>(HttpStatus.CONFLICT);
 
             deviceRepository.delete(device);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -440,10 +454,21 @@ public class CrudService {
 
             driver.setFirstName(driverCrudDto.getFirstName());
             driver.setLastName(driverCrudDto.getLastName());
-            driver.setRoutes(routes);
             driverRepository.save(driver);
 
+            for (Route route : driver.getRoutes()) {
+                route.setBus(null);
+                routeRepository.save(route);
+            }
+            for (Route route : routes) {
+                route.setDriver(driver);
+                routeRepository.save(route);
+            }
+
             driverCrudDto.setId(driver.getId());
+            driverCrudDto.setFirstName(driver.getFirstName());
+            driverCrudDto.setLastName(driver.getLastName());
+            driverCrudDto.setRoutesId(routes.stream().map(route -> new RouteIdDto(route.getId().getId(), route.getId().getShift())).toArray(RouteIdDto[]::new));
             return new ResponseEntity<>(driverCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -457,6 +482,8 @@ public class CrudService {
             if (_driver.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             Driver driver = _driver.get();
+            if (!driver.getRoutes().isEmpty())
+                return new ResponseEntity<>(HttpStatus.CONFLICT);
 
             driverRepository.delete(driver);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -623,10 +650,31 @@ public class CrudService {
             route.setDesignation(routeCrudDto.getDesignation());
             route.setDriver(driver);
             route.setBus(bus);
-            route.setSchedules(schedules);
             routeRepository.save(route);
 
+            List<Schedule> newSchedules = new ArrayList<>();
+            for (Schedule schedule : schedules) {
+                newSchedules.add(new Schedule(
+                        new ScheduleId(route.getId(), schedule.getId().getStopId(), schedule.getId().getSequence()),
+                        route,
+                        schedule.getStop(),
+                        schedule.getTime()
+                ));
+            }
+            for (Schedule schedule : newSchedules) {
+                scheduleRepository.save(schedule);
+            }
+            for (Schedule schedule : route.getSchedules()) {
+                if (!newSchedules.contains(schedule)) {
+                    scheduleRepository.deleteByScheduleId(schedule.getId());
+                }
+            }
+
             routeCrudDto.setId(new RouteIdDto(route.getId().getId(), route.getId().getShift()));
+            routeCrudDto.setDesignation(route.getDesignation());
+            routeCrudDto.setDriverId(route.getDriver() != null ? route.getDriver().getId() : null);
+            routeCrudDto.setBusId(route.getBus() != null ? route.getBus().getId() : null);
+            routeCrudDto.setSchedulesId(newSchedules.stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getId().getRouteId().getId(), schedule.getId().getRouteId().getShift()), schedule.getId().getStopId(), schedule.getId().getSequence())).toArray(ScheduleIdDto[]::new));
             return new ResponseEntity<>(routeCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -642,6 +690,8 @@ public class CrudService {
             if (_route.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             Route route = _route.get();
+            if (route.getDriver() != null || route.getBus() != null || !route.getSchedules().isEmpty())
+                return new ResponseEntity<>(HttpStatus.CONFLICT);
 
             routeRepository.delete(route);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -678,21 +728,22 @@ public class CrudService {
         }
     }
 
-    public ResponseEntity<ScheduleCrudDto> getScheduleByScheduleId(String scheduleId) {
+    public ResponseEntity<ScheduleCrudDto> getScheduleByScheduleId(String id) {
         try {
-            String[] split = scheduleId.split("_");
-            ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
-            Optional<Schedule> schedule = scheduleRepository.findByScheduleId(_scheduleId);
-            if (schedule.isEmpty())
+            String[] split = id.split("_");
+            ScheduleId scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
+            Optional<Schedule> _schedule = scheduleRepository.findByScheduleId(scheduleId);
+            if (_schedule.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Schedule schedule = _schedule.get();
 
             ScheduleCrudDto scheduleCrudDto = new ScheduleCrudDto(
                     new ScheduleIdDto(
-                            new RouteIdDto(schedule.get().getId().getRouteId().getId(), schedule.get().getId().getRouteId().getShift()),
-                            schedule.get().getId().getStopId(),
-                            schedule.get().getId().getSequence()
+                            new RouteIdDto(schedule.getId().getRouteId().getId(), schedule.getId().getRouteId().getShift()),
+                            schedule.getId().getStopId(),
+                            schedule.getId().getSequence()
                     ),
-                    schedule.get().getTime()
+                    schedule.getTime()
             );
             return new ResponseEntity<>(scheduleCrudDto, HttpStatus.OK);
         } catch (Exception e) {
@@ -704,41 +755,41 @@ public class CrudService {
     public ResponseEntity<ScheduleCrudDto> createSchedule(ScheduleCrudDto scheduleCrudDto) {
         try {
             // Check if schedule already exists
-            Optional<Schedule> schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleCrudDto.getId().getRouteId().getId(), scheduleCrudDto.getId().getRouteId().getShift()), scheduleCrudDto.getId().getStopId(), scheduleCrudDto.getId().getSequence()));
-            if (schedule.isPresent())
+            Optional<Schedule> _schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleCrudDto.getId().getRouteId().getId(), scheduleCrudDto.getId().getRouteId().getShift()), scheduleCrudDto.getId().getStopId(), scheduleCrudDto.getId().getSequence()));
+            if (_schedule.isPresent())
                 return new ResponseEntity<>(HttpStatus.CONFLICT);
 
             // Check if route exists
-            Route _route = null;
+            Route route = null;
             if (scheduleCrudDto.getId().getRouteId() != null) {
-                Optional<Route> route = routeRepository.findByRouteId(new RouteId(scheduleCrudDto.getId().getRouteId().getId(), scheduleCrudDto.getId().getRouteId().getShift()));
-                if (route.isEmpty())
+                Optional<Route> _route = routeRepository.findByRouteId(new RouteId(scheduleCrudDto.getId().getRouteId().getId(), scheduleCrudDto.getId().getRouteId().getShift()));
+                if (_route.isEmpty())
                     return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                _route = route.get();
+                route = _route.get();
             }
 
             // Check if stop exists
-            Stop _stop = null;
+            Stop stop = null;
             if (scheduleCrudDto.getId().getStopId() != null) {
-                Optional<Stop> stop = stopRepository.findById(scheduleCrudDto.getId().getStopId());
-                if (stop.isEmpty())
+                Optional<Stop> _stop = stopRepository.findById(scheduleCrudDto.getId().getStopId());
+                if (_stop.isEmpty())
                     return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                _stop = stop.get();
+                stop = _stop.get();
             }
 
-            Integer _sequence = scheduleCrudDto.getId().getSequence();
+            Integer sequence = scheduleCrudDto.getId().getSequence();
 
-            if (_route == null || _stop == null || _sequence == null)
+            if (route == null || stop == null || sequence == null)
                 return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 
             scheduleRepository.save(new Schedule(
                     new ScheduleId(
-                            _route.getId(),
-                            _stop.getId(),
-                            _sequence
+                            route.getId(),
+                            stop.getId(),
+                            sequence
                     ),
-                    _route,
-                    _stop,
+                    route,
+                    stop,
                     scheduleCrudDto.getTime()
             ));
             return new ResponseEntity<>(scheduleCrudDto, HttpStatus.CREATED);
@@ -748,48 +799,49 @@ public class CrudService {
         }
     }
 
-    public ResponseEntity<ScheduleCrudDto> updateSchedule(String scheduleId, ScheduleCrudDto scheduleCrudDto) {
+    public ResponseEntity<ScheduleCrudDto> updateSchedule(String id, ScheduleCrudDto scheduleCrudDto) {
         try {
-            String[] split = scheduleId.split("_");
-            ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
-            Optional<Schedule> schedule = scheduleRepository.findByScheduleId(_scheduleId);
-            if (schedule.isEmpty())
+            String[] split = id.split("_");
+            ScheduleId scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
+            Optional<Schedule> _schedule = scheduleRepository.findByScheduleId(scheduleId);
+            if (_schedule.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Schedule schedule = _schedule.get();
 
             // Check if route exists
-            Route _route = null;
+            Route route = null;
             if (scheduleCrudDto.getId().getRouteId() != null) {
-                Optional<Route> route = routeRepository.findByRouteId(new RouteId(scheduleCrudDto.getId().getRouteId().getId(), scheduleCrudDto.getId().getRouteId().getShift()));
-                if (route.isEmpty())
+                Optional<Route> _route = routeRepository.findByRouteId(new RouteId(scheduleCrudDto.getId().getRouteId().getId(), scheduleCrudDto.getId().getRouteId().getShift()));
+                if (_route.isEmpty())
                     return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                _route = route.get();
+                route = _route.get();
             }
 
             // Check if stop exists
-            Stop _stop = null;
+            Stop stop = null;
             if (scheduleCrudDto.getId().getStopId() != null) {
-                Optional<Stop> stop = stopRepository.findById(scheduleCrudDto.getId().getStopId());
-                if (stop.isEmpty())
+                Optional<Stop> _stop = stopRepository.findById(scheduleCrudDto.getId().getStopId());
+                if (_stop.isEmpty())
                     return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                _stop = stop.get();
+                stop = _stop.get();
             }
 
-            Integer _sequence = scheduleCrudDto.getId().getSequence();
+            Integer sequence = scheduleCrudDto.getId().getSequence();
 
-            if (_route == null || _stop == null || _sequence == null)
+            if (route == null || stop == null || sequence == null)
                 return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
 
-            Schedule _schedule = schedule.get();
-            _schedule.setRoute(_route);
-            _schedule.setStop(_stop);
-            _schedule.setTime(scheduleCrudDto.getTime());
-            scheduleRepository.save(_schedule);
+            schedule.setRoute(route);
+            schedule.setStop(stop);
+            schedule.setTime(scheduleCrudDto.getTime());
+            scheduleRepository.save(schedule);
 
             scheduleCrudDto.setId(new ScheduleIdDto(
-                    new RouteIdDto(_schedule.getId().getRouteId().getId(), _schedule.getId().getRouteId().getShift()),
-                    _schedule.getId().getStopId(),
-                    _schedule.getId().getSequence()
+                    new RouteIdDto(schedule.getId().getRouteId().getId(), schedule.getId().getRouteId().getShift()),
+                    schedule.getId().getStopId(),
+                    schedule.getId().getSequence()
             ));
+            scheduleCrudDto.setTime(schedule.getTime());
             return new ResponseEntity<>(scheduleCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -797,11 +849,11 @@ public class CrudService {
         }
     }
 
-    public ResponseEntity<HttpStatus> deleteSchedule(String scheduleId) {
+    public ResponseEntity<HttpStatus> deleteSchedule(String id) {
         try {
-            String[] split = scheduleId.split("_");
-            ScheduleId _scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
-            scheduleRepository.deleteByScheduleId(_scheduleId);
+            String[] split = id.split("_");
+            ScheduleId scheduleId = new ScheduleId(new RouteId(split[0], split[1]), split[2], Integer.parseInt(split[3]));
+            scheduleRepository.deleteByScheduleId(scheduleId);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -836,15 +888,16 @@ public class CrudService {
 
     public ResponseEntity<StopCrudDto> getStopById(String id) {
         try {
-            Optional<Stop> stop = stopRepository.findById(id);
-            if (stop.isEmpty())
+            Optional<Stop> _stop = stopRepository.findById(id);
+            if (_stop.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Stop stop = _stop.get();
 
             StopCrudDto stopCrudDto = new StopCrudDto(
-                    stop.get().getId(),
-                    stop.get().getDesignation(),
-                    new Double[]{stop.get().getLat(), stop.get().getLon()},
-                    stop.get().getSchedules().stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getId().getRouteId().getId(), schedule.getId().getRouteId().getShift()), schedule.getId().getStopId(), schedule.getId().getSequence())).toArray(ScheduleIdDto[]::new)
+                    stop.getId(),
+                    stop.getDesignation(),
+                    new Double[]{stop.getLat(), stop.getLon()},
+                    stop.getSchedules().stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getId().getRouteId().getId(), schedule.getId().getRouteId().getShift()), schedule.getId().getStopId(), schedule.getId().getSequence())).toArray(ScheduleIdDto[]::new)
             );
             return new ResponseEntity<>(stopCrudDto, HttpStatus.OK);
         } catch (Exception e) {
@@ -856,18 +909,21 @@ public class CrudService {
     public ResponseEntity<StopCrudDto> createStop(StopCrudDto stopCrudDto) {
         try {
             // Check if stop already exists
-            Optional<Stop> stop = stopRepository.findById(stopCrudDto.getId());
-            if (stop.isPresent())
+            Optional<Stop> _stop = stopRepository.findById(stopCrudDto.getId());
+            if (_stop.isPresent())
                 return new ResponseEntity<>(HttpStatus.CONFLICT);
 
             // Check if schedules exist
-            List<Schedule> _schedules = new ArrayList<>();
+            List<Schedule> schedules = new ArrayList<>();
             if (stopCrudDto.getSchedulesId() != null) {
                 for (ScheduleIdDto scheduleIdDto : stopCrudDto.getSchedulesId()) {
                     Optional<Schedule> _schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleIdDto.getRouteId().getId(), scheduleIdDto.getRouteId().getShift()), scheduleIdDto.getStopId(), scheduleIdDto.getSequence()));
                     if (_schedule.isEmpty())
                         return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                    _schedules.add(_schedule.get());
+                    Schedule schedule = _schedule.get();
+                    if (schedule.getStop() != null)
+                        return new ResponseEntity<>(HttpStatus.CONFLICT);
+                    schedules.add(schedule);
                 }
             }
 
@@ -876,7 +932,7 @@ public class CrudService {
                     stopCrudDto.getDesignation(),
                     stopCrudDto.getPosition()[0],
                     stopCrudDto.getPosition()[1],
-                    _schedules
+                    schedules
             ));
             return new ResponseEntity<>(stopCrudDto, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -887,29 +943,52 @@ public class CrudService {
 
     public ResponseEntity<StopCrudDto> updateStop(String id, StopCrudDto stopCrudDto) {
         try {
-            Optional<Stop> stop = stopRepository.findById(id);
-            if (stop.isEmpty())
+            Optional<Stop> _stop = stopRepository.findById(id);
+            if (_stop.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Stop stop = _stop.get();
 
             // Check if schedules exist
-            List<Schedule> _schedules = new ArrayList<>();
+            List<Schedule> schedules = new ArrayList<>();
             if (stopCrudDto.getSchedulesId() != null) {
                 for (ScheduleIdDto scheduleIdDto : stopCrudDto.getSchedulesId()) {
                     Optional<Schedule> _schedule = scheduleRepository.findByScheduleId(new ScheduleId(new RouteId(scheduleIdDto.getRouteId().getId(), scheduleIdDto.getRouteId().getShift()), scheduleIdDto.getStopId(), scheduleIdDto.getSequence()));
                     if (_schedule.isEmpty())
                         return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                    _schedules.add(_schedule.get());
+                    Schedule schedule = _schedule.get();
+                    if (schedule.getStop() != null && !schedule.getStop().equals(stop))
+                        return new ResponseEntity<>(HttpStatus.CONFLICT);
+                    schedules.add(schedule);
                 }
             }
 
-            Stop _stop = stop.get();
-            _stop.setDesignation(stopCrudDto.getDesignation());
-            _stop.setLat(stopCrudDto.getPosition()[0]);
-            _stop.setLon(stopCrudDto.getPosition()[1]);
-            _stop.setSchedules(_schedules);
-            stopRepository.save(_stop);
+            stop.setDesignation(stopCrudDto.getDesignation());
+            stop.setLat(stopCrudDto.getPosition()[0]);
+            stop.setLon(stopCrudDto.getPosition()[1]);
+            stopRepository.save(stop);
+
+            List<Schedule> newSchedules = new ArrayList<>();
+            for (Schedule schedule : schedules) {
+                newSchedules.add(new Schedule(
+                        new ScheduleId(schedule.getId().getRouteId(), stop.getId(), schedule.getId().getSequence()),
+                        schedule.getRoute(),
+                        stop,
+                        schedule.getTime()
+                ));
+            }
+            for (Schedule schedule : newSchedules) {
+                scheduleRepository.save(schedule);
+            }
+            for (Schedule schedule : stop.getSchedules()) {
+                if (!newSchedules.contains(schedule)) {
+                    scheduleRepository.deleteByScheduleId(schedule.getId());
+                }
+            }
 
             stopCrudDto.setId(id);
+            stopCrudDto.setDesignation(stop.getDesignation());
+            stopCrudDto.setPosition(new Double[]{stop.getLat(), stop.getLon()});
+            stopCrudDto.setSchedulesId(newSchedules.stream().map(schedule -> new ScheduleIdDto(new RouteIdDto(schedule.getId().getRouteId().getId(), schedule.getId().getRouteId().getShift()), schedule.getId().getStopId(), schedule.getId().getSequence())).toArray(ScheduleIdDto[]::new));
             return new ResponseEntity<>(stopCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -919,6 +998,13 @@ public class CrudService {
 
     public ResponseEntity<HttpStatus> deleteStop(String id) {
         try {
+            Optional<Stop> _stop = stopRepository.findById(id);
+            if (_stop.isEmpty())
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            Stop stop = _stop.get();
+            if (!stop.getSchedules().isEmpty())
+                return new ResponseEntity<>(HttpStatus.CONFLICT);
+
             stopRepository.deleteById(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
@@ -952,13 +1038,14 @@ public class CrudService {
 
     public ResponseEntity<UserCrudDto> getUserByUsername(String username) {
         try {
-            Optional<User> user = userRepository.findByUsername(username);
-            if (user.isEmpty())
+            Optional<User> _user = userRepository.findByUsername(username);
+            if (_user.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            User user = _user.get();
 
             UserCrudDto userCrudDto = new UserCrudDto(
-                    user.get().getUsername(),
-                    user.get().getPassword()
+                    user.getUsername(),
+                    user.getPassword()
             );
             return new ResponseEntity<>(userCrudDto, HttpStatus.OK);
         } catch (Exception e) {
@@ -970,8 +1057,8 @@ public class CrudService {
     public ResponseEntity<UserCrudDto> createUser(UserCrudDto userCrudDto) {
         try {
             // Check if user already exists
-            Optional<User> user = userRepository.findByUsername(userCrudDto.getUsername());
-            if (user.isPresent())
+            Optional<User> _user = userRepository.findByUsername(userCrudDto.getUsername());
+            if (_user.isPresent())
                 return new ResponseEntity<>(HttpStatus.CONFLICT);
 
             userRepository.save(new User(
@@ -987,15 +1074,16 @@ public class CrudService {
 
     public ResponseEntity<UserCrudDto> updateUser(String username, UserCrudDto userCrudDto) {
         try {
-            Optional<User> user = userRepository.findByUsername(username);
-            if (user.isEmpty())
+            Optional<User> _user = userRepository.findByUsername(username);
+            if (_user.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            User user = _user.get();
 
-            User _user = user.get();
-            _user.setPassword(userCrudDto.getPassword());
-            userRepository.save(_user);
+            user.setPassword(userCrudDto.getPassword());
+            userRepository.save(user);
 
-            userCrudDto.setUsername(username);
+            userCrudDto.setUsername(user.getUsername());
+            userCrudDto.setPassword(user.getPassword());
             return new ResponseEntity<>(userCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());

@@ -28,6 +28,6 @@ public class Route {
     @JoinColumn(name = "bus_id")
     private Bus bus;
 
-    @OneToMany(mappedBy = "route")
+    @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Schedule> schedules;
 }

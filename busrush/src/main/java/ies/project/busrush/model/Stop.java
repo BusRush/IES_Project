@@ -26,6 +26,6 @@ public class Stop {
     @Column(name = "lon", nullable = false)
     private Double lon;
 
-    @OneToMany(mappedBy = "stop")
+    @OneToMany(mappedBy = "stop", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Schedule> schedules;
 }

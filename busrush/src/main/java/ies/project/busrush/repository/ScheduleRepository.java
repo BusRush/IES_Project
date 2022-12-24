@@ -3,10 +3,12 @@ package ies.project.busrush.repository;
 import ies.project.busrush.model.RouteId;
 import ies.project.busrush.model.Schedule;
 import ies.project.busrush.model.ScheduleId;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import javax.transaction.Transactional;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +18,8 @@ public interface ScheduleRepository extends JpaRepository<Schedule, String> {
     @Query("SELECT s FROM Schedule s WHERE s.id = :scheduleId")
     Optional<Schedule> findByScheduleId(ScheduleId scheduleId);
 
+    @Transactional
+    @Modifying
     @Query("DELETE FROM Schedule s WHERE s.id = :scheduleId")
     void deleteByScheduleId(ScheduleId scheduleId);
 
