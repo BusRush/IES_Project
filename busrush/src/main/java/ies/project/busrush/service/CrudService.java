@@ -365,15 +365,16 @@ public class CrudService {
 
     public ResponseEntity<DriverCrudDto> getDriverById(String id) {
         try {
-            Optional<Driver> driver = driverRepository.findById(id);
-            if (driver.isEmpty())
+            Optional<Driver> _driver = driverRepository.findById(id);
+            if (_driver.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Driver driver = _driver.get();
 
             DriverCrudDto driverCrudDto = new DriverCrudDto(
-                    driver.get().getId(),
-                    driver.get().getFirstName(),
-                    driver.get().getLastName(),
-                    driver.get().getRoutes().stream().map(route -> new RouteIdDto(route.getId().getId(), route.getId().getShift())).toArray(RouteIdDto[]::new)
+                    driver.getId(),
+                    driver.getFirstName(),
+                    driver.getLastName(),
+                    driver.getRoutes().stream().map(route -> new RouteIdDto(route.getId().getId(), route.getId().getShift())).toArray(RouteIdDto[]::new)
             );
             return new ResponseEntity<>(driverCrudDto, HttpStatus.OK);
         } catch (Exception e) {
@@ -385,21 +386,21 @@ public class CrudService {
     public ResponseEntity<DriverCrudDto> createDriver(DriverCrudDto driverCrudDto) {
         try {
             // Check if driver already exists
-            Optional<Driver> driver = driverRepository.findById(driverCrudDto.getId());
-            if (driver.isPresent())
+            Optional<Driver> _driver = driverRepository.findById(driverCrudDto.getId());
+            if (_driver.isPresent())
                 return new ResponseEntity<>(HttpStatus.CONFLICT);
 
             // Check if routes exist
-            List<Route> _routes = new ArrayList<>();
+            List<Route> routes = new ArrayList<>();
             if (driverCrudDto.getRoutesId() != null) {
                 for (RouteIdDto routeIdDto : driverCrudDto.getRoutesId()) {
-                    Optional<Route> route = routeRepository.findByRouteId(new RouteId(routeIdDto.getId(), routeIdDto.getShift()));
-                    if (route.isEmpty())
+                    Optional<Route> _route = routeRepository.findByRouteId(new RouteId(routeIdDto.getId(), routeIdDto.getShift()));
+                    if (_route.isEmpty())
                         return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                    Route _route = route.get();
-                    if (_route.getDriver() != null)
+                    Route route = _route.get();
+                    if (route.getDriver() != null)
                         return new ResponseEntity<>(HttpStatus.CONFLICT);
-                    _routes.add(_route);
+                    routes.add(route);
                 }
             }
 
@@ -407,7 +408,7 @@ public class CrudService {
                     driverCrudDto.getId(),
                     driverCrudDto.getFirstName(),
                     driverCrudDto.getLastName(),
-                    _routes
+                    routes
             ));
             return new ResponseEntity<>(driverCrudDto, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -418,28 +419,31 @@ public class CrudService {
 
     public ResponseEntity<DriverCrudDto> updateDriver(String id, DriverCrudDto driverCrudDto) {
         try {
-            Optional<Driver> driver = driverRepository.findById(id);
-            if (driver.isEmpty())
+            Optional<Driver> _driver = driverRepository.findById(id);
+            if (_driver.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Driver driver = _driver.get();
 
             // Check if routes exist
-            List<Route> _routes = new ArrayList<>();
+            List<Route> routes = new ArrayList<>();
             if (driverCrudDto.getRoutesId() != null) {
                 for (RouteIdDto routeIdDto : driverCrudDto.getRoutesId()) {
                     Optional<Route> _route = routeRepository.findByRouteId(new RouteId(routeIdDto.getId(), routeIdDto.getShift()));
                     if (_route.isEmpty())
                         return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                    _routes.add(_route.get());
+                    Route route = _route.get();
+                    if (route.getDriver() != null && !route.getDriver().equals(driver))
+                        return new ResponseEntity<>(HttpStatus.CONFLICT);
+                    routes.add(route);
                 }
             }
 
-            Driver _driver = driver.get();
-            _driver.setFirstName(driverCrudDto.getFirstName());
-            _driver.setLastName(driverCrudDto.getLastName());
-            _driver.setRoutes(_routes);
-            driverRepository.save(_driver);
+            driver.setFirstName(driverCrudDto.getFirstName());
+            driver.setLastName(driverCrudDto.getLastName());
+            driver.setRoutes(routes);
+            driverRepository.save(driver);
 
-            driverCrudDto.setId(id);
+            driverCrudDto.setId(driver.getId());
             return new ResponseEntity<>(driverCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -449,7 +453,12 @@ public class CrudService {
 
     public ResponseEntity<HttpStatus> deleteDriver(String id) {
         try {
-            driverRepository.deleteById(id);
+            Optional<Driver> _driver = driverRepository.findById(id);
+            if (_driver.isEmpty())
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            Driver driver = _driver.get();
+
+            driverRepository.delete(driver);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             System.out.println(e.getMessage());
