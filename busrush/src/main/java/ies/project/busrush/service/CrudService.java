@@ -82,19 +82,20 @@ public class CrudService {
 
     public ResponseEntity<BusCrudDto> getBusById(String id) {
         try {
-            Optional<Bus> bus = busRepository.findById(id);
-            if (bus.isEmpty())
+            Optional<Bus> _bus = busRepository.findById(id);
+            if (_bus.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Bus bus = _bus.get();
 
-            BusCrudDto buseCrudDto = new BusCrudDto(
-                    bus.get().getId(),
-                    bus.get().getRegistration(),
-                    bus.get().getBrand(),
-                    bus.get().getModel(),
-                    (bus.get().getDevice() != null) ? bus.get().getDevice().getId() : null,
-                    bus.get().getRoutes().stream().map(route -> new RouteIdDto(route.getId().getId(), route.getId().getShift())).toArray(RouteIdDto[]::new)
+            BusCrudDto busCrudDto = new BusCrudDto(
+                    bus.getId(),
+                    bus.getRegistration(),
+                    bus.getBrand(),
+                    bus.getModel(),
+                    (bus.getDevice() != null) ? bus.getDevice().getId() : null,
+                    bus.getRoutes().stream().map(route -> new RouteIdDto(route.getId().getId(), route.getId().getShift())).toArray(RouteIdDto[]::new)
             );
-            return new ResponseEntity<>(buseCrudDto, HttpStatus.OK);
+            return new ResponseEntity<>(busCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -104,32 +105,32 @@ public class CrudService {
     public ResponseEntity<BusCrudDto> createBus(BusCrudDto busCrudDto) {
         try {
             // Check if bus already exists
-            Optional<Bus> bus = busRepository.findById(busCrudDto.getId());
-            if (bus.isPresent())
+            Optional<Bus> _bus = busRepository.findById(busCrudDto.getId());
+            if (_bus.isPresent())
                 return new ResponseEntity<>(HttpStatus.CONFLICT);
 
             // Check if device exists
-            Device _device = null;
+            Device device = null;
             if (busCrudDto.getDeviceId() != null) {
-                Optional<Device> device = deviceRepository.findById(busCrudDto.getDeviceId());
-                if (device.isEmpty())
+                Optional<Device> _device = deviceRepository.findById(busCrudDto.getDeviceId());
+                if (_device.isEmpty())
                     return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                _device = device.get();
-                if (_device.getBus() != null)
+                device = _device.get();
+                if (device.getBus() != null)
                     return new ResponseEntity<>(HttpStatus.CONFLICT);
             }
 
             // Check if routes exist
-            List<Route> _routes = new ArrayList<>();
+            List<Route> routes = new ArrayList<>();
             if (busCrudDto.getRoutesId() != null) {
                 for (RouteIdDto routeIdDto : busCrudDto.getRoutesId()) {
-                    Optional<Route> route = routeRepository.findByRouteId(new RouteId(routeIdDto.getId(), routeIdDto.getShift()));
-                    if (route.isEmpty())
+                    Optional<Route> _route = routeRepository.findByRouteId(new RouteId(routeIdDto.getId(), routeIdDto.getShift()));
+                    if (_route.isEmpty())
                         return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                    Route _route = route.get();
-                    if (_route.getBus() != null)
+                    Route route = _route.get();
+                    if (route.getBus() != null)
                         return new ResponseEntity<>(HttpStatus.CONFLICT);
-                    _routes.add(_route);
+                    routes.add(route);
                 }
             }
 
@@ -138,8 +139,8 @@ public class CrudService {
                     busCrudDto.getRegistration(),
                     busCrudDto.getBrand(),
                     busCrudDto.getModel(),
-                    _device,
-                    _routes
+                    device,
+                    routes
             ));
             return new ResponseEntity<>(busCrudDto, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -150,44 +151,43 @@ public class CrudService {
 
     public ResponseEntity<BusCrudDto> updateBus(String id, BusCrudDto busCrudDto) {
         try {
-            Optional<Bus> bus = busRepository.findById(id);
-            if (bus.isEmpty())
+            Optional<Bus> _bus = busRepository.findById(id);
+            if (_bus.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Bus bus = _bus.get();
 
             // Check if device exists
-            Device _device = null;
+            Device device = null;
             if (busCrudDto.getDeviceId() != null) {
-                Optional<Device> device = deviceRepository.findById(busCrudDto.getDeviceId());
-                if (device.isEmpty())
+                Optional<Device> _device = deviceRepository.findById(busCrudDto.getDeviceId());
+                if (_device.isEmpty())
                     return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                _device = device.get();
-                if (_device.getBus() != null && !_device.getBus().getId().equals(id))
+                device = _device.get();
+                if (device.getBus() != null && !device.getBus().equals(bus))
                     return new ResponseEntity<>(HttpStatus.CONFLICT);
             }
 
             // Check if routes exist
-            List<Route> _routes = new ArrayList<>();
+            List<Route> routes = new ArrayList<>();
             if (busCrudDto.getRoutesId() != null) {
                 for (RouteIdDto routeIdDto : busCrudDto.getRoutesId()) {
-                    Optional<Route> route = routeRepository.findByRouteId(new RouteId(routeIdDto.getId(), routeIdDto.getShift()));
-                    if (route.isEmpty())
+                    Optional<Route> _route = routeRepository.findByRouteId(new RouteId(routeIdDto.getId(), routeIdDto.getShift()));
+                    if (_route.isEmpty())
                         return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                    Route _route = route.get();
-                    if (_route.getBus() != null && !_route.getBus().getId().equals(id))
+                    Route route = _route.get();
+                    if (route.getBus() != null && !route.getBus().equals(bus))
                         return new ResponseEntity<>(HttpStatus.CONFLICT);
-                    _routes.add(_route);
+                    routes.add(route);
                 }
             }
 
-            Bus _bus = bus.get();
-            _bus.setRegistration(busCrudDto.getRegistration());
-            _bus.setBrand(busCrudDto.getBrand());
-            _bus.setModel(busCrudDto.getModel());
-            _bus.setDevice(_device);
-            _bus.setRoutes(_routes);
-            busRepository.save(_bus);
+            bus.setRegistration(busCrudDto.getRegistration());
+            bus.setBrand(busCrudDto.getBrand());
+            bus.setModel(busCrudDto.getModel());
+            bus.setDevice(device);
+            bus.setRoutes(routes);
+            busRepository.save(bus);
 
-            busCrudDto.setId(id);
             return new ResponseEntity<>(busCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -197,10 +197,6 @@ public class CrudService {
 
     public ResponseEntity<HttpStatus> deleteBus(String id) {
         try {
-            Optional<Bus> bus = busRepository.findById(id);
-            if (bus.isEmpty())
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
             busRepository.deleteById(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
