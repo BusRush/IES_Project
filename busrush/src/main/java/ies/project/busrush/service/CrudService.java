@@ -236,13 +236,14 @@ public class CrudService {
 
     public ResponseEntity<DeviceCrudDto> getDeviceById(String id) {
         try {
-            Optional<Device> device = deviceRepository.findById(id);
-            if (device.isEmpty())
+            Optional<Device> _device = deviceRepository.findById(id);
+            if (_device.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            Device device = _device.get();
 
             DeviceCrudDto deviceCrudDto = new DeviceCrudDto(
-                    device.get().getId(),
-                    (device.get().getBus() != null) ? device.get().getBus().getId() : null
+                    device.getId(),
+                    (device.getBus() != null) ? device.getBus().getId() : null
             );
             return new ResponseEntity<>(deviceCrudDto, HttpStatus.OK);
         } catch (Exception e) {
@@ -254,30 +255,30 @@ public class CrudService {
     public ResponseEntity<DeviceCrudDto> createDevice(DeviceCrudDto deviceCrudDto) {
         try {
             // Check if device already exists
-            Optional<Device> device = deviceRepository.findById(deviceCrudDto.getId());
-            if (device.isPresent())
+            Optional<Device> _device = deviceRepository.findById(deviceCrudDto.getId());
+            if (_device.isPresent())
                 return new ResponseEntity<>(HttpStatus.CONFLICT);
 
             // Check if bus exists
-            Bus _bus = null;
+            Bus bus = null;
             if (deviceCrudDto.getBusId() != null) {
-                Optional<Bus> bus = busRepository.findById(deviceCrudDto.getBusId());
-                if (bus.isEmpty())
+                Optional<Bus> _bus = busRepository.findById(deviceCrudDto.getBusId());
+                if (_bus.isEmpty())
                     return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                _bus = bus.get();
-                if (_bus.getDevice() != null)
+                bus = _bus.get();
+                if (bus.getDevice() != null)
                     return new ResponseEntity<>(HttpStatus.CONFLICT);
             }
 
-            Device _device = new Device(
+            Device device = new Device(
                     deviceCrudDto.getId(),
                     null
             );
-            deviceRepository.save(_device);
+            deviceRepository.save(device);
 
-            if (_bus != null) {
-                _bus.setDevice(_device);
-                busRepository.save(_bus);
+            if (bus != null) {
+                bus.setDevice(device);
+                busRepository.save(bus);
             }
             return new ResponseEntity<>(deviceCrudDto, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -288,28 +289,28 @@ public class CrudService {
 
     public ResponseEntity<DeviceCrudDto> updateDevice(String id, DeviceCrudDto deviceCrudDto) {
         try {
-            Optional<Device> device = deviceRepository.findById(id);
-            if (device.isEmpty())
+            Optional<Device> _device = deviceRepository.findById(id);
+            if (_device.isEmpty())
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            Device _device = device.get();
+            Device device = _device.get();
 
             // Check if bus exists
-            Bus _bus = null;
+            Bus bus = null;
             if (deviceCrudDto.getBusId() != null) {
-                Optional<Bus> bus = busRepository.findById(deviceCrudDto.getBusId());
-                if (bus.isEmpty())
+                Optional<Bus> _bus = busRepository.findById(deviceCrudDto.getBusId());
+                if (_bus.isEmpty())
                     return new ResponseEntity<>(HttpStatus.UNPROCESSABLE_ENTITY);
-                _bus = bus.get();
-                if (_bus.getDevice() != null && _bus.getDevice() != _device)
+                bus = _bus.get();
+                if (bus.getDevice() != null && !bus.getDevice().equals(device))
                     return new ResponseEntity<>(HttpStatus.CONFLICT);
             }
 
-            if (_bus != null) {
-                _bus.setDevice(_device);
-                busRepository.save(_bus);
+            if (bus != null) {
+                bus.setDevice(device);
+                busRepository.save(bus);
             }
 
-            deviceCrudDto.setId(id);
+            deviceCrudDto.setId(device.getId());
             return new ResponseEntity<>(deviceCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -319,17 +320,17 @@ public class CrudService {
 
     public ResponseEntity<HttpStatus> deleteDevice(String id) {
         try {
-            Optional<Device> device = deviceRepository.findById(id);
-            if (device.isEmpty())
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            Device _device = device.get();
+            Optional<Device> _device = deviceRepository.findById(id);
+            if (_device.isEmpty())
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            Device device = _device.get();
 
             // Set bus device to null
-            Bus _bus = _device.getBus();
-            _bus.setDevice(null);
-            busRepository.save(_bus);
+            Bus bus = device.getBus();
+            bus.setDevice(null);
+            busRepository.save(bus);
 
-            deviceRepository.deleteById(id);
+            deviceRepository.delete(device);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             System.out.println(e.getMessage());
