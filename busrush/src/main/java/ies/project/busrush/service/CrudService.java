@@ -188,6 +188,7 @@ public class CrudService {
             bus.setRoutes(routes);
             busRepository.save(bus);
 
+            busCrudDto.setId(bus.getId());
             return new ResponseEntity<>(busCrudDto, HttpStatus.OK);
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -197,7 +198,12 @@ public class CrudService {
 
     public ResponseEntity<HttpStatus> deleteBus(String id) {
         try {
-            busRepository.deleteById(id);
+            Optional<Bus> _bus = busRepository.findById(id);
+            if (_bus.isEmpty())
+                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            Bus bus = _bus.get();
+
+            busRepository.delete(bus);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         } catch (Exception e) {
             System.out.println(e.getMessage());
