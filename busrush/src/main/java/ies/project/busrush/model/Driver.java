@@ -24,6 +24,6 @@ public class Driver {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
-    @OneToMany
+    @OneToMany(mappedBy = "driver", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Route> routes;
 }
