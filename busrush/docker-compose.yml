@@ -100,7 +100,16 @@ services:
       - ./init_cassandra.sh:/init_cassandra.sh
     networks:
       - api_bus-net
-
+  clean-redis:
+    image: redis:6.2-alpine
+    depends_on:
+      - cache
+    restart: "no"
+    entrypoint: [ "/redis_clean.sh" ]
+    volumes:
+      - ./redis_clean.sh:/redis_clean.sh
+    networks:
+      - api_bus-net
 
 
 volumes:
