@@ -223,18 +223,38 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
 
   // Add Bus
   const handleAddBus = () => {
-    if (busIDIsValid && busRegistrationIsValid && busBrandIsValid && busModelIsValid) {
-      let newBus = {
-        id: busID,
-        registration: busRegistration,
-        brand: busBrand,
-        model: busModel,
-        device: selectedDevice,
-        routes: selectedRoutes,
-      };
-      setBuses([...buses, newBus]);
-      handleCloseAddBusModal();
-    }
+    let routesID = [];
+    selectedRoutes.forEach((route) => {
+      let content = route.split("|");
+      routesID.push({ id: content[0], shift: content[1] });
+    });
+    console.log(routesID);
+
+    let newBus = {
+      id: busID,
+      registration: busRegistration,
+      brand: busBrand,
+      model: busModel,
+      deviceId: selectedDevice,
+      routesId: routesID,
+    };
+
+    fetch("http://localhost:8080/api/buses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newBus),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Success:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+
+    handleCloseAddBusModal();
   };
   // Add Bus Modal Handle Functions
   const handleOpenAddBusModal = () => {
@@ -311,7 +331,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
                     </IconButton>
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton>
+                    <IconButton onClick={handleDeleteBus(bus.id)}>
                       <RemoveIcon fontSize="small" />
                     </IconButton>
                   </TableCell>
@@ -409,15 +429,17 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
                 aria-describedby="bus-device"
                 sx={{ width: 200, marginTop: 1, height: 40 }}
               >
-                {devices.map((device) => (
-                  <MenuItem key={device.id} value={device.id}>
-                    {device.id}
-                  </MenuItem>
-                ))}
+                {devices.map((device) =>
+                  device.busId == null ? (
+                    <MenuItem key={device.id} value={device.id}>
+                      {device.id}
+                    </MenuItem>
+                  ) : null
+                )}
               </Select>
             </FormControl>
           </Box>
-          <Box sx={{ width: 300, paddingTop: 4 }}>
+          <Box sx={{ paddingTop: 4 }}>
             <FormControl>
               <InputLabel htmlFor="bus-routes">Routes</InputLabel>
               <Select
@@ -429,20 +451,34 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
                 sx={{ width: 200, marginTop: 1, height: 40 }}
                 MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 250 } } }}
               >
-                {routes.map((route) => (
-                  <MenuItem
-                    key={route.id.id + "|" + route.id.shift}
-                    value={route.id.id + "|" + route.id.shit}
-                  >
-                    {route.id.id} | {route.id.shift}
-                  </MenuItem>
-                ))}
+                {routes.map((route) =>
+                  route.busId == null ? (
+                    <MenuItem
+                      key={route.id.id + "|" + route.id.shift}
+                      value={route.id.id + "|" + route.id.shit}
+                    >
+                      {route.id.id} | {route.id.shift}
+                    </MenuItem>
+                  ) : null
+                )}
               </Select>
             </FormControl>
           </Box>
           <Box sx={{ paddingTop: 4 }}>
             <FormControl>
-              <Button variant="contained" onClick={handleAddBus}>
+              <Button
+                variant="contained"
+                onClick={handleAddBus}
+                disabled={
+                  busIDIsValid &&
+                  busRegistrationIsValid &&
+                  busBrandIsValid &&
+                  busModelIsValid &&
+                  selectedDevice != ""
+                    ? false
+                    : true
+                }
+              >
                 Add Bus
               </Button>
             </FormControl>
@@ -466,4 +502,6 @@ const style = (viewportWidth) => ({
   pt: 2,
   px: 4,
   pb: 3,
+  justifyContent: "center",
+  alignItems: "center",
 });

@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
 import { Box, Container, Typography, Grid } from "@mui/material";
-import { BusListResults } from "../components/topology/bus-list-results";
 import { CustomerListToolbar } from "../components/customer/customer-list-toolbar";
 import { DashboardLayout } from "../components/dashboard-layout";
 import { customers } from "../__mocks__/customers";
