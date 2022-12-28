@@ -30,6 +30,6 @@ public class Bus {
     @JoinColumn(name = "device_id")
     private Device device;
 
-    @OneToMany
+    @OneToMany(mappedBy = "bus", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Route> routes;
 }

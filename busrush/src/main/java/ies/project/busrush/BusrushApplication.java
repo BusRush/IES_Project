@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @EnableRabbit
-@SpringBootApplication(exclude = {CassandraAutoConfiguration.class})
+@SpringBootApplication
 public class BusrushApplication {
 
     public static void main(String[] args) {

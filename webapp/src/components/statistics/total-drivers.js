@@ -1,10 +1,9 @@
 import { Avatar, Card, CardContent, Grid, Typography } from '@mui/material';
-import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
-//import { busesLive } from '../../__mocks__/buses-live';
+import PeopleIcon from '@mui/icons-material/People';
 
-export const TotalBuses = (props) => {
+export const TotalDrivers = (props) => {
 
-  const { buses } = props;
+  const { drivers } = props;
 
   return (
   <Card {...props}>
@@ -20,13 +19,13 @@ export const TotalBuses = (props) => {
             gutterBottom
             variant="overline"
           >
-            TOTAL BUSES
+            TOTAL DRIVERS
           </Typography>
           <Typography
             color="textPrimary"
             variant="h4"
           >
-            {buses.length}
+            {drivers.length}
           </Typography>
         </Grid>
         <Grid item>
@@ -37,7 +36,7 @@ export const TotalBuses = (props) => {
               width: 56
             }}
           >
-            <DirectionsBusIcon />
+            <PeopleIcon />
           </Avatar>
         </Grid>
       </Grid>
