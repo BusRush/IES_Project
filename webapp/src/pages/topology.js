@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
-import { Box, Container, Typography, Grid } from "@mui/material";
+import { Box, Container, Typography, Grid, CircularProgress } from "@mui/material";
 import { CustomerListToolbar } from "../components/customer/customer-list-toolbar";
 import { DashboardLayout } from "../components/dashboard-layout";
 import { customers } from "../__mocks__/customers";
@@ -18,6 +18,12 @@ const Page = () => {
   const [routes, setRoutes] = useState([]);
   const [schedules, setSchedules] = useState([]);
   const [stops, setStops] = useState([]);
+  const [busesIsLoading, setBusesIsLoading] = useState(true);
+  const [devicesIsLoading, setDevicesIsLoading] = useState(true);
+  const [driversIsLoading, setDriversIsLoading] = useState(true);
+  const [routesIsLoading, setRoutesIsLoading] = useState(true);
+  const [schedulesIsLoading, setSchedulesIsLoading] = useState(true);
+  const [stopsIsLoading, setStopsIsLoading] = useState(true);
 
   useEffect(() => {
     fetchAllBuses().then((buses) => setBuses(buses));
@@ -34,6 +40,7 @@ const Page = () => {
       .then((res) => res.json())
       .then((data) => (buses = data))
       .catch((err) => console.log(err));
+    setBusesIsLoading(false);
     return buses;
   };
 
@@ -43,6 +50,7 @@ const Page = () => {
       .then((res) => res.json())
       .then((data) => (devices = data))
       .catch((err) => console.log(err));
+    setDevicesIsLoading(false);
     return devices;
   };
 
@@ -52,6 +60,7 @@ const Page = () => {
       .then((res) => res.json())
       .then((data) => (drivers = data))
       .catch((err) => console.log(err));
+    setDriversIsLoading(false);
     return drivers;
   };
 
@@ -61,6 +70,7 @@ const Page = () => {
       .then((res) => res.json())
       .then((data) => (routes = data))
       .catch((err) => console.log(err));
+    setRoutesIsLoading(false);
     return routes;
   };
 
@@ -70,6 +80,7 @@ const Page = () => {
       .then((res) => res.json())
       .then((data) => (schedules = data))
       .catch((err) => console.log(err));
+    setSchedulesIsLoading(false);
     return schedules;
   };
 
@@ -79,6 +90,7 @@ const Page = () => {
       .then((res) => res.json())
       .then((data) => (stops = data))
       .catch((err) => console.log(err));
+    setStopsIsLoading(false);
     return stops;
   };
 
@@ -87,47 +99,56 @@ const Page = () => {
       <Head>
         <title>BusRush - Topology</title>
       </Head>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          py: 8,
-        }}
-      >
-        <Container maxWidth={false}>
-          <Typography
-            color="textPrimary"
-            variant="h4"
-            sx={{
-              fontWeight: 700,
-              mb: 2,
-            }}
-          >
-            Topology
-          </Typography>
+      {busesIsLoading ||
+      devicesIsLoading ||
+      driversIsLoading ||
+      routesIsLoading ||
+      schedulesIsLoading ||
+      stopsIsLoading ? (
+        <CircularProgress />
+      ) : (
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            py: 8,
+          }}
+        >
+          <Container maxWidth={false}>
+            <Typography
+              color="textPrimary"
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                mb: 2,
+              }}
+            >
+              Topology
+            </Typography>
 
-          <Grid container>
-            <Grid item xs={12} md={6} lg={6}>
-              <BusTable buses={buses} devices={devices} routes={routes} />
+            <Grid container>
+              <Grid item xs={12} md={6} lg={6}>
+                <BusTable buses={buses} devices={devices} routes={routes} />
+              </Grid>
+              <Grid item xs={12} md={6} lg={6}>
+                <DeviceTable devices={devices} buses={buses} />
+              </Grid>
+              <Grid item xs={12} md={6} lg={6}>
+                <DriverTable drivers={drivers} routes={routes} />
+              </Grid>
+              <Grid item xs={12} md={6} lg={6}>
+                <RouteTable routes={routes} buses={buses} drivers={drivers} />
+              </Grid>
+              <Grid item xs={12} md={6} lg={6}>
+                <ScheduleTable schedules={schedules} routes={routes} stops={stops} />
+              </Grid>
+              <Grid item xs={12} md={6} lg={6}>
+                <StopTable stops={stops} />
+              </Grid>
             </Grid>
-            <Grid item xs={12} md={6} lg={6}>
-              <DeviceTable devices={devices} />
-            </Grid>
-            <Grid item xs={12} md={6} lg={6}>
-              <DriverTable drivers={drivers} />
-            </Grid>
-            <Grid item xs={12} md={6} lg={6}>
-              <RouteTable routes={routes} />
-            </Grid>
-            <Grid item xs={12} md={6} lg={6}>
-              <ScheduleTable schedules={schedules} />
-            </Grid>
-            <Grid item xs={12} md={6} lg={6}>
-              <StopTable stops={stops} />
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
+          </Container>
+        </Box>
+      )}
     </>
   );
 };

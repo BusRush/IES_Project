@@ -19,11 +19,13 @@ import {
   Select,
   MenuItem,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
+import CloseIcon from "@mui/icons-material/Close";
 import { useEffect, useState } from "react";
 
 export const BusTable = ({ buses, devices, routes, ...rest }) => {
@@ -32,7 +34,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
   const [upper_bound, setUpperBound] = useState(5);
   const [limit, setLimit] = useState(5);
   const [page, setPage] = useState(0);
-  const [openAddBusModal, setOpenAddBusModel] = useState(false);
+  const [openAddBusModal, setOpenAddBusModal] = useState(false);
   const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
   const [busID, setBusID] = useState("");
   const [busIDIsValid, setBusIDIsValid] = useState(true);
@@ -47,7 +49,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
   const [selectedDevice, setSelectedDevice] = useState("");
   const [selectedRoutes, setSelectedRoutes] = useState([]);
 
-  // functions
+  // pagination function handlers
   const handleLimitChange = (event) => {
     if (limit > event.target.value) {
       handlePageChange(event, page, -1, limit - event.target.value);
@@ -114,6 +116,10 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
     if (val == "") {
       setBusIDIsValid(true);
       setBusIDInputHelpText("");
+    } else {
+      if (validateBusIDInput(val)) {
+        setBusIDInputHelpText("");
+      }
     }
   };
 
@@ -148,6 +154,10 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
     if (val == "") {
       setBusRegistrationIsValid(true);
       setBusRegistrationInputHelpText("");
+    } else {
+      if (validateBusRegistrationInput(val)) {
+        setBusRegistrationInputHelpText("");
+      }
     }
   };
 
@@ -228,20 +238,32 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
       let content = route.split("|");
       routesID.push({ id: content[0], shift: content[1] });
     });
+    console.log(busID);
+    console.log(busRegistration);
+    console.log(busBrand);
+    console.log(busModel);
     console.log(routesID);
+    console.log(selectedDevice);
 
     let newBus = {
       id: busID,
       registration: busRegistration,
       brand: busBrand,
       model: busModel,
-      deviceId: selectedDevice,
-      routesId: routesID,
     };
+
+    if (routesID.length != 0) {
+      newBus.routesId = routesID;
+    }
+
+    if (selectedDevice != "") {
+      newBus.deviceId = selectedDevice;
+    }
 
     fetch("http://localhost:8080/api/buses", {
       method: "POST",
       headers: {
+        "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newBus),
@@ -256,13 +278,24 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
 
     handleCloseAddBusModal();
   };
+
+  // Handle Delete Bus
+  const handleDeleteBus = (busID) => {
+    fetch("http://localhost:8080/api/buses/" + busID, {
+      method: "DELETE",
+    }).catch((error) => {
+      console.error("Error:", error);
+    });
+    console.log(busID + " deleted");
+  };
+
   // Add Bus Modal Handle Functions
   const handleOpenAddBusModal = () => {
-    setOpenAddBusModel(true);
+    setOpenAddBusModal(true);
   };
 
   const handleCloseAddBusModal = () => {
-    setOpenAddBusModel(false);
+    setOpenAddBusModal(false);
     setBusID("");
     setBusIDIsValid(true);
     setBusIDInputHelpText("");
@@ -284,208 +317,231 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const addBus = () => {};
-
   return (
-    <Box>
-      <Card>
-        <CardContent>
-          <Grid container>
-            <Grid item xs={10} md={10} lg={10}>
-              <Typography
-                color="black"
-                variant="h6"
-                sx={{
-                  fontWeight: 700,
-                  mb: 2,
-                  margin: 0,
-                }}
-              >
-                Buses
-              </Typography>
-            </Grid>
-            <Grid item xs={2} md={2} lg={2}>
-              <IconButton onClick={handleOpenAddBusModal}>
-                <AddIcon />
-              </IconButton>
-            </Grid>
-          </Grid>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell align="left">ID</TableCell>
-                <TableCell align="left">Registration</TableCell>
-                <TableCell align="right"></TableCell>
-                <TableCell align="right"></TableCell>
-                <TableCell align="right"></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {buses.slice(lower_bound, upper_bound).map((bus) => (
-                <TableRow hover key={bus.id}>
-                  <TableCell align="left">{bus.id}</TableCell>
-                  <TableCell align="left">{bus.registration}</TableCell>
-                  <TableCell align="right">
-                    <IconButton>
-                      <InfoIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton onClick={handleDeleteBus(bus.id)}>
-                      <RemoveIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-        <TablePagination
-          component="div"
-          count={buses.length}
-          onPageChange={handlePageChange}
-          onRowsPerPageChange={handleLimitChange}
-          page={page}
-          rowsPerPage={limit}
-          rowsPerPageOptions={[5, 10, 15, 20]}
-        />
-      </Card>
-      <Modal
-        open={openAddBusModal}
-        onClose={handleCloseAddBusModal}
-        aria-labelledby="add-bus-modal"
-        aria-describedby="add-bus-modal"
-      >
-        <Box sx={style(viewportWidth)}>
-          <Typography id="add-bus-modal" variant="h6" component="h2" sx={{ paddingBottom: 2 }}>
-            Add Bus
-          </Typography>
-          <Box>
-            <FormControl>
-              <InputLabel htmlFor="bus-id">Bus ID</InputLabel>
-              <Input
-                onFocus={handleBusIDInputFocus}
-                onBlur={handleBusIDInputBlur}
-                error={!busIDIsValid}
-                id="bus-id"
-                aria-describedby="bus-id"
-                onChange={handleBusIDInputChange}
-              />
-              <FormHelperText id="bus-id">{busIDInputHelpText}</FormHelperText>
-            </FormControl>
-          </Box>
-          <Box sx={{ paddingTop: 4 }}>
-            <FormControl>
-              <InputLabel htmlFor="bus-registration">Registration</InputLabel>
-              <Input
-                onFocus={handleBusRegistrationInputFocus}
-                onBlur={handleBusRegistrationInputBlur}
-                error={!busRegistrationIsValid}
-                id="bus-registration"
-                aria-describedby="bus-registration"
-                onChange={handleBusRegistrationInputChange}
-              />
-              <FormHelperText id="bus-registration">{busRegistrationInputHelpText}</FormHelperText>
-            </FormControl>
-          </Box>
-          <Box sx={{ paddingTop: 4 }}>
-            <FormControl>
-              <InputLabel htmlFor="bus-brand">Brand</InputLabel>
-              <Input
-                onFocus={handleBusBrandInputFocus}
-                onBlur={handleBusBrandInputBlur}
-                error={!busBrandIsValid}
-                id="bus-brand"
-                aria-describedby="bus-brand"
-                onChange={handleBusBrandInputChange}
-              />
-            </FormControl>
-          </Box>
-          <Box sx={{ paddingTop: 4 }}>
-            <FormControl>
-              <InputLabel htmlFor="bus-model">Model</InputLabel>
-              <Input
-                onFocus={handleBusModelInputFocus}
-                onBlur={handleBusModelInputBlur}
-                error={!busModelIsValid}
-                id="bus-model"
-                aria-describedby="bus-model"
-                onChange={handleBusModelInputChange}
-              />
-            </FormControl>
-          </Box>
-          <Box sx={{ paddingTop: 4 }}>
-            <FormControl>
-              <InputLabel htmlFor="bus-device">Device</InputLabel>
-              <Select
-                value={selectedDevice}
-                onChange={handleDeviceChange}
-                id="bus-device"
-                aria-describedby="bus-device"
-                sx={{ width: 200, marginTop: 1, height: 40 }}
-              >
-                {devices.map((device) =>
-                  device.busId == null ? (
-                    <MenuItem key={device.id} value={device.id}>
-                      {device.id}
-                    </MenuItem>
-                  ) : null
-                )}
-              </Select>
-            </FormControl>
-          </Box>
-          <Box sx={{ paddingTop: 4 }}>
-            <FormControl>
-              <InputLabel htmlFor="bus-routes">Routes</InputLabel>
-              <Select
-                multiple={true}
-                value={selectedRoutes}
-                onChange={handleRoutesChange}
-                id="bus-routes"
-                aria-describedby="bus-routes"
-                sx={{ width: 200, marginTop: 1, height: 40 }}
-                MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 250 } } }}
-              >
-                {routes.map((route) =>
-                  route.busId == null ? (
-                    <MenuItem
-                      key={route.id.id + "|" + route.id.shift}
-                      value={route.id.id + "|" + route.id.shit}
-                    >
-                      {route.id.id} | {route.id.shift}
-                    </MenuItem>
-                  ) : null
-                )}
-              </Select>
-            </FormControl>
-          </Box>
-          <Box sx={{ paddingTop: 4 }}>
-            <FormControl>
-              <Button
-                variant="contained"
-                onClick={handleAddBus}
-                disabled={
-                  busIDIsValid &&
-                  busRegistrationIsValid &&
-                  busBrandIsValid &&
-                  busModelIsValid &&
-                  selectedDevice != ""
-                    ? false
-                    : true
-                }
-              >
-                Add Bus
-              </Button>
-            </FormControl>
-          </Box>
+    <>
+      {(buses == null) | (devices == null) | (routes == null) ? (
+        <CircularProgress />
+      ) : (
+        <Box>
+          <Card>
+            <CardContent>
+              <Grid container>
+                <Grid item xs={10} md={10} lg={10}>
+                  <Typography
+                    color="black"
+                    variant="h6"
+                    sx={{
+                      fontWeight: 700,
+                      mb: 2,
+                      margin: 0,
+                    }}
+                  >
+                    Buses
+                  </Typography>
+                </Grid>
+                <Grid item xs={2} md={2} lg={2}>
+                  <IconButton onClick={handleOpenAddBusModal}>
+                    <AddIcon />
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="left">ID</TableCell>
+                    <TableCell align="left">Registration</TableCell>
+                    <TableCell align="right"></TableCell>
+                    <TableCell align="right"></TableCell>
+                    <TableCell align="right"></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {buses.slice(lower_bound, upper_bound).map((bus) => (
+                    <TableRow hover key={bus.id}>
+                      <TableCell align="left">{bus.id}</TableCell>
+                      <TableCell align="left">{bus.registration}</TableCell>
+                      <TableCell align="right">
+                        <IconButton>
+                          <InfoIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton onClick={() => handleDeleteBus(bus.id)}>
+                          <RemoveIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton>
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <TablePagination
+              component="div"
+              count={buses.length}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleLimitChange}
+              page={page}
+              rowsPerPage={limit}
+              rowsPerPageOptions={[5, 10, 15, 20]}
+            />
+          </Card>
+          <Modal
+            open={openAddBusModal}
+            onClose={handleCloseAddBusModal}
+            aria-labelledby="add-bus-modal"
+            aria-describedby="add-bus-modal"
+          >
+            <Box sx={style(viewportWidth)}>
+              <Grid container>
+                <Grid item xs={11} md={11} lg={11}>
+                  <Typography
+                    id="add-bus-modal"
+                    variant="h6"
+                    component="h2"
+                    sx={{ paddingBottom: 2 }}
+                  >
+                    Add Bus
+                  </Typography>
+                </Grid>
+                <Grid item xs={1} md={1} lg={1}>
+                  <IconButton onClick={handleCloseAddBusModal}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Box>
+                <FormControl>
+                  <InputLabel htmlFor="bus-id">Bus ID</InputLabel>
+                  <Input
+                    onFocus={handleBusIDInputFocus}
+                    onBlur={handleBusIDInputBlur}
+                    error={!busIDIsValid}
+                    id="bus-id"
+                    aria-describedby="bus-id"
+                    onChange={handleBusIDInputChange}
+                  />
+                  <FormHelperText id="bus-id">{busIDInputHelpText}</FormHelperText>
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="bus-registration">Registration</InputLabel>
+                  <Input
+                    onFocus={handleBusRegistrationInputFocus}
+                    onBlur={handleBusRegistrationInputBlur}
+                    error={!busRegistrationIsValid}
+                    id="bus-registration"
+                    aria-describedby="bus-registration"
+                    onChange={handleBusRegistrationInputChange}
+                  />
+                  <FormHelperText id="bus-registration">
+                    {busRegistrationInputHelpText}
+                  </FormHelperText>
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="bus-brand">Brand</InputLabel>
+                  <Input
+                    onFocus={handleBusBrandInputFocus}
+                    onBlur={handleBusBrandInputBlur}
+                    error={!busBrandIsValid}
+                    id="bus-brand"
+                    aria-describedby="bus-brand"
+                    onChange={handleBusBrandInputChange}
+                  />
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="bus-model">Model</InputLabel>
+                  <Input
+                    onFocus={handleBusModelInputFocus}
+                    onBlur={handleBusModelInputBlur}
+                    error={!busModelIsValid}
+                    id="bus-model"
+                    aria-describedby="bus-model"
+                    onChange={handleBusModelInputChange}
+                  />
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="bus-device">Device</InputLabel>
+                  <Select
+                    value={selectedDevice}
+                    onChange={handleDeviceChange}
+                    id="bus-device"
+                    aria-describedby="bus-device"
+                    sx={{ width: 200, marginTop: 1, height: 40 }}
+                  >
+                    {devices.map((device) =>
+                      device.busId == null ? (
+                        <MenuItem key={device.id} value={device.id}>
+                          {device.id}
+                        </MenuItem>
+                      ) : null
+                    )}
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="bus-routes">Routes</InputLabel>
+                  <Select
+                    multiple={true}
+                    value={selectedRoutes}
+                    onChange={handleRoutesChange}
+                    id="bus-routes"
+                    aria-describedby="bus-routes"
+                    sx={{ width: 200, marginTop: 1, height: 40 }}
+                    MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 250 } } }}
+                  >
+                    {routes.map((route) =>
+                      route.busId == null ? (
+                        <MenuItem
+                          key={route.id.id + "|" + route.id.shift}
+                          value={route.id.id + "|" + route.id.shit}
+                        >
+                          {route.id.id} | {route.id.shift}
+                        </MenuItem>
+                      ) : null
+                    )}
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <Button
+                    variant="contained"
+                    onClick={handleAddBus}
+                    disabled={
+                      busIDIsValid &&
+                      busID != "" &&
+                      busRegistrationIsValid &&
+                      busRegistration != "" &&
+                      busBrandIsValid &&
+                      busBrand != "" &&
+                      busModelIsValid &&
+                      busModel != ""
+                        ? false
+                        : true
+                    }
+                  >
+                    Add Bus
+                  </Button>
+                </FormControl>
+              </Box>
+            </Box>
+          </Modal>
         </Box>
-      </Modal>
-    </Box>
+      )}
+    </>
   );
 };
 

@@ -42,6 +42,7 @@ public class CrudController {
         return crudService.updateBus(id, busCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @DeleteMapping("/buses/{id}")
     public ResponseEntity<HttpStatus> deleteBus(@PathVariable("id") String id) {
         return crudService.deleteBus(id);
@@ -70,6 +71,7 @@ public class CrudController {
         return crudService.updateDevice(id, deviceCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @DeleteMapping("/devices/{id}")
     public ResponseEntity<HttpStatus> deleteDevice(@PathVariable("id") String id) {
         return crudService.deleteDevice(id);
@@ -97,7 +99,7 @@ public class CrudController {
     public ResponseEntity<DriverCrudDto> updateDriver(@PathVariable("id") String id, @RequestBody DriverCrudDto driverCrudDto) {
         return crudService.updateDriver(id, driverCrudDto);
     }
-
+    @CrossOrigin(origins = "http://localhost:3000")
     @DeleteMapping("/drivers/{id}")
     public ResponseEntity<HttpStatus> deleteDriver(@PathVariable("id") String id) {
         return crudService.deleteDriver(id);
@@ -125,7 +127,7 @@ public class CrudController {
     public ResponseEntity<RouteCrudDto> updateRoute(@PathVariable("routeId") String routeId, @RequestBody RouteCrudDto routeCrudDto) {
         return crudService.updateRoute(routeId, routeCrudDto);
     }
-
+    @CrossOrigin(origins = "http://localhost:3000")
     @DeleteMapping("/routes/{routeId}")
     public ResponseEntity<HttpStatus> deleteRoute(@PathVariable("routeId") String routeId) {
         return crudService.deleteRoute(routeId);
@@ -154,6 +156,7 @@ public class CrudController {
         return crudService.updateSchedule(scheduleId, scheduleCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @DeleteMapping("/schedules/{scheduleId}")
     public ResponseEntity<HttpStatus> deleteSchedule(@PathVariable("scheduleId") String scheduleId) {
         return crudService.deleteSchedule(scheduleId);
@@ -182,6 +185,7 @@ public class CrudController {
         return crudService.updateStop(id, stopCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @DeleteMapping("/stops/{id}")
     public ResponseEntity<HttpStatus> deleteStop(@PathVariable("id") String id) {
         return crudService.deleteStop(id);
@@ -210,6 +214,7 @@ public class CrudController {
         return crudService.updateUser(username, userCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @DeleteMapping("/users/{username}")
     public ResponseEntity<HttpStatus> deleteUser(@PathVariable("username") String username) {
         return crudService.deleteUser(username);
