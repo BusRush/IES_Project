@@ -20,6 +20,13 @@ import {
   MenuItem,
   Button,
   CircularProgress,
+  List,
+  ListItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -48,6 +55,13 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
   const [busModelIsValid, setBusModelIsValid] = useState(true);
   const [selectedDevice, setSelectedDevice] = useState("");
   const [selectedRoutes, setSelectedRoutes] = useState([]);
+
+  const [openInfoBusModal, setOpenInfoBusModal] = useState(false);
+  const [busInfo, setBusInfo] = useState({});
+  const [busInfoIsLoading, setBusInfoIsLoading] = useState(true);
+
+  const [openConfirmDeleteBus, setOpenConfirmDeleteBus] = useState(false);
+  const [busToDelete, setBusToDelete] = useState({ id: "", routesId: [] });
 
   // pagination function handlers
   const handleLimitChange = (event) => {
@@ -287,6 +301,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
       console.error("Error:", error);
     });
     console.log(busID + " deleted");
+    handleCloseConfirmDeleteBus();
   };
 
   // Add Bus Modal Handle Functions
@@ -308,6 +323,43 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
     setBusModelIsValid(true);
     setSelectedDevice("");
     setSelectedRoutes([]);
+  };
+
+  // Fetch Bus Info
+  const fetchBusInfo = (busId) => {
+    fetch("http://localhost:8080/api/buses/" + busId)
+      .then((response) => response.json())
+      .then((data) => {
+        setBusInfo(data);
+        setBusInfoIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+    return true;
+  };
+
+  // Info Bus Modal Handle Functions
+  const handleOpenInfoBusModal = (busId) => {
+    if (fetchBusInfo(busId)) {
+      setOpenInfoBusModal(true);
+    }
+  };
+
+  const handleCloseInfoBusModal = () => {
+    setOpenInfoBusModal(false);
+    setBusInfoIsLoading(true);
+    setBusInfo({});
+  };
+
+  // Handle Confirm Delete Bus
+  const handleOpenConfirmDeleteBus = (bus) => {
+    setBusToDelete(bus);
+    setOpenConfirmDeleteBus(true);
+  };
+
+  const handleCloseConfirmDeleteBus = () => {
+    setOpenConfirmDeleteBus(false);
   };
 
   // useEffect
@@ -361,12 +413,12 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
                       <TableCell align="left">{bus.id}</TableCell>
                       <TableCell align="left">{bus.registration}</TableCell>
                       <TableCell align="right">
-                        <IconButton>
+                        <IconButton onClick={() => handleOpenInfoBusModal(bus.id)}>
                           <InfoIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton onClick={() => handleDeleteBus(bus.id)}>
+                        <IconButton onClick={() => handleOpenConfirmDeleteBus(bus)}>
                           <RemoveIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -539,6 +591,159 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
               </Box>
             </Box>
           </Modal>
+
+          <Modal
+            open={!busInfoIsLoading && openInfoBusModal}
+            onClose={handleCloseInfoBusModal}
+            aria-labelledby="info-bus-modal"
+            aria-describedby="info-bus-modal"
+          >
+            <Box sx={style(viewportWidth)}>
+              <Grid container>
+                <Grid item xs={11} md={11} lg={11}>
+                  <Typography
+                    id="info-bus-modal"
+                    variant="h6"
+                    component="h2"
+                    sx={{ paddingBottom: 2 }}
+                  >
+                    {busInfo.id}
+                  </Typography>
+                </Grid>
+                <Grid item xs={1} md={1} lg={1}>
+                  <IconButton onClick={handleCloseInfoBusModal}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Box>
+                <Grid container>
+                  <Grid item xs={4} md={4} lg={4}>
+                    <Typography variant="body1" component="p" fontWeight={600}>
+                      ID:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8} md={8} lg={8}>
+                    <Typography variant="body1" component="p">
+                      {busInfo.id}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+              <Box sx={{ paddingTop: 2 }}>
+                <Grid container>
+                  <Grid item xs={4} md={4} lg={4}>
+                    <Typography variant="body1" component="p" fontWeight={600}>
+                      Registration:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8} md={8} lg={8} sx={{ display: "flex", alignItems: "center" }}>
+                    <Typography variant="body1" component="p">
+                      {busInfo.registration}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+              <Box sx={{ paddingTop: 2 }}>
+                <Grid container>
+                  <Grid item xs={4} md={4} lg={4}>
+                    <Typography variant="body1" component="p" fontWeight={600}>
+                      Brand:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8} md={8} lg={8} sx={{ display: "flex", alignItems: "center" }}>
+                    <Typography variant="body1" component="p">
+                      {busInfo.brand}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+              <Box sx={{ paddingTop: 2 }}>
+                <Grid container>
+                  <Grid item xs={4} md={4} lg={4}>
+                    <Typography variant="body1" component="p" fontWeight={600}>
+                      Model:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8} md={8} lg={8} sx={{ display: "flex", alignItems: "center" }}>
+                    <Typography variant="body1" component="p">
+                      {busInfo.model}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+              <Box sx={{ paddingTop: 2 }}>
+                <Grid container>
+                  <Grid item xs={4} md={4} lg={4}>
+                    <Typography variant="body1" component="p" fontWeight={600}>
+                      Device:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8} md={8} lg={8} sx={{ display: "flex", alignItems: "center" }}>
+                    <Typography variant="body1" component="p">
+                      {busInfo.deviceId}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+              {busInfo.routesId != undefined && busInfo.routesId.length != 0 && (
+                <Box sx={{ paddingTop: 2 }}>
+                  <Grid container>
+                    <Grid item xs={4} md={4} lg={4}>
+                      <Typography variant="body1" component="p" fontWeight={600}>
+                        Routes:
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={8} md={8} lg={8}>
+                      <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
+                        {busInfo.routesId != undefined &&
+                          busInfo.routesId.map((route) => (
+                            <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                              {route.id}|{route.shift}
+                            </ListItem>
+                          ))}
+                      </List>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+            </Box>
+          </Modal>
+
+          <Dialog
+            open={openConfirmDeleteBus}
+            onClose={handleCloseConfirmDeleteBus}
+            aria-labelledby="confirm-delete-bus"
+            aria-describedby="confirm-delete-bus"
+          >
+            <DialogTitle id="confirm-delete-bus">Delete Bus</DialogTitle>
+            <DialogContent>
+              {busToDelete.routesId.length == 0 ? (
+                <DialogContentText id="confirm-delete-bus-description">
+                  Are you sure you want to delete the bus with id {busToDelete.id}?
+                </DialogContentText>
+              ) : (
+                <DialogContentText id="confirm-delete-bus-description">
+                  You must remove the following routes from the bus before deleting it:
+                  {busToDelete.routesId.map((route) => (
+                    <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                      {route.id}|{route.shift}
+                    </ListItem>
+                  ))}
+                </DialogContentText>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseConfirmDeleteBus} color="primary">
+                Cancel
+              </Button>
+              {busToDelete.routesId.length == 0 && (
+                <Button onClick={() => handleDeleteBus(busToDelete.id)} color="primary" autoFocus>
+                  Delete bus
+                </Button>
+              )}
+            </DialogActions>
+          </Dialog>
         </Box>
       )}
     </>

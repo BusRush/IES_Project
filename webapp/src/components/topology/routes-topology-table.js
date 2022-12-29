@@ -19,7 +19,14 @@ import {
   Select,
   MenuItem,
   Button,
+  List,
+  ListItem,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -45,6 +52,18 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
   const [routeDesignationIsValid, setRouteDesignationIsValid] = useState(true);
   const [selectedDriver, setSelectedDriver] = useState("");
   const [selectedBus, setSelectedBus] = useState("");
+
+  const [openInfoRouteModal, setOpenInfoRouteModal] = useState(false);
+  const [routeInfo, setRouteInfo] = useState({});
+  const [routeInfoIsLoading, setRouteInfoIsLoading] = useState(true);
+
+  const [openConfirmDeleteRoute, setOpenConfirmDeleteRoute] = useState(false);
+  const [routeToDelete, setRouteToDelete] = useState({
+    id: { id: "", shift: "" },
+    schedulesId: [],
+    driverId: "",
+    busId: "",
+  });
 
   // pagination function handlers
   const handleLimitChange = (event) => {
@@ -240,6 +259,7 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
       console.error("Error:", error);
     });
     console.log(routeID + "_" + routeShift + " deleted");
+    handleCloseConfirmDeleteRoute();
   };
 
   // Add Route Modal Handle Functions
@@ -261,7 +281,45 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
     setRouteShiftInputHelpText("");
   };
 
-  // useEffect
+  // Fetch Route Info
+  const fetchRouteInfo = (routeId, routeShift) => {
+    fetch("http://localhost:8080/api/routes/" + routeId + "_" + routeShift)
+      .then((response) => response.json())
+      .then((data) => {
+        setRouteInfo(data);
+        setRouteInfoIsLoading(false);
+        console.log("Success:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+    return true;
+  };
+
+  // Info Route Modal Handle Functions
+  const handleOpenInfoRouteModal = (routeId, routeShift) => {
+    if (fetchRouteInfo(routeId, routeShift)) {
+      setOpenInfoRouteModal(true);
+    }
+  };
+
+  const handleCloseInfoRouteModal = () => {
+    setOpenInfoRouteModal(false);
+    setRouteInfoIsLoading(true);
+    setRouteInfo({});
+  };
+
+  // Handle Confirm Delete Route
+  const handleOpenConfirmDeleteRoute = (route) => {
+    setRouteToDelete(route);
+    setOpenConfirmDeleteRoute(true);
+  };
+
+  const handleCloseConfirmDeleteRoute = () => {
+    setOpenConfirmDeleteRoute(false);
+  };
+
+  // useEffects
   useEffect(() => {
     const handleResize = () => setViewportWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
@@ -312,12 +370,14 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
                       <TableCell align="left">{route.id.id}</TableCell>
                       <TableCell align="left">{route.id.shift}</TableCell>
                       <TableCell align="right">
-                        <IconButton>
+                        <IconButton
+                          onClick={() => handleOpenInfoRouteModal(route.id.id, route.id.shift)}
+                        >
                           <InfoIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton onClick={() => handleDeleteRoute(route.id.id, route.id.shift)}>
+                        <IconButton onClick={() => handleOpenConfirmDeleteRoute(route)}>
                           <RemoveIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -468,6 +528,190 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
               </Box>
             </Box>
           </Modal>
+
+          <Modal
+            open={!routeInfoIsLoading && openInfoRouteModal}
+            onClose={handleCloseInfoRouteModal}
+            aria-labelledby="info-route-modal"
+            aria-describedby="info-route-modal"
+          >
+            <Box>
+              {routeInfo != undefined && routeInfo.id != undefined ? (
+                <Box sx={style(viewportWidth)}>
+                  <Grid container>
+                    <Grid item xs={11} md={11} lg={11}>
+                      <Typography
+                        id="info-route-modal"
+                        variant="h6"
+                        component="h2"
+                        sx={{ paddingBottom: 2 }}
+                      >
+                        {routeInfo.id.id} | {routeInfo.id.shift}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={1} md={1} lg={1}>
+                      <IconButton onClick={handleCloseInfoRouteModal}>
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </Grid>
+                  </Grid>
+                  <Box>
+                    <Grid container>
+                      <Grid item xs={4} md={4} lg={4}>
+                        <Typography variant="body1" component="p" fontWeight={600}>
+                          ID:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8} md={8} lg={8}>
+                        <Typography variant="body1" component="p">
+                          {routeInfo.id.id}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  <Box>
+                    <Grid container sx={{ paddingTop: 2 }}>
+                      <Grid item xs={4} md={4} lg={4}>
+                        <Typography variant="body1" component="p" fontWeight={600}>
+                          Shift:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8} md={8} lg={8}>
+                        <Typography variant="body1" component="p">
+                          {routeInfo.id.shift}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  <Box>
+                    <Grid container sx={{ paddingTop: 2 }}>
+                      <Grid item xs={4} md={4} lg={4}>
+                        <Typography variant="body1" component="p" fontWeight={600}>
+                          Designation:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8} md={8} lg={8}>
+                        <Typography variant="body1" component="p">
+                          {routeInfo.designation}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  <Box>
+                    <Grid container sx={{ paddingTop: 2 }}>
+                      <Grid item xs={4} md={4} lg={4}>
+                        <Typography variant="body1" component="p" fontWeight={600}>
+                          Driver:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8} md={8} lg={8}>
+                        <Typography variant="body1" component="p">
+                          {routeInfo.driverId}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  <Box>
+                    <Grid container sx={{ paddingTop: 2 }}>
+                      <Grid item xs={4} md={4} lg={4}>
+                        <Typography variant="body1" component="p" fontWeight={600}>
+                          Bus:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8} md={8} lg={8}>
+                        <Typography variant="body1" component="p">
+                          {routeInfo.busId}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  {routeInfo.schedulesId != undefined && routeInfo.schedulesId.length != 0 && (
+                    <Box sx={{ paddingTop: 2 }}>
+                      <Grid container>
+                        <Grid item xs={4} md={4} lg={4}>
+                          <Typography variant="body1" component="p" fontWeight={600}>
+                            Schedules:
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={8} md={8} lg={8}>
+                          <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
+                            {routeInfo.schedulesId != undefined &&
+                              routeInfo.schedulesId.map((schedule) => (
+                                <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                                  {schedule.stopId} ({schedule.sequence})
+                                </ListItem>
+                              ))}
+                          </List>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  )}
+                </Box>
+              ) : null}
+            </Box>
+          </Modal>
+
+          <Dialog
+            open={openConfirmDeleteRoute}
+            onClose={handleCloseConfirmDeleteRoute}
+            aria-labelledby="confirm-delete-route"
+            aria-describedby="confirm-delete-route"
+          >
+            <DialogTitle id="confirm-delete-driver">Delete Route</DialogTitle>
+            <DialogContent>
+              {routeToDelete.driverId == null &&
+              routeToDelete.busId == null &&
+              routeToDelete.schedulesId.length == 0 ? (
+                <DialogContentText id="confirm-delete-driver-description">
+                  Are you sure you want to delete the route with id {routeToDelete.id.id} and shift{" "}
+                  {routeToDelete.id.shift}?
+                </DialogContentText>
+              ) : null}
+              {routeToDelete.driverId != null ? (
+                <DialogContentText id="confirm-delete-driver-description">
+                  You must remove the driver {routeToDelete.driverId} from the route before deleting
+                  it.
+                </DialogContentText>
+              ) : null}
+              {routeToDelete.busId != null ? (
+                <DialogContentText id="confirm-delete-driver-description">
+                  You must remove the bus {routeToDelete.busId} from the route before deleting it.
+                </DialogContentText>
+              ) : null}
+              {routeToDelete.schedulesId.length != 0 ? (
+                <DialogContentText id="confirm-delete-driver-description">
+                  You must remove the following schedules from the route before deleting it:
+                  <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
+                    {routeToDelete.schedulesId != undefined &&
+                      routeToDelete.schedulesId.map((schedule) => (
+                        <ListItem
+                          key={schedule.stopId + "_" + schedule.sequence}
+                          sx={{ paddingLeft: 0, paddingTop: 0 }}
+                        >
+                          {schedule.stopId} ({schedule.sequence})
+                        </ListItem>
+                      ))}
+                  </List>
+                </DialogContentText>
+              ) : null}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseConfirmDeleteRoute} color="primary">
+                Cancel
+              </Button>
+              {routeToDelete.driverId == null &&
+              routeToDelete.busId == null &&
+              routeToDelete.schedulesId.length == 0 ? (
+                <Button
+                  onClick={() => handleDeleteRoute(routeToDelete.id.id, routeToDelete.id.shift)}
+                  color="primary"
+                  autoFocus
+                >
+                  Delete route
+                </Button>
+              ) : null}
+            </DialogActions>
+          </Dialog>
         </Box>
       )}
     </>

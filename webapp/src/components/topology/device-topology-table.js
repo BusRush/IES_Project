@@ -19,6 +19,11 @@ import {
   Select,
   MenuItem,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -39,6 +44,9 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
   const [deviceIDIsValid, setDeviceIDIsValid] = useState(true);
   const [deviceIDInputHelpText, setDeviceIDInputHelpText] = useState("");
   const [selectedBus, setSelectedBus] = useState("");
+
+  const [openConfirmDeleteDevice, setOpenConfirmDeleteDevice] = useState(false);
+  const [deviceToDelete, setDeviceToDelete] = useState({ id: "", busId: "" });
 
   // pagination function handlers
   const handleLimitChange = (event) => {
@@ -156,6 +164,7 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
       console.error("Error:", error);
     });
     console.log(deviceID + " deleted");
+    handleCloseConfirmDeleteDevice();
   };
 
   // Add Device Modal Handle Functions
@@ -169,6 +178,16 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
     setDeviceIDIsValid(true);
     setDeviceIDInputHelpText("");
     setSelectedBus("");
+  };
+
+  // Handle Confirm Delete Device
+  const handleOpenConfirmDeleteDevice = (device) => {
+    setDeviceToDelete(device);
+    setOpenConfirmDeleteDevice(true);
+  };
+
+  const handleCloseConfirmDeleteDevice = () => {
+    setOpenConfirmDeleteDevice(false);
   };
 
   // useEffect
@@ -213,7 +232,6 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
                     <TableCell align="left">Bus Id</TableCell>
                     <TableCell align="right"></TableCell>
                     <TableCell align="right"></TableCell>
-                    <TableCell align="right"></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -222,12 +240,7 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
                       <TableCell align="left">{device.id}</TableCell>
                       <TableCell align="left">{device.busId}</TableCell>
                       <TableCell align="right">
-                        <IconButton>
-                          <InfoIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                      <TableCell align="right">
-                        <IconButton onClick={() => handleDeleteDevice(device.id)}>
+                        <IconButton onClick={() => handleOpenConfirmDeleteDevice(device)}>
                           <RemoveIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -301,8 +314,8 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
                   >
                     {buses.map((bus) =>
                       bus.deviceId == null ? (
-                        <MenuItem key={device.id} value={device.id}>
-                          {device.id}
+                        <MenuItem key={bus.id} value={bus.id}>
+                          {bus.id}
                         </MenuItem>
                       ) : null
                     )}
@@ -322,6 +335,40 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
               </Box>
             </Box>
           </Modal>
+
+          <Dialog
+            open={openConfirmDeleteDevice}
+            onClose={handleCloseConfirmDeleteDevice}
+            aria-labelledby="confirm-delete-device"
+            aria-describedby="confirm-delete-device"
+          >
+            <DialogTitle id="confirm-delete-device">Delete Device</DialogTitle>
+            <DialogContent>
+              {deviceToDelete.busId == null ? (
+                <DialogContentText id="confirm-delete-device-description">
+                  Are you sure you want to delete the device with id {deviceToDelete.id}?
+                </DialogContentText>
+              ) : (
+                <DialogContentText id="confirm-delete-device-description">
+                  You must remove from the device the bus {deviceToDelete.busId} before deleting it!
+                </DialogContentText>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseConfirmDeleteDevice} color="primary">
+                Cancel
+              </Button>
+              {deviceToDelete.busId == null ? (
+                <Button
+                  onClick={() => handleDeleteDevice(deviceToDelete.id)}
+                  color="primary"
+                  autoFocus
+                >
+                  Delete device
+                </Button>
+              ) : null}
+            </DialogActions>
+          </Dialog>
         </Box>
       )}
     </>

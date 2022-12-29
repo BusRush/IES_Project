@@ -20,6 +20,13 @@ import {
   MenuItem,
   Button,
   CircularProgress,
+  List,
+  ListItem,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -43,6 +50,13 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
   const [driverLastName, setDriverLastName] = useState("");
   const [driverLastNameIsValid, setDriverLastNameIsValid] = useState(true);
   const [selectedRoutes, setSelectedRoutes] = useState([]);
+
+  const [openInfoDriverModal, setOpenInfoDriverModal] = useState(false);
+  const [driverInfo, setDriverInfo] = useState({});
+  const [driverInfoIsLoading, setDriverInfoIsLoading] = useState(true);
+
+  const [openConfirmDeleteDriver, setOpenConfirmDeleteDriver] = useState(false);
+  const [driverToDelete, setDriverToDelete] = useState({ id: "", routesId: [] });
 
   // pagination function handlers
   const handleLimitChange = (event) => {
@@ -226,6 +240,7 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
     }).catch((error) => {
       console.error("Error:", error);
     });
+    handleCloseConfirmDeleteDriver();
   };
 
   // Add Driver Modal Handle Functions
@@ -243,6 +258,43 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
     setDriverIDIsValid(true);
     setDriverFirstNameIsValid(true);
     setDriverLastNameIsValid(true);
+  };
+
+  // Fetch Driver Info
+  const fetchDriverInfo = (driverId) => {
+    fetch("http://localhost:8080/api/drivers/" + driverId)
+      .then((response) => response.json())
+      .then((data) => {
+        setDriverInfo(data);
+        setDriverInfoIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+    return true;
+  };
+
+  // Info Driver Modal Handle Functions
+  const handleOpenInfoDriverModal = (driverId) => {
+    if (fetchDriverInfo(driverId)) {
+      setOpenInfoDriverModal(true);
+    }
+  };
+
+  const handleCloseInfoDriverModal = () => {
+    setOpenInfoDriverModal(false);
+    setDriverInfoIsLoading(true);
+    setDriverInfo({});
+  };
+
+  // Handle Confirm Delete Driver
+  const handleOpenConfirmDeleteDriver = (driver) => {
+    setDriverToDelete(driver);
+    setOpenConfirmDeleteDriver(true);
+  };
+
+  const handleCloseConfirmDeleteDriver = () => {
+    setOpenConfirmDeleteDriver(false);
   };
 
   // useEffect
@@ -298,12 +350,12 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
                         {driver.firstName} {driver.lastName}
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton>
+                        <IconButton onClick={() => handleOpenInfoDriverModal(driver.id)}>
                           <InfoIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton onClick={() => handleDeleteDriver(driver.id)}>
+                        <IconButton onClick={() => handleOpenConfirmDeleteDriver(driver)}>
                           <RemoveIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -438,6 +490,138 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
               </Box>
             </Box>
           </Modal>
+
+          <Modal
+            open={!driverInfoIsLoading && openInfoDriverModal}
+            onClose={handleCloseInfoDriverModal}
+            aria-labelledby="info-driver-modal"
+            aria-describedby="info-driver-modal"
+          >
+            <Box sx={style(viewportWidth)}>
+              <Grid container>
+                <Grid item xs={11} md={11} lg={11}>
+                  <Typography
+                    id="info-driver-modal"
+                    variant="h6"
+                    component="h2"
+                    sx={{ paddingBottom: 2 }}
+                  >
+                    {driverInfo.id}
+                  </Typography>
+                </Grid>
+                <Grid item xs={1} md={1} lg={1}>
+                  <IconButton onClick={handleCloseInfoDriverModal}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Box>
+                <Grid container>
+                  <Grid item xs={4} md={4} lg={4}>
+                    <Typography variant="body1" component="p" fontWeight={600}>
+                      ID:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8} md={8} lg={8}>
+                    <Typography variant="body1" component="p">
+                      {driverInfo.id}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+              <Box sx={{ paddingTop: 2 }}>
+                <Grid container>
+                  <Grid item xs={4} md={4} lg={4}>
+                    <Typography variant="body1" component="p" fontWeight={600}>
+                      First Name:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8} md={8} lg={8} sx={{ display: "flex", alignItems: "center" }}>
+                    <Typography variant="body1" component="p">
+                      {driverInfo.firstName}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+              <Box sx={{ paddingTop: 2 }}>
+                <Grid container>
+                  <Grid item xs={4} md={4} lg={4}>
+                    <Typography variant="body1" component="p" fontWeight={600}>
+                      Last Name:
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={8} md={8} lg={8} sx={{ display: "flex", alignItems: "center" }}>
+                    <Typography variant="body1" component="p">
+                      {driverInfo.lastName}
+                    </Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+              {driverInfo.routesId != undefined && driverInfo.routesId.length != 0 && (
+                <Box sx={{ paddingTop: 2 }}>
+                  <Grid container>
+                    <Grid item xs={4} md={4} lg={4}>
+                      <Typography variant="body1" component="p" fontWeight={600}>
+                        Routes:
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={8} md={8} lg={8}>
+                      <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
+                        {driverInfo.routesId != undefined &&
+                          driverInfo.routesId.map((route) => (
+                            <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                              {route.id}|{route.shift}
+                            </ListItem>
+                          ))}
+                      </List>
+                    </Grid>
+                  </Grid>
+                </Box>
+              )}
+            </Box>
+          </Modal>
+
+          <Dialog
+            open={openConfirmDeleteDriver}
+            onClose={handleCloseConfirmDeleteDriver}
+            aria-labelledby="confirm-delete-driver"
+            aria-describedby="confirm-delete-driver"
+          >
+            <DialogTitle id="confirm-delete-driver">Delete Driver</DialogTitle>
+            <DialogContent>
+              {driverToDelete.routesId.length == 0 ? (
+                <DialogContentText id="confirm-delete-driver-description">
+                  Are you sure you want to delete the driver with id {driverToDelete.id}?
+                </DialogContentText>
+              ) : (
+                <DialogContentText id="confirm-delete-driver-description">
+                  You must remove from the driver the following routes:
+                  <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
+                    {driverToDelete.routesId != undefined &&
+                      driverToDelete.routesId.map((route) => (
+                        <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                          {route.id}|{route.shift}
+                        </ListItem>
+                      ))}
+                  </List>
+                </DialogContentText>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseConfirmDeleteDriver} color="primary">
+                Cancel
+              </Button>
+              {driverToDelete.routesId.length == 0 && (
+                <Button
+                  onClick={() => handleDeleteDriver(driverToDelete.id)}
+                  color="primary"
+                  autoFocus
+                >
+                  Delete driver
+                </Button>
+              )}
+            </DialogActions>
+          </Dialog>
         </Box>
       )}
     </>

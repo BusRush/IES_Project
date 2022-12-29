@@ -21,6 +21,11 @@ import {
   MenuItem,
   Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -44,6 +49,16 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
   const [scheduleTime, setScheduleTime] = useState("");
   const [scheduleTimeIsValid, setScheduleTimeIsValid] = useState(true);
   const [scheduleTimeInputHelpText, setScheduleTimeInputHelpText] = useState("");
+
+  const [openInfoScheduleModal, setOpenInfoScheduleModal] = useState(false);
+  const [scheduleInfo, setScheduleInfo] = useState({});
+  const [scheduleInfoIsLoading, setScheduleInfoIsLoading] = useState(true);
+
+  const [openConfirmDeleteSchedule, setOpenConfirmDeleteSchedule] = useState(false);
+  const [scheduleToDelete, setScheduleToDelete] = useState({
+    id: { routeId: { id: "", shift: "" }, stopId: "", sequence: 0 },
+    time: "",
+  });
 
   // functions to handle pagination
   const handleLimitChange = (event) => {
@@ -208,6 +223,7 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
       console.error("Error:", error);
     });
     console.log(routeID + "_" + routeShift + "_" + stopID + "_" + sequence + " deleted");
+    handleCloseConfirmDeleteSchedule();
   };
 
   // Add Schedule Modal Handle Functions
@@ -225,6 +241,55 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
     setScheduleSequenceIsValid(true);
     setScheduleTimeInputHelpText("");
     setScheduleSequenceInputHelpText("");
+  };
+
+  // Fetch Schedule Info
+  const fetchScheduleInfo = (routeId, routeShift, stopId, sequence) => {
+    fetch(
+      "http://localhost:8080/api/schedules/" +
+        routeId +
+        "_" +
+        routeShift +
+        "_" +
+        stopId +
+        "_" +
+        sequence
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        setScheduleInfo(data);
+        setScheduleInfoIsLoading(false);
+        console.log("Success:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+    return true;
+  };
+
+  // Info Schedule Modal Handle Functions
+  const handleOpenInfoScheduleModal = (routeId, routeShift, stopId, sequence) => {
+    if (fetchScheduleInfo(routeId, routeShift, stopId, sequence)) {
+      setOpenInfoScheduleModal(true);
+    }
+  };
+
+  const handleCloseInfoScheduleModal = () => {
+    setOpenInfoScheduleModal(false);
+    setScheduleInfoIsLoading(true);
+    setScheduleInfo({});
+  };
+
+  // Handle Confirm Delete Schedule
+  const handleOpenConfirmDeleteSchedule = (routeId, routeShift, stopId, sequence) => {
+    setScheduleToDelete({
+      id: { routeId: { id: routeId, shift: routeShift }, stopId: stopId, sequence: sequence },
+    });
+    setOpenConfirmDeleteSchedule(true);
+  };
+
+  const handleCloseConfirmDeleteSchedule = () => {
+    setOpenConfirmDeleteSchedule(false);
   };
 
   // useEffect
@@ -266,7 +331,6 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
                 <TableHead>
                   <TableRow>
                     <TableCell align="left">Route ID</TableCell>
-                    <TableCell align="left">Route Shift</TableCell>
                     <TableCell align="left">Sequence</TableCell>
                     <TableCell align="right"></TableCell>
                     <TableCell align="right"></TableCell>
@@ -284,18 +348,28 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
                         schedule.id.sequence
                       }
                     >
-                      <TableCell align="left">{schedule.id.routeId.id}</TableCell>
-                      <TableCell align="left">{schedule.id.routeId.shift}</TableCell>
+                      <TableCell align="left">
+                        {schedule.id.routeId.id} ({schedule.id.routeId.shift})
+                      </TableCell>
                       <TableCell align="left">{schedule.id.sequence}</TableCell>
                       <TableCell align="right">
-                        <IconButton>
+                        <IconButton
+                          onClick={() =>
+                            handleOpenInfoScheduleModal(
+                              schedule.id.routeId.id,
+                              schedule.id.routeId.shift,
+                              schedule.id.stopId,
+                              schedule.id.sequence
+                            )
+                          }
+                        >
                           <InfoIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
                       <TableCell align="right">
                         <IconButton
                           onClick={() =>
-                            handleDeleteSchedule(
+                            handleOpenConfirmDeleteSchedule(
                               schedule.id.routeId.id,
                               schedule.id.routeId.shift,
                               schedule.id.stopId,
@@ -442,6 +516,115 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
               </Box>
             </Box>
           </Modal>
+
+          <Modal
+            open={!scheduleInfoIsLoading && openInfoScheduleModal}
+            onClose={handleCloseInfoScheduleModal}
+            aria-labelledby="info-schedule-modal"
+            aria-describedby="info-schedule-modal"
+          >
+            <Box>
+              {scheduleInfo != undefined &&
+              scheduleInfo.id != undefined &&
+              scheduleInfo.id.routeId != undefined ? (
+                <Box sx={style(viewportWidth)}>
+                  <Grid container>
+                    <Grid item xs={11} md={11} lg={11}>
+                      <Typography
+                        id="info-schedule-modal"
+                        variant="h6"
+                        component="h2"
+                        sx={{ paddingBottom: 2 }}
+                      >
+                        {scheduleInfo.id.routeId.id} | {scheduleInfo.id.routeId.shift}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={1} md={1} lg={1}>
+                      <IconButton onClick={handleCloseInfoScheduleModal}>
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </Grid>
+                  </Grid>
+                  <Box>
+                    <Grid container>
+                      <Grid item xs={4} md={4} lg={4}>
+                        <Typography variant="body1" component="p" fontWeight={600}>
+                          Stop:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8} md={8} lg={8}>
+                        <Typography variant="body1" component="p">
+                          {scheduleInfo.id.stopId}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  <Box>
+                    <Grid container sx={{ paddingTop: 2 }}>
+                      <Grid item xs={4} md={4} lg={4}>
+                        <Typography variant="body1" component="p" fontWeight={600}>
+                          Sequence:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8} md={8} lg={8}>
+                        <Typography variant="body1" component="p">
+                          {scheduleInfo.id.sequence}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  <Box>
+                    <Grid container sx={{ paddingTop: 2 }}>
+                      <Grid item xs={4} md={4} lg={4}>
+                        <Typography variant="body1" component="p" fontWeight={600}>
+                          Time:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8} md={8} lg={8}>
+                        <Typography variant="body1" component="p">
+                          {scheduleInfo.time}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Box>
+              ) : null}
+            </Box>
+          </Modal>
+          <Dialog
+            open={openConfirmDeleteSchedule}
+            onClose={handleCloseConfirmDeleteSchedule}
+            aria-labelledby="confirm-delete-schedule"
+            aria-describedby="confirm-delete-schedule"
+          >
+            <DialogTitle id="confirm-delete-schedule">Delete Schedule</DialogTitle>
+            <DialogContent>
+              <DialogContentText id="confirm-delete-schedule-description">
+                Are you sure you want to delete the schedule from the{" "}
+                {scheduleToDelete.id.routeId.id} | {scheduleToDelete.id.routeId.shift}, on Stop{" "}
+                {scheduleToDelete.id.stopId} and sequence {scheduleToDelete.id.sequence}?
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseConfirmDeleteSchedule} color="primary">
+                Cancel
+              </Button>
+              <Button
+                onClick={() =>
+                  handleDeleteSchedule(
+                    scheduleToDelete.id.routeId.id,
+                    scheduleToDelete.id.routeId.shift,
+                    scheduleToDelete.id.stopId,
+                    scheduleToDelete.id.sequence
+                  )
+                }
+                color="primary"
+                autoFocus
+              >
+                Delete schedule
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Box>
       )}
     </>

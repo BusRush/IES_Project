@@ -18,7 +18,14 @@ import {
   Input,
   FormHelperText,
   Button,
+  List,
+  ListItem,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -45,6 +52,13 @@ export const StopTable = ({ stops, ...rest }) => {
   const [stopLongitude, setStopLongitude] = useState("");
   const [stopLongitudeIsValid, setStopLongitudeIsValid] = useState(true);
   const [stopLongitudeInputHelpText, setStopLongitudeInputHelpText] = useState("");
+
+  const [openInfoStopModal, setOpenInfoStopModal] = useState(false);
+  const [stopInfo, setStopInfo] = useState({});
+  const [stopInfoIsLoading, setStopInfoIsLoading] = useState(true);
+
+  const [openConfirmDeleteStop, setOpenConfirmDeleteStop] = useState(false);
+  const [stopToDelete, setStopToDelete] = useState({ id: "", schedulesId: [] });
 
   // functions to handle pagination
   const handleLimitChange = (event) => {
@@ -259,6 +273,7 @@ export const StopTable = ({ stops, ...rest }) => {
       console.error("Error:", error);
     });
     console.log(stopID + " deleted");
+    handleCloseConfirmDeleteStop();
   };
 
   // Add Stop Modal Handle Functions
@@ -279,6 +294,44 @@ export const StopTable = ({ stops, ...rest }) => {
     setStopIDInputHelpText("");
     setStopLatitudeInputHelpText("");
     setStopLongitudeInputHelpText("");
+  };
+
+  // Fetch Stop Info
+  const fetchStopInfo = (stopId) => {
+    fetch("http://localhost:8080/api/stops/" + stopId)
+      .then((response) => response.json())
+      .then((data) => {
+        setStopInfo(data);
+        setStopInfoIsLoading(false);
+        console.log("Success:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+    return true;
+  };
+
+  // Info Stop Modal Handle Functions
+  const handleOpenInfoStopModal = (stopId) => {
+    if (fetchStopInfo(stopId)) {
+      setOpenInfoStopModal(true);
+    }
+  };
+
+  const handleCloseInfoStopModal = () => {
+    setOpenInfoStopModal(false);
+    setStopInfoIsLoading(true);
+    setStopInfo({});
+  };
+
+  // Handle Confirm Delete Stop
+  const handleOpenConfirmDeleteStop = (stop) => {
+    setStopToDelete(stop);
+    setOpenConfirmDeleteStop(true);
+  };
+
+  const handleCloseConfirmDeleteStop = () => {
+    setOpenConfirmDeleteStop(false);
   };
 
   // useEffect
@@ -332,12 +385,12 @@ export const StopTable = ({ stops, ...rest }) => {
                       <TableCell align="left">{stop.id}</TableCell>
                       <TableCell align="left">{stop.designation}</TableCell>
                       <TableCell align="right">
-                        <IconButton>
+                        <IconButton onClick={() => handleOpenInfoStopModal(stop.id)}>
                           <InfoIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton onClick={() => handleDeleteStop(stop.id)}>
+                        <IconButton onClick={() => handleOpenConfirmDeleteStop(stop)}>
                           <RemoveIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -465,6 +518,138 @@ export const StopTable = ({ stops, ...rest }) => {
               </Box>
             </Box>
           </Modal>
+
+          <Modal
+            open={!stopInfoIsLoading && openInfoStopModal}
+            onClose={handleCloseInfoStopModal}
+            aria-labelledby="info-stop-modal"
+            aria-describedby="info-stop-modal"
+          >
+            <Box>
+              {stopInfo != undefined && stopInfo.id != undefined ? (
+                <Box sx={style(viewportWidth)}>
+                  <Grid container>
+                    <Grid item xs={11} md={11} lg={11}>
+                      <Typography
+                        id="info-stop-modal"
+                        variant="h6"
+                        component="h2"
+                        sx={{ paddingBottom: 2 }}
+                      >
+                        {stopInfo.id}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={1} md={1} lg={1}>
+                      <IconButton onClick={handleCloseInfoStopModal}>
+                        <CloseIcon fontSize="small" />
+                      </IconButton>
+                    </Grid>
+                  </Grid>
+                  <Box>
+                    <Grid container>
+                      <Grid item xs={4} md={4} lg={4}>
+                        <Typography variant="body1" component="p" fontWeight={600}>
+                          ID:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8} md={8} lg={8}>
+                        <Typography variant="body1" component="p">
+                          {stopInfo.id}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  <Box>
+                    <Grid container sx={{ paddingTop: 2 }}>
+                      <Grid item xs={4} md={4} lg={4}>
+                        <Typography variant="body1" component="p" fontWeight={600}>
+                          Designation:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8} md={8} lg={8}>
+                        <Typography variant="body1" component="p">
+                          {stopInfo.designation}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  <Box>
+                    <Grid container sx={{ paddingTop: 2 }}>
+                      <Grid item xs={4} md={4} lg={4}>
+                        <Typography variant="body1" component="p" fontWeight={600}>
+                          Position:
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={8} md={8} lg={8}>
+                        <Typography variant="body1" component="p">
+                          {stopInfo.position[0]}, {stopInfo.position[1]}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  {stopInfo.schedulesId != undefined && stopInfo.schedulesId.length != 0 && (
+                    <Box sx={{ paddingTop: 2 }}>
+                      <Grid container>
+                        <Grid item xs={4} md={4} lg={4}>
+                          <Typography variant="body1" component="p" fontWeight={600}>
+                            Schedules:
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={8} md={8} lg={8}>
+                          <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
+                            {stopInfo.schedulesId != undefined &&
+                              stopInfo.schedulesId.map((schedule) => (
+                                <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                                  {schedule.routeId.id}|{schedule.routeId.shift}|{schedule.sequence}
+                                </ListItem>
+                              ))}
+                          </List>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  )}
+                </Box>
+              ) : null}
+            </Box>
+          </Modal>
+
+          <Dialog
+            open={openConfirmDeleteStop}
+            onClose={handleCloseConfirmDeleteStop}
+            aria-labelledby="confirm-delete-stop"
+            aria-describedby="confirm-delete-stop"
+          >
+            <DialogTitle id="confirm-delete-stop">Delete Stop</DialogTitle>
+            <DialogContent>
+              {stopToDelete.schedulesId.length == 0 ? (
+                <DialogContentText id="confirm-delete-stop-description">
+                  Are you sure you want to delete the stop with id {stopToDelete.id}?
+                </DialogContentText>
+              ) : (
+                <DialogContentText id="confirm-delete-stop-description">
+                  You must remove from the following schedules from the stop:
+                  <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
+                    {stopToDelete.schedulesId != undefined &&
+                      stopToDelete.schedulesId.map((schedule) => (
+                        <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                          {schedule.routeId.id}|{schedule.routeId.shift} | {schedule.sequence}
+                        </ListItem>
+                      ))}
+                  </List>
+                </DialogContentText>
+              )}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseConfirmDeleteStop} color="primary">
+                Cancel
+              </Button>
+              {stopToDelete.schedulesId.length == 0 && (
+                <Button onClick={() => handleDeleteStop(stopToDelete.id)} color="primary" autoFocus>
+                  Delete stop
+                </Button>
+              )}
+            </DialogActions>
+          </Dialog>
         </Box>
       )}
     </>
