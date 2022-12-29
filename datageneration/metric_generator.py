@@ -7,8 +7,9 @@ from datetime import datetime
 from time import sleep
 import socket
 import json
-
+import subprocess
 from utils import load_path_mock
+import sys
 
 TRANSMISSION_RATE = 5  # seconds
 FUEL_PROB = 0.5
@@ -49,8 +50,34 @@ class MockMetrics:
         ) < PASSENGER_PROB
         if change_passengers:
             if (CAMERA_ACTIVE):
-                send(client, {'command': 'people_in_out', 'passengers': self.passengers, 'timestamp': self.timestamp})
-                self.passengers += receive_data(client)
+                # This two lines of code are for sending requests via socket
+                #send(client, {'command': 'people_in_out', 'passengers': self.passengers, 'timestamp': self.timestamp})
+                #self.passengers += receive_data(client)
+                # The camera logs will be in the following file
+                output_filename = 'data/camera_{}.txt'.format(self.device_id)
+                if os.stat(output_filename).st_size != 0: 
+                    # To get the current number of passengers, we read the last entry in the camera logs file
+                    last_line = subprocess.run(["tail", "-1", output_filename], capture_output=True).stdout
+                    if last_line != "Camera Stopped":
+                        # Parse the last line as a JSON object
+                        last_line_obj = json.loads(last_line)
+                        # Access the attributes of the JSON object
+                        # bus_id = last_line_obj["bus_id"]
+                        # enter = last_line_obj["enter"]
+                        # exit = last_line_obj["exit"]
+                        # occupancy = last_line_obj["occupancy"]
+                        # bus_capacity = last_line_obj["busCapacity"]
+                        # time = last_line_obj["time"]
+                        occupation = last_line_obj["occupation"]
+                        self.passengers = occupation
+                    else: 
+                        print("[INFO] Camera not operational anymore")
+                        sys.exit()
+                else: 
+                    print("[INFO] Camera did not start in time")
+                    self.passengers += random.randint(
+                        max(-PASSENGER_MAX, -self.passengers),
+                        min(PASSENGER_MAX, BUS_CAPACITY - self.passengers))
             else:         
                 self.passengers += random.randint(
                     max(-PASSENGER_MAX, -self.passengers),
@@ -129,11 +156,12 @@ def receive_data(sock):
 @click.option('--route_id', help='Id of the route to be simulated.')#
 @click.option('--route_shift', help='Shift of the route to be simulated.')
 @click.option('--sensor_camera', required=False, default='False', help='Camera to be used to count passengers.')
-@click.option('--sensor_footage', required=False, default='bus_footage/AVR-B0001', help='Bus footage used to count passengers.')
+
 #
 # Example: python3 metric_generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-R0011 --route_shift 092000
 #
-def main(device_id, route_id, route_shift, sensor_camera, sensor_footage):
+
+def main(device_id, route_id, route_shift, sensor_camera):
 
     # Connect to RabbitMQ
     conn = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
@@ -148,9 +176,9 @@ def main(device_id, route_id, route_shift, sensor_camera, sensor_footage):
     path = load_path_mock(chosen_mock)  # position and speed
 
     # Get values of click parameters
-    ctx = click.get_current_context()
-    if ctx.params['sensor_footage'] is not None or sensor_camera == 'True':
-        client = connect_camera_sensor(ctx, 10)
+    if sensor_camera == 'True':
+        #client = connect_camera_sensor(ctx, 10)
+        CAMERA_ACTIVE = True
 
     # Initialize the metrics generator
     metrics = MockMetrics(
