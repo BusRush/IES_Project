@@ -35,6 +35,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
 import CloseIcon from "@mui/icons-material/Close";
 import { useEffect, useState } from "react";
+import { set } from "nprogress";
 
 export const BusTable = ({ buses, devices, routes, ...rest }) => {
   // use states
@@ -58,7 +59,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
   const [selectedRoutes, setSelectedRoutes] = useState([]);
 
   const [openInfoBusModal, setOpenInfoBusModal] = useState(false);
-  const [busInfo, setBusInfo] = useState({ routesId: [] });
+  const [busInfo, setBusInfo] = useState({ routesId: [], deviceId: "" });
   const [busInfoIsLoading, setBusInfoIsLoading] = useState(true);
 
   const [openConfirmDeleteBus, setOpenConfirmDeleteBus] = useState(false);
@@ -66,6 +67,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
 
   const [openUpdateBusModal, setOpenUpdateBusModal] = useState(false);
   const [busToUpdate, setBusToUpdate] = useState({});
+  const [routesList, setRoutesList] = useState([]);
 
   // pagination function handlers
   const handleLimitChange = (event) => {
@@ -336,6 +338,11 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
       .then((data) => {
         setBusInfo(data);
         setBusInfoIsLoading(false);
+        setBusID(data.id);
+        setBusRegistration(data.registration);
+        setBusBrand(data.brand);
+        setBusModel(data.model);
+        setSelectedDevice(data.deviceId);
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -370,14 +377,6 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
   const handleOpenUpdateBusModal = (bus) => {
     setBusToUpdate(bus);
     fetchBusInfo(bus.id);
-    if (!busInfoIsLoading) {
-      setBusID(busInfo.id);
-      setBusRegistration(busInfo.registration);
-      setBusBrand(busInfo.brand);
-      setBusModel(busInfo.model);
-      setSelectedDevice(busInfo.deviceId);
-      setSelectedRoutes(busInfo.routesId);
-    }
     setOpenUpdateBusModal(true);
   };
 
@@ -385,6 +384,18 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
     setOpenUpdateBusModal(false);
     setBusInfoIsLoading(true);
     setBusInfo({ routesId: [] });
+    setBusID("");
+    setBusIDIsValid(true);
+    setBusIDInputHelpText("");
+    setBusRegistration("");
+    setBusRegistrationIsValid(true);
+    setBusRegistrationInputHelpText("");
+    setBusBrand("");
+    setBusBrandIsValid(true);
+    setBusModel("");
+    setBusModelIsValid(true);
+    setSelectedDevice("");
+    setSelectedRoutes([]);
   };
 
   const handleUpdateBus = () => {
@@ -409,7 +420,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
       updatedBus.deviceId = selectedDevice;
     }
 
-    fetch("http://localhost:8080/api/buses?id=" + busID, {
+    fetch("http://localhost:8080/api/buses/" + busID, {
       method: "PUT",
       headers: {
         "Access-Control-Allow-Origin": "*",
@@ -426,6 +437,14 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
       });
 
     handleCloseUpdateBusModal();
+  };
+
+  const routesToList = (routes) => {
+    let routesList = [];
+    routes.forEach((route) => {
+      routesList.push(route.id + "|" + route.shift);
+    });
+    return routesList;
   };
 
   // useEffect
@@ -738,14 +757,19 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
                 <FormControl>
                   <InputLabel htmlFor="bus-device">Device</InputLabel>
                   <Select
-                    defaultValue={busInfo.deviceId}
+                    defaultValue={busInfo.deviceId || ""}
                     onChange={handleDeviceChange}
                     id="bus-device"
                     aria-describedby="bus-device"
                     sx={{ width: 200, marginTop: 1, height: 40 }}
                   >
+                    <MenuItem key="" value="">
+                      -
+                    </MenuItem>
                     {busInfo.deviceId != null && (
-                      <MenuItem value={busInfo.deviceId}>{busInfo.deviceId}</MenuItem>
+                      <MenuItem key={busInfo.deviceId} value={busInfo.deviceId}>
+                        {busInfo.deviceId}
+                      </MenuItem>
                     )}
                     {devices.map((device) =>
                       device.busId == null ? (
@@ -762,7 +786,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
                   <InputLabel htmlFor="bus-routes">Routes</InputLabel>
                   <Select
                     multiple={true}
-                    defaultValue={busInfo.routesId}
+                    defaultValue={routesToList(busInfo.routesId) || []}
                     onChange={handleRoutesChange}
                     id="bus-routes"
                     aria-describedby="bus-routes"
@@ -923,7 +947,10 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
                       <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
                         {busInfo.routesId != undefined &&
                           busInfo.routesId.map((route) => (
-                            <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                            <ListItem
+                              key={route.id + "|" + route.shift}
+                              sx={{ paddingLeft: 0, paddingTop: 0 }}
+                            >
                               {route.id}|{route.shift}
                             </ListItem>
                           ))}
@@ -951,7 +978,10 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
                 <DialogContentText id="confirm-delete-bus-description">
                   You must remove the following routes from the bus before deleting it:
                   {busToDelete.routesId.map((route) => (
-                    <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                    <ListItem
+                      key={route.id + "|" + route.shift}
+                      sx={{ paddingLeft: 0, paddingTop: 0 }}
+                    >
                       {route.id}|{route.shift}
                     </ListItem>
                   ))}

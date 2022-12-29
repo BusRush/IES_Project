@@ -37,6 +37,7 @@ public class CrudController {
         return crudService.createBus(busCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/buses/{id}")
     public ResponseEntity<BusCrudDto> updateBus(@PathVariable("id") String id, @RequestBody BusCrudDto busCrudDto) {
         return crudService.updateBus(id, busCrudDto);
