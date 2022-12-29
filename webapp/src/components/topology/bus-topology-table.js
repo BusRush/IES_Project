@@ -27,6 +27,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  TextField,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -57,11 +58,14 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
   const [selectedRoutes, setSelectedRoutes] = useState([]);
 
   const [openInfoBusModal, setOpenInfoBusModal] = useState(false);
-  const [busInfo, setBusInfo] = useState({});
+  const [busInfo, setBusInfo] = useState({ routesId: [] });
   const [busInfoIsLoading, setBusInfoIsLoading] = useState(true);
 
   const [openConfirmDeleteBus, setOpenConfirmDeleteBus] = useState(false);
   const [busToDelete, setBusToDelete] = useState({ id: "", routesId: [] });
+
+  const [openUpdateBusModal, setOpenUpdateBusModal] = useState(false);
+  const [busToUpdate, setBusToUpdate] = useState({});
 
   // pagination function handlers
   const handleLimitChange = (event) => {
@@ -101,7 +105,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
       busId_is_valid = true;
 
       buses.forEach((bus) => {
-        if (bus.id == busID) {
+        if (bus.id == busID && busID != busToUpdate.id) {
           busId_is_valid = false;
           setBusIDInputHelpText("Bus ID already exists");
         }
@@ -349,7 +353,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
   const handleCloseInfoBusModal = () => {
     setOpenInfoBusModal(false);
     setBusInfoIsLoading(true);
-    setBusInfo({});
+    setBusInfo({ routesId: [] });
   };
 
   // Handle Confirm Delete Bus
@@ -360,6 +364,68 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
 
   const handleCloseConfirmDeleteBus = () => {
     setOpenConfirmDeleteBus(false);
+  };
+
+  // Handle Update Bus
+  const handleOpenUpdateBusModal = (bus) => {
+    setBusToUpdate(bus);
+    fetchBusInfo(bus.id);
+    if (!busInfoIsLoading) {
+      setBusID(busInfo.id);
+      setBusRegistration(busInfo.registration);
+      setBusBrand(busInfo.brand);
+      setBusModel(busInfo.model);
+      setSelectedDevice(busInfo.deviceId);
+      setSelectedRoutes(busInfo.routesId);
+    }
+    setOpenUpdateBusModal(true);
+  };
+
+  const handleCloseUpdateBusModal = () => {
+    setOpenUpdateBusModal(false);
+    setBusInfoIsLoading(true);
+    setBusInfo({ routesId: [] });
+  };
+
+  const handleUpdateBus = () => {
+    let routesID = [];
+    selectedRoutes.forEach((route) => {
+      let content = route.split("|");
+      routesID.push({ id: content[0], shift: content[1] });
+    });
+
+    let updatedBus = {
+      id: busID,
+      registration: busRegistration,
+      brand: busBrand,
+      model: busModel,
+    };
+
+    if (routesID.length != 0) {
+      updatedBus.routesId = routesID;
+    }
+
+    if (selectedDevice != "") {
+      updatedBus.deviceId = selectedDevice;
+    }
+
+    fetch("http://localhost:8080/api/buses?id=" + busID, {
+      method: "PUT",
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedBus),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Success:", data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+
+    handleCloseUpdateBusModal();
   };
 
   // useEffect
@@ -423,7 +489,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
                         </IconButton>
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton>
+                        <IconButton onClick={() => handleOpenUpdateBusModal(bus)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -586,6 +652,165 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
                     }
                   >
                     Add Bus
+                  </Button>
+                </FormControl>
+              </Box>
+            </Box>
+          </Modal>
+
+          <Modal
+            open={!busInfoIsLoading && openUpdateBusModal}
+            onClose={handleCloseUpdateBusModal}
+            aria-labelledby="update-bus-modal"
+            aria-describedby="update-bus-modal"
+          >
+            <Box sx={style(viewportWidth)}>
+              <Grid container>
+                <Grid item xs={11} md={11} lg={11}>
+                  <Typography
+                    id="update-bus-modal"
+                    variant="h6"
+                    component="h2"
+                    sx={{ paddingBottom: 2 }}
+                  >
+                    Update Bus
+                  </Typography>
+                </Grid>
+                <Grid item xs={1} md={1} lg={1}>
+                  <IconButton onClick={handleCloseUpdateBusModal}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Box>
+                <FormControl>
+                  <TextField
+                    label="Bus ID"
+                    defaultValue={busInfo.id}
+                    onChange={handleBusIDInputChange}
+                    onFocus={handleBusIDInputFocus}
+                    onBlur={handleBusIDInputBlur}
+                    error={!busIDIsValid}
+                  />
+                  <FormHelperText id="bus-id">{busIDInputHelpText}</FormHelperText>
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="Registration"
+                    defaultValue={busInfo.registration}
+                    onChange={handleBusRegistrationInputChange}
+                    onFocus={handleBusRegistrationInputFocus}
+                    onBlur={handleBusRegistrationInputBlur}
+                    error={!busRegistrationIsValid}
+                  />
+                  <FormHelperText id="bus-registration">
+                    {busRegistrationInputHelpText}
+                  </FormHelperText>
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="Brand"
+                    defaultValue={busInfo.brand}
+                    onChange={handleBusBrandInputChange}
+                    onFocus={handleBusBrandInputFocus}
+                    onBlur={handleBusBrandInputBlur}
+                    error={!busBrandIsValid}
+                  />
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="Model"
+                    defaultValue={busInfo.model}
+                    onChange={handleBusModelInputChange}
+                    onFocus={handleBusModelInputFocus}
+                    onBlur={handleBusModelInputBlur}
+                    error={!busModelIsValid}
+                  />
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="bus-device">Device</InputLabel>
+                  <Select
+                    defaultValue={busInfo.deviceId}
+                    onChange={handleDeviceChange}
+                    id="bus-device"
+                    aria-describedby="bus-device"
+                    sx={{ width: 200, marginTop: 1, height: 40 }}
+                  >
+                    {busInfo.deviceId != null && (
+                      <MenuItem value={busInfo.deviceId}>{busInfo.deviceId}</MenuItem>
+                    )}
+                    {devices.map((device) =>
+                      device.busId == null ? (
+                        <MenuItem key={device.id} value={device.id}>
+                          {device.id}
+                        </MenuItem>
+                      ) : null
+                    )}
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="bus-routes">Routes</InputLabel>
+                  <Select
+                    multiple={true}
+                    defaultValue={busInfo.routesId}
+                    onChange={handleRoutesChange}
+                    id="bus-routes"
+                    aria-describedby="bus-routes"
+                    sx={{ width: 200, marginTop: 1, height: 40 }}
+                    MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 250 } } }}
+                  >
+                    {busInfo.routesId.length != 0 &&
+                      busInfo.routesId.map((route) => (
+                        <MenuItem
+                          key={route.id + "|" + route.shift}
+                          value={route.id + "|" + route.shift}
+                        >
+                          {route.id} | {route.shift}
+                        </MenuItem>
+                      ))}
+
+                    {routes.map((route) =>
+                      route.busId == null ? (
+                        <MenuItem
+                          key={route.id.id + "|" + route.id.shift}
+                          value={route.id.id + "|" + route.id.shit}
+                        >
+                          {route.id.id} | {route.id.shift}
+                        </MenuItem>
+                      ) : null
+                    )}
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <Button
+                    variant="contained"
+                    onClick={handleUpdateBus}
+                    disabled={
+                      busIDIsValid &&
+                      busID != "" &&
+                      busRegistrationIsValid &&
+                      busRegistration != "" &&
+                      busBrandIsValid &&
+                      busBrand != "" &&
+                      busModelIsValid &&
+                      busModel != ""
+                        ? false
+                        : true
+                    }
+                  >
+                    Update Bus
                   </Button>
                 </FormControl>
               </Box>
