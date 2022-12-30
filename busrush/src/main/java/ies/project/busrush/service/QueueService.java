@@ -19,7 +19,9 @@ import org.json.JSONObject;
 import ies.project.busrush.repository.BusRepository;
 import ies.project.busrush.repository.cassandra.BusMetricsRepository;
 
+
 import java.time.LocalTime;
+
 import java.util.*;
 
 import org.json.JSONArray;
@@ -52,6 +54,7 @@ public class QueueService {
     public void receiveDevices(@Payload String msg) {
         System.out.println("Received: " + msg);
         processMessage(msg);
+
     }
 
     public void sendEvents(String msg) {
