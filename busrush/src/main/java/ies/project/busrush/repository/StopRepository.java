@@ -16,6 +16,7 @@ public interface StopRepository extends JpaRepository<Stop, String> {
     @Query("SELECT stop " +
             "FROM Stop stop " +
             "INNER JOIN Schedule sche ON stop.id = sche.stop.id " +
+            "WHERE sche.id = :scheduleId " +
             "ORDER BY sche.id.sequence ASC")
     List<Stop> findAllByScheduleId(ScheduleId scheduleId);
 
