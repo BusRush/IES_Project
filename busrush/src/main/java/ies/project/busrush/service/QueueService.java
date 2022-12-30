@@ -9,6 +9,7 @@ import ies.project.busrush.util.Coordinates;
 import ies.project.busrush.util.OSRMAdapter;
 import ies.project.busrush.util.StopDurationIndex;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import org.json.JSONArray;
 
 @Service
 public class QueueService {
+    private RabbitTemplate rabbitTemplate;
     private BusRepository busRepository;
     private ScheduleRepository scheduleRepository;
     private StopRepository stopRepository;
@@ -33,21 +35,27 @@ public class QueueService {
 
     @Autowired
     public QueueService(
+            RabbitTemplate rabbitTemplate,
             BusRepository busRepository,
             ScheduleRepository scheduleRepository,
             StopRepository stopRepository,
             BusMetricsRepository busMetricsRepository
     ) {
+        this.rabbitTemplate = rabbitTemplate;
         this.busRepository = busRepository;
         this.scheduleRepository = scheduleRepository;
         this.stopRepository = stopRepository;
-        this.busMetricsRepository = busMetricsRepository; 
+        this.busMetricsRepository = busMetricsRepository;
     }
 
     @RabbitListener(queues = "devices")
-    public void receive(@Payload String msg) {
-        System.out.println("Received: " + msg); 
+    public void receiveDevices(@Payload String msg) {
+        System.out.println("Received: " + msg);
         processMessage(msg);
+    }
+
+    public void sendEvents(String msg) {
+        rabbitTemplate.convertAndSend("events", msg);
     }
 
     public void processMessage(String msg) {
@@ -57,9 +65,9 @@ public class QueueService {
         String device_id = json.getString("device_id");
         String route_id = json.getString("route_id");
         String route_shift = json.getString("route_shift");
-        Long timestamp = json.getLong("timestamp"); 
+        Long timestamp = json.getLong("timestamp");
         JSONArray pos = json.getJSONArray("position");
-        List<Double> position = new ArrayList<>(); 
+        List<Double> position = new ArrayList<>();
         position.add(pos.getDouble(0));
         position.add(pos.getDouble(1));
         Double speed = json.getDouble("speed");
@@ -101,10 +109,19 @@ public class QueueService {
         //
 
         // Create an instance of BusMetrics with some values
-        BusMetrics busMetrics = new BusMetrics(bus_id, timestamp, route_id, route_shift, device_id, position, speed, fuel, passengers);
-        
+        BusMetrics busMetrics = new BusMetrics(bus_id, timestamp, route_id, route_shift, device_id, position, speed, fuel, passengers, busDelay);
         busMetricsRepository.save(busMetrics);
 
+        // Send bus delayed event to RabbitMQ
+        if (busDelay > 0) {
+            JSONObject event = new JSONObject();
+            event.put("type", "DELAY");
+            event.put("bus_id", bus_id);
+            event.put("route_id", route_id);
+            event.put("route_shift", route_shift);
+            event.put("timestamp", timestamp);
+            event.put("delay", busDelay);
+            sendEvents(event.toString());
+        }
     }
-
 }
