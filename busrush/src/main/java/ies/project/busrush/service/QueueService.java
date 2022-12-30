@@ -113,7 +113,7 @@ public class QueueService {
         busMetricsRepository.save(busMetrics);
 
         // Send bus delayed event to RabbitMQ
-        if (busDelay > 0) {
+        if (busDelay > 5*60) {
             JSONObject event = new JSONObject();
             event.put("type", "DELAY");
             event.put("bus_id", bus_id);
