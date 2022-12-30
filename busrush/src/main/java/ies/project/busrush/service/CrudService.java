@@ -326,6 +326,12 @@ public class CrudService {
                 busRepository.save(bus);
             }
 
+            else if (device.getBus() != null) {
+                Bus oldBus = device.getBus();
+                oldBus.setDevice(null);
+                busRepository.save(oldBus);
+            }
+
             deviceCrudDto.setId(device.getId());
             deviceCrudDto.setBusId((bus != null) ? bus.getId() : null);
             return new ResponseEntity<>(deviceCrudDto, HttpStatus.OK);
@@ -449,6 +455,12 @@ public class CrudService {
                     if (route.getDriver() != null && !route.getDriver().equals(driver))
                         return new ResponseEntity<>(HttpStatus.CONFLICT);
                     routes.add(route);
+                }
+            }
+            else {
+                for (Route route : driver.getRoutes()) {
+                    route.setDriver(null);
+                    routeRepository.save(route);
                 }
             }
 

@@ -27,6 +27,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  TextField,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -36,6 +37,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useState, useEffect } from "react";
 
 export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
+  const api = "http://localhost:8080/";
   const [lower_bound, setLowerBound] = useState(0);
   const [upper_bound, setUpperBound] = useState(5);
   const [limit, setLimit] = useState(5);
@@ -52,13 +54,27 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
   const [routeDesignationIsValid, setRouteDesignationIsValid] = useState(true);
   const [selectedDriver, setSelectedDriver] = useState("");
   const [selectedBus, setSelectedBus] = useState("");
+  const [selectedSchedules, setSelectedSchedules] = useState([]);
 
   const [openInfoRouteModal, setOpenInfoRouteModal] = useState(false);
-  const [routeInfo, setRouteInfo] = useState({});
+  const [routeInfo, setRouteInfo] = useState({
+    id: { id: "", shift: "" },
+    schedulesId: [],
+    driverId: "",
+    busId: "",
+  });
   const [routeInfoIsLoading, setRouteInfoIsLoading] = useState(true);
 
   const [openConfirmDeleteRoute, setOpenConfirmDeleteRoute] = useState(false);
   const [routeToDelete, setRouteToDelete] = useState({
+    id: { id: "", shift: "" },
+    schedulesId: [],
+    driverId: "",
+    busId: "",
+  });
+
+  const [openUpdateRouteModal, setOpenUpdateRouteModal] = useState(false);
+  const [routeToUpdate, setRouteToUpdate] = useState({
     id: { id: "", shift: "" },
     schedulesId: [],
     driverId: "",
@@ -85,8 +101,6 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
       setUpperBound(upper_bound - limit);
     } else {
       if (flag == 1) {
-        console.log("flag 1");
-        console.log("new_lim: " + new_lim);
         setUpperBound(upper_bound + new_lim);
       } else if (flag == -1) {
         setUpperBound(upper_bound - new_lim);
@@ -99,8 +113,9 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
   const validateRouteIDInput = (routeID) => {
     let pattern = /^AVRBUS-R[0-9]{4}$/;
     let routeId_is_valid = false;
-    if (pattern.test(routeID)) {
+    if (pattern.test(routeID) && routeID != routeToUpdate.id.id) {
       routeId_is_valid = true;
+      setRouteIDInputHelpText("");
     } else {
       routeId_is_valid = false;
       setRouteIDInputHelpText("Should be in the form of AVRBUS-RXXXX");
@@ -135,13 +150,17 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
   // Route Shift Input Handle Function and Validation
 
   const validateRouteShiftInput = (routeShift) => {
-    let pattern = /^([01]?[0-9]|2[0-3])[0-5][0-9][0-5][0-9]$/;
+    let pattern = /^([01][0-9]|2[0-3])[0-5][0-9][0-5][0-9]$/;
     let routeShift_is_valid = false;
     if (pattern.test(routeShift)) {
       routeShift_is_valid = true;
-
+      setRouteShiftInputHelpText("");
       routes.forEach((route) => {
-        if (route.id.id == routeID && route.id.shift == routeShift) {
+        if (
+          route.id.id == routeID &&
+          route.id.shift == routeShift &&
+          route.id.shift != routeToUpdate.id.shift
+        ) {
           routeShift_is_valid = false;
           setRouteShiftInputHelpText("Route Shift already exists for given Route ID");
         }
@@ -232,33 +251,23 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
       newRoute.busId = selectedBus;
     }
 
-    fetch("http://localhost:8080/api/routes", {
+    fetch(api + "api/routes", {
       method: "POST",
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newRoute),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Success:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    });
 
     handleCloseAddRouteModal();
   };
 
   // Handle Delete Route
   const handleDeleteRoute = (routeID, routeShift) => {
-    fetch("http://localhost:8080/api/routes/" + routeID + "_" + routeShift, {
+    fetch(api + "api/routes/" + routeID + "_" + routeShift, {
       method: "DELETE",
-    }).catch((error) => {
-      console.error("Error:", error);
     });
-    console.log(routeID + "_" + routeShift + " deleted");
     handleCloseConfirmDeleteRoute();
   };
 
@@ -281,17 +290,29 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
     setRouteShiftInputHelpText("");
   };
 
+  // Schedules Selection
+  const handleSchedulesChange = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setSelectedSchedules(
+      // On autofill we get a stringified value.
+      typeof value === "string" ? value.split(",") : value
+    );
+  };
+
   // Fetch Route Info
   const fetchRouteInfo = (routeId, routeShift) => {
-    fetch("http://localhost:8080/api/routes/" + routeId + "_" + routeShift)
+    fetch(api + "api/routes/" + routeId + "_" + routeShift)
       .then((response) => response.json())
       .then((data) => {
         setRouteInfo(data);
         setRouteInfoIsLoading(false);
-        console.log("Success:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
+        setRouteID(data.id.id);
+        setRouteShift(data.id.shift);
+        setRouteDesignation(data.designation);
+        setSelectedDriver(data.driverId);
+        setSelectedBus(data.busId);
       });
     return true;
   };
@@ -306,7 +327,23 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
   const handleCloseInfoRouteModal = () => {
     setOpenInfoRouteModal(false);
     setRouteInfoIsLoading(true);
-    setRouteInfo({});
+    setRouteInfo({
+      id: { id: "", shift: "" },
+      designation: "",
+      driverId: "",
+      busId: "",
+      schedulesId: [],
+    });
+    setRouteID("");
+    setRouteShift("");
+    setRouteDesignation("");
+    setSelectedDriver("");
+    setSelectedBus("");
+    setRouteIDIsValid(true);
+    setRouteShiftIsValid(true);
+    setRouteDesignationIsValid(true);
+    setRouteIDInputHelpText("");
+    setRouteShiftInputHelpText("");
   };
 
   // Handle Confirm Delete Route
@@ -317,6 +354,92 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
 
   const handleCloseConfirmDeleteRoute = () => {
     setOpenConfirmDeleteRoute(false);
+  };
+
+  // Handle Update Route
+  const handleOpenUpdateRouteModal = (route) => {
+    setRouteToUpdate(route);
+    fetchRouteInfo(route.id.id, route.id.shift);
+    setOpenUpdateRouteModal(true);
+  };
+
+  const handleCloseUpdateRouteModal = () => {
+    setOpenUpdateRouteModal(false);
+    setRouteInfoIsLoading(true);
+    setRouteInfo({
+      id: { id: "", shift: "" },
+      designation: "",
+      driverId: "",
+      busId: "",
+      schedulesId: [],
+    });
+    setRouteID("");
+    setRouteShift("");
+    setRouteDesignation("");
+    setSelectedDriver("");
+    setSelectedBus("");
+    setRouteIDIsValid(true);
+    setRouteShiftIsValid(true);
+    setRouteDesignationIsValid(true);
+    setRouteIDInputHelpText("");
+    setRouteShiftInputHelpText("");
+    setSelectedSchedules([]);
+  };
+
+  const handleUpdateRoute = () => {
+    let schedulesID = [];
+    selectedSchedules.forEach((schedule) => {
+      let content = schedule.split("_");
+      schedulesID.push({
+        routeId: { id: content[0], shift: content[1] },
+        stopId: content[2],
+        sequence: content[3],
+      });
+    });
+
+    let updatedRoute = {
+      id: { id: routeID, shift: routeShift },
+      designation: routeDesignation,
+    };
+
+    if (selectedDriver != "") {
+      updatedRoute.driverId = selectedDriver;
+    }
+
+    if (selectedBus != "") {
+      updatedRoute.busId = selectedBus;
+    }
+
+    if (schedulesID.length != 0) {
+      updatedRoute.schedulesId = schedulesID;
+    }
+
+    fetch(api + "api/routes/" + routeID + "_" + routeShift, {
+      method: "PUT",
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedRoute),
+    });
+
+    handleCloseUpdateRouteModal();
+  };
+
+  const schedulesToList = (schedules) => {
+    let schedulesList = [];
+    schedules.forEach((schedule) => {
+      schedulesList.push(
+        schedule.routeId.id +
+          "_" +
+          schedule.routeId.shift +
+          "_" +
+          schedule.stopId +
+          "_" +
+          schedule.sequence
+      );
+    });
+    return schedulesList;
   };
 
   // useEffects
@@ -382,7 +505,7 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
                         </IconButton>
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton>
+                        <IconButton onClick={() => handleOpenUpdateRouteModal(route)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -530,6 +653,168 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
           </Modal>
 
           <Modal
+            open={!routeInfoIsLoading && openUpdateRouteModal}
+            onClose={handleCloseUpdateRouteModal}
+            aria-labelledby="update-route-modal"
+            aria-describedby="update-route-modal"
+          >
+            <Box sx={style(viewportWidth)}>
+              <Grid container>
+                <Grid item xs={11} md={11} lg={11}>
+                  <Typography
+                    id="update-route-modal"
+                    variant="h6"
+                    component="h2"
+                    sx={{ paddingBottom: 2 }}
+                  >
+                    Update Route
+                  </Typography>
+                </Grid>
+                <Grid item xs={1} md={1} lg={1}>
+                  <IconButton onClick={handleCloseUpdateRouteModal}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Box>
+                <FormControl>
+                  <TextField label="Route ID" defaultValue={routeInfo.id.id} disabled={true} />
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="Route Shift"
+                    defaultValue={routeInfo.id.shift}
+                    disabled={true}
+                  />
+                </FormControl>
+              </Box>
+
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="Designation"
+                    defaultValue={routeInfo.designation}
+                    onChange={handleRouteDesignationInputChange}
+                    onFocus={handleRouteDesignationInputFocus}
+                    onBlur={handleRouteDesignationInputBlur}
+                    error={!routeDesignationIsValid}
+                  />
+                </FormControl>
+              </Box>
+
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="bus-device">Driver</InputLabel>
+                  <Select
+                    defaultValue={routeInfo.driverId || ""}
+                    onChange={handleDriverChange}
+                    id="route-driver"
+                    aria-describedby="route-driver"
+                    sx={{ width: 200, marginTop: 1, height: 40 }}
+                  >
+                    <MenuItem key="" value="">
+                      -
+                    </MenuItem>
+                    {drivers.map((driver) => (
+                      <MenuItem key={driver.id} value={driver.id}>
+                        {driver.id}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="bus-device">Bus</InputLabel>
+                  <Select
+                    defaultValue={routeInfo.busId || ""}
+                    onChange={handleBusChange}
+                    id="route-bus"
+                    aria-describedby="route-bus"
+                    sx={{ width: 200, marginTop: 1, height: 40 }}
+                  >
+                    <MenuItem key="" value="">
+                      -
+                    </MenuItem>
+                    {buses.map((bus) => (
+                      <MenuItem key={bus.id} value={bus.id}>
+                        {bus.id}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+
+              {routeInfo.schedulesId.length != 0 && (
+                <Box sx={{ paddingTop: 4 }}>
+                  <FormControl>
+                    <InputLabel htmlFor="route-schedules">Schedules</InputLabel>
+                    <Select
+                      multiple={true}
+                      defaultValue={schedulesToList(routeInfo.schedulesId) || []}
+                      onChange={handleSchedulesChange}
+                      id="route-schedules"
+                      aria-describedby="route-schedules"
+                      sx={{ width: 200, marginTop: 1, height: 40 }}
+                      MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 250 } } }}
+                    >
+                      {routeInfo.schedulesId.length != 0 &&
+                        routeInfo.schedulesId.map((schedule) => (
+                          <MenuItem
+                            key={
+                              schedule.routeId.id +
+                              "_" +
+                              schedule.routeId.shift +
+                              "_" +
+                              schedule.stopId +
+                              "_" +
+                              schedule.sequence
+                            }
+                            value={
+                              schedule.routeId.id +
+                              "_" +
+                              schedule.routeId.shift +
+                              "_" +
+                              schedule.stopId +
+                              "_" +
+                              schedule.sequence
+                            }
+                          >
+                            {schedule.stopId} ({schedule.sequence})
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
+
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <Button
+                    variant="contained"
+                    onClick={handleUpdateRoute}
+                    disabled={
+                      routeIDIsValid &&
+                      routeID != "" &&
+                      routeShiftIsValid &&
+                      routeShift != "" &&
+                      routeDesignationIsValid &&
+                      routeDesignation != ""
+                        ? false
+                        : true
+                    }
+                  >
+                    Update Route
+                  </Button>
+                </FormControl>
+              </Box>
+            </Box>
+          </Modal>
+
+          <Modal
             open={!routeInfoIsLoading && openInfoRouteModal}
             onClose={handleCloseInfoRouteModal}
             aria-labelledby="info-route-modal"
@@ -597,34 +882,39 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
                       </Grid>
                     </Grid>
                   </Box>
-                  <Box>
-                    <Grid container sx={{ paddingTop: 2 }}>
-                      <Grid item xs={4} md={4} lg={4}>
-                        <Typography variant="body1" component="p" fontWeight={600}>
-                          Driver:
-                        </Typography>
+                  {routeInfo.driverId != null && (
+                    <Box>
+                      <Grid container sx={{ paddingTop: 2 }}>
+                        <Grid item xs={4} md={4} lg={4}>
+                          <Typography variant="body1" component="p" fontWeight={600}>
+                            Driver:
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={8} md={8} lg={8}>
+                          <Typography variant="body1" component="p">
+                            {routeInfo.driverId}
+                          </Typography>
+                        </Grid>
                       </Grid>
-                      <Grid item xs={8} md={8} lg={8}>
-                        <Typography variant="body1" component="p">
-                          {routeInfo.driverId}
-                        </Typography>
+                    </Box>
+                  )}
+                  {routeInfo.busId != null && (
+                    <Box>
+                      <Grid container sx={{ paddingTop: 2 }}>
+                        <Grid item xs={4} md={4} lg={4}>
+                          <Typography variant="body1" component="p" fontWeight={600}>
+                            Bus:
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={8} md={8} lg={8}>
+                          <Typography variant="body1" component="p">
+                            {routeInfo.busId}
+                          </Typography>
+                        </Grid>
                       </Grid>
-                    </Grid>
-                  </Box>
-                  <Box>
-                    <Grid container sx={{ paddingTop: 2 }}>
-                      <Grid item xs={4} md={4} lg={4}>
-                        <Typography variant="body1" component="p" fontWeight={600}>
-                          Bus:
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={8} md={8} lg={8}>
-                        <Typography variant="body1" component="p">
-                          {routeInfo.busId}
-                        </Typography>
-                      </Grid>
-                    </Grid>
-                  </Box>
+                    </Box>
+                  )}
+
                   {routeInfo.schedulesId != undefined && routeInfo.schedulesId.length != 0 && (
                     <Box sx={{ paddingTop: 2 }}>
                       <Grid container>
@@ -637,7 +927,10 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
                           <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
                             {routeInfo.schedulesId != undefined &&
                               routeInfo.schedulesId.map((schedule) => (
-                                <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                                <ListItem
+                                  key={schedule.stopId + schedule.sequence}
+                                  sx={{ paddingLeft: 0, paddingTop: 0 }}
+                                >
                                   {schedule.stopId} ({schedule.sequence})
                                 </ListItem>
                               ))}
@@ -679,8 +972,10 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
                 </DialogContentText>
               ) : null}
               {routeToDelete.schedulesId.length != 0 ? (
-                <DialogContentText id="confirm-delete-driver-description">
-                  You must remove the following schedules from the route before deleting it:
+                <Box>
+                  <DialogContentText id="confirm-delete-driver-description">
+                    You must remove the following schedules from the route before deleting it:
+                  </DialogContentText>
                   <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
                     {routeToDelete.schedulesId != undefined &&
                       routeToDelete.schedulesId.map((schedule) => (
@@ -692,7 +987,7 @@ export const RouteTable = ({ routes, drivers, buses, ...rest }) => {
                         </ListItem>
                       ))}
                   </List>
-                </DialogContentText>
+                </Box>
               ) : null}
             </DialogContent>
             <DialogActions>

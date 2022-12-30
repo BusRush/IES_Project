@@ -67,6 +67,7 @@ public class CrudController {
         return crudService.createDevice(deviceCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/devices/{id}")
     public ResponseEntity<DeviceCrudDto> updateDevice(@PathVariable("id") String id, @RequestBody DeviceCrudDto deviceCrudDto) {
         return crudService.updateDevice(id, deviceCrudDto);
@@ -96,6 +97,7 @@ public class CrudController {
         return crudService.createDriver(driverCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/drivers/{id}")
     public ResponseEntity<DriverCrudDto> updateDriver(@PathVariable("id") String id, @RequestBody DriverCrudDto driverCrudDto) {
         return crudService.updateDriver(id, driverCrudDto);
@@ -124,6 +126,7 @@ public class CrudController {
         return crudService.createRoute(routeCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/routes/{routeId}")
     public ResponseEntity<RouteCrudDto> updateRoute(@PathVariable("routeId") String routeId, @RequestBody RouteCrudDto routeCrudDto) {
         return crudService.updateRoute(routeId, routeCrudDto);
@@ -152,6 +155,7 @@ public class CrudController {
         return crudService.createSchedule(scheduleCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/schedules/{scheduleId}")
     public ResponseEntity<ScheduleCrudDto> updateSchedule(@PathVariable("scheduleId") String scheduleId, @RequestBody ScheduleCrudDto scheduleCrudDto) {
         return crudService.updateSchedule(scheduleId, scheduleCrudDto);
@@ -181,6 +185,7 @@ public class CrudController {
         return crudService.createStop(stopCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/stops/{id}")
     public ResponseEntity<StopCrudDto> updateStop(@PathVariable("id") String id, @RequestBody StopCrudDto stopCrudDto) {
         return crudService.updateStop(id, stopCrudDto);
@@ -210,6 +215,7 @@ public class CrudController {
         return crudService.createUser(userCrudDto);
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PutMapping("/users/{username}")
     public ResponseEntity<UserCrudDto> updateUser(@PathVariable("username") String username, @RequestBody UserCrudDto userCrudDto) {
         return crudService.updateUser(username, userCrudDto);

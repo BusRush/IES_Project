@@ -25,6 +25,7 @@ import {
   DialogContentText,
   DialogTitle,
   CircularProgress,
+  TextField,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -34,6 +35,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useState, useEffect } from "react";
 
 export const DeviceTable = ({ devices, buses, ...rest }) => {
+  const api = "http://localhost:8080/";
   const [lower_bound, setLowerBound] = useState(0);
   const [upper_bound, setUpperBound] = useState(5);
   const [limit, setLimit] = useState(5);
@@ -47,6 +49,9 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
 
   const [openConfirmDeleteDevice, setOpenConfirmDeleteDevice] = useState(false);
   const [deviceToDelete, setDeviceToDelete] = useState({ id: "", busId: "" });
+
+  const [openUpdateDeviceModal, setOpenUpdateDeviceModal] = useState(false);
+  const [deviceToUpdate, setDeviceToUpdate] = useState({});
 
   // pagination function handlers
   const handleLimitChange = (event) => {
@@ -68,8 +73,6 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
       setUpperBound(upper_bound - limit);
     } else {
       if (flag == 1) {
-        console.log("flag 1");
-        console.log("new_lim: " + new_lim);
         setUpperBound(upper_bound + new_lim);
       } else if (flag == -1) {
         setUpperBound(upper_bound - new_lim);
@@ -84,9 +87,9 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
     let deviceId_is_valid = false;
     if (pattern.test(deviceID)) {
       deviceId_is_valid = true;
-
+      setDeviceIDInputHelpText("");
       devices.forEach((device) => {
-        if (device.id == deviceID) {
+        if (device.id == deviceID && deviceID != deviceToUpdate.id) {
           deviceId_is_valid = false;
           setDeviceIDInputHelpText("Device ID already exists");
         }
@@ -134,36 +137,26 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
     };
 
     if (selectedBus != "") {
-      newBus.busId = selectedBus;
+      newDevice.busId = selectedBus;
     }
 
-    fetch("http://localhost:8080/api/devices", {
+    fetch(api + "api/devices", {
       method: "POST",
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newDevice),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Success:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    });
 
     handleCloseAddDeviceModal();
   };
 
   // Handle Delete Device
   const handleDeleteDevice = (deviceID) => {
-    fetch("http://localhost:8080/api/devices/" + deviceID, {
+    fetch(api + "api/devices/" + deviceID, {
       method: "DELETE",
-    }).catch((error) => {
-      console.error("Error:", error);
     });
-    console.log(deviceID + " deleted");
     handleCloseConfirmDeleteDevice();
   };
 
@@ -188,6 +181,50 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
 
   const handleCloseConfirmDeleteDevice = () => {
     setOpenConfirmDeleteDevice(false);
+  };
+
+  // Handle Update Device
+  const handleOpenUpdateDeviceModal = (device) => {
+    setDeviceToUpdate(device);
+    setDeviceID(device.id);
+    setDeviceIDIsValid(true);
+    setDeviceIDInputHelpText("");
+    setSelectedBus(device.busId);
+    setOpenUpdateDeviceModal(true);
+    setOpenUpdateDeviceModal(true);
+  };
+
+  const handleCloseUpdateDeviceModal = () => {
+    setOpenUpdateDeviceModal(false);
+    setDeviceID("");
+    setDeviceIDIsValid(true);
+    setDeviceIDInputHelpText("");
+    setSelectedBus("");
+    setDeviceToUpdate({
+      id: "",
+      busId: "",
+    });
+  };
+
+  const handleUpdateDevice = () => {
+    let updatedDevice = {
+      id: deviceID,
+    };
+
+    if (selectedBus != "") {
+      updatedDevice.busId = selectedBus;
+    }
+
+    fetch(api + "api/devices/" + deviceID, {
+      method: "PUT",
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedDevice),
+    });
+
+    handleCloseUpdateDeviceModal();
   };
 
   // useEffect
@@ -245,7 +282,7 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
                         </IconButton>
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton>
+                        <IconButton onClick={() => handleOpenUpdateDeviceModal(device)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -330,6 +367,73 @@ export const DeviceTable = ({ devices, buses, ...rest }) => {
                     disabled={deviceIDIsValid && deviceID != "" ? false : true}
                   >
                     Add Device
+                  </Button>
+                </FormControl>
+              </Box>
+            </Box>
+          </Modal>
+
+          <Modal
+            open={openUpdateDeviceModal}
+            onClose={handleCloseUpdateDeviceModal}
+            aria-labelledby="update-device-modal"
+            aria-describedby="update-device-modal"
+          >
+            <Box sx={style(viewportWidth)}>
+              <Grid container>
+                <Grid item xs={11} md={11} lg={11}>
+                  <Typography
+                    id="update-device-modal"
+                    variant="h6"
+                    component="h2"
+                    sx={{ paddingBottom: 2 }}
+                  >
+                    Update Device
+                  </Typography>
+                </Grid>
+                <Grid item xs={1} md={1} lg={1}>
+                  <IconButton onClick={handleCloseUpdateDeviceModal}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Box>
+                <FormControl>
+                  <TextField label="Device ID" defaultValue={deviceToUpdate.id} disabled />
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="bus-device">Bus</InputLabel>
+                  <Select
+                    defaultValue={deviceToUpdate.busId || ""}
+                    onChange={handleBusChange}
+                    id="bus-device"
+                    aria-describedby="bus-device"
+                    sx={{ width: 200, marginTop: 1, height: 40 }}
+                  >
+                    <MenuItem key="" value="">
+                      -
+                    </MenuItem>
+                    {deviceToUpdate.busId != null && (
+                      <MenuItem key={deviceToUpdate.busId} value={deviceToUpdate.busId}>
+                        {deviceToUpdate.busId}
+                      </MenuItem>
+                    )}
+                    {buses.map((bus) =>
+                      bus.deviceId == null ? (
+                        <MenuItem key={bus.id} value={bus.id}>
+                          {bus.id}
+                        </MenuItem>
+                      ) : null
+                    )}
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <Button variant="contained" onClick={handleUpdateDevice}>
+                    Update Device
                   </Button>
                 </FormControl>
               </Box>

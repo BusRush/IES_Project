@@ -35,9 +35,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import InfoIcon from "@mui/icons-material/Info";
 import CloseIcon from "@mui/icons-material/Close";
 import { useEffect, useState } from "react";
-import { set } from "nprogress";
 
 export const BusTable = ({ buses, devices, routes, ...rest }) => {
+  const api = "http://localhost:8080/";
   // use states
   const [lower_bound, setLowerBound] = useState(0);
   const [upper_bound, setUpperBound] = useState(5);
@@ -67,7 +67,6 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
 
   const [openUpdateBusModal, setOpenUpdateBusModal] = useState(false);
   const [busToUpdate, setBusToUpdate] = useState({});
-  const [routesList, setRoutesList] = useState([]);
 
   // pagination function handlers
   const handleLimitChange = (event) => {
@@ -89,8 +88,6 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
       setUpperBound(upper_bound - limit);
     } else {
       if (flag == 1) {
-        console.log("flag 1");
-        console.log("new_lim: " + new_lim);
         setUpperBound(upper_bound + new_lim);
       } else if (flag == -1) {
         setUpperBound(upper_bound - new_lim);
@@ -105,7 +102,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
     let busId_is_valid = false;
     if (pattern.test(busID)) {
       busId_is_valid = true;
-
+      setBusIDInputHelpText("");
       buses.forEach((bus) => {
         if (bus.id == busID && busID != busToUpdate.id) {
           busId_is_valid = false;
@@ -149,6 +146,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
     let busRegistration_is_valid = false;
     if (pattern.test(busRegistration)) {
       busRegistration_is_valid = true;
+      setBusRegistrationInputHelpText("");
     } else {
       busRegistration_is_valid = false;
       setBusRegistrationInputHelpText(
@@ -258,12 +256,6 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
       let content = route.split("|");
       routesID.push({ id: content[0], shift: content[1] });
     });
-    console.log(busID);
-    console.log(busRegistration);
-    console.log(busBrand);
-    console.log(busModel);
-    console.log(routesID);
-    console.log(selectedDevice);
 
     let newBus = {
       id: busID,
@@ -280,33 +272,23 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
       newBus.deviceId = selectedDevice;
     }
 
-    fetch("http://localhost:8080/api/buses", {
+    fetch(api + "api/buses", {
       method: "POST",
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newBus),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Success:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    });
 
     handleCloseAddBusModal();
   };
 
   // Handle Delete Bus
   const handleDeleteBus = (busID) => {
-    fetch("http://localhost:8080/api/buses/" + busID, {
+    fetch(api + "api/buses/" + busID, {
       method: "DELETE",
-    }).catch((error) => {
-      console.error("Error:", error);
     });
-    console.log(busID + " deleted");
     handleCloseConfirmDeleteBus();
   };
 
@@ -333,7 +315,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
 
   // Fetch Bus Info
   const fetchBusInfo = (busId) => {
-    fetch("http://localhost:8080/api/buses/" + busId)
+    fetch(api + "api/buses/" + busId)
       .then((response) => response.json())
       .then((data) => {
         setBusInfo(data);
@@ -343,9 +325,6 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
         setBusBrand(data.brand);
         setBusModel(data.model);
         setSelectedDevice(data.deviceId);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
       });
     return true;
   };
@@ -361,6 +340,18 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
     setOpenInfoBusModal(false);
     setBusInfoIsLoading(true);
     setBusInfo({ routesId: [] });
+    setBusID("");
+    setBusIDIsValid(true);
+    setBusIDInputHelpText("");
+    setBusRegistration("");
+    setBusRegistrationIsValid(true);
+    setBusRegistrationInputHelpText("");
+    setBusBrand("");
+    setBusBrandIsValid(true);
+    setBusModel("");
+    setBusModelIsValid(true);
+    setSelectedDevice("");
+    setSelectedRoutes([]);
   };
 
   // Handle Confirm Delete Bus
@@ -420,21 +411,14 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
       updatedBus.deviceId = selectedDevice;
     }
 
-    fetch("http://localhost:8080/api/buses/" + busID, {
+    fetch(api + "api/buses/" + busID, {
       method: "PUT",
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
       },
       body: JSON.stringify(updatedBus),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Success:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    });
 
     handleCloseUpdateBusModal();
   };
@@ -703,15 +687,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
               </Grid>
               <Box>
                 <FormControl>
-                  <TextField
-                    label="Bus ID"
-                    defaultValue={busInfo.id}
-                    onChange={handleBusIDInputChange}
-                    onFocus={handleBusIDInputFocus}
-                    onBlur={handleBusIDInputBlur}
-                    error={!busIDIsValid}
-                  />
-                  <FormHelperText id="bus-id">{busIDInputHelpText}</FormHelperText>
+                  <TextField label="Bus ID" defaultValue={busInfo.id} disabled={true} />
                 </FormControl>
               </Box>
               <Box sx={{ paddingTop: 4 }}>
@@ -807,7 +783,7 @@ export const BusTable = ({ buses, devices, routes, ...rest }) => {
                       route.busId == null ? (
                         <MenuItem
                           key={route.id.id + "|" + route.id.shift}
-                          value={route.id.id + "|" + route.id.shit}
+                          value={route.id.id + "|" + route.id.shift}
                         >
                           {route.id.id} | {route.id.shift}
                         </MenuItem>

@@ -27,6 +27,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  TextField,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -36,6 +37,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useState, useEffect } from "react";
 
 export const DriverTable = ({ drivers, routes, ...rest }) => {
+  const api = "http://localhost:8080/";
   const [lower_bound, setLowerBound] = useState(0);
   const [upper_bound, setUpperBound] = useState(5);
   const [limit, setLimit] = useState(5);
@@ -52,11 +54,14 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
   const [selectedRoutes, setSelectedRoutes] = useState([]);
 
   const [openInfoDriverModal, setOpenInfoDriverModal] = useState(false);
-  const [driverInfo, setDriverInfo] = useState({});
+  const [driverInfo, setDriverInfo] = useState({ routesId: [] });
   const [driverInfoIsLoading, setDriverInfoIsLoading] = useState(true);
 
   const [openConfirmDeleteDriver, setOpenConfirmDeleteDriver] = useState(false);
   const [driverToDelete, setDriverToDelete] = useState({ id: "", routesId: [] });
+
+  const [openUpdateDriverModal, setOpenUpdateDriverModal] = useState(false);
+  const [driverToUpdate, setDriverToUpdate] = useState({});
 
   // pagination function handlers
   const handleLimitChange = (event) => {
@@ -78,8 +83,6 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
       setUpperBound(upper_bound - limit);
     } else {
       if (flag == 1) {
-        console.log("flag 1");
-        console.log("new_lim: " + new_lim);
         setUpperBound(upper_bound + new_lim);
       } else if (flag == -1) {
         setUpperBound(upper_bound - new_lim);
@@ -94,9 +97,9 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
     let driverId_is_valid = false;
     if (pattern.test(driverID)) {
       driverId_is_valid = true;
-
+      setDriverIDInputHelpText("");
       drivers.forEach((driver) => {
-        if (driver.id == driverID) {
+        if (driver.id == driverID && driverID != driverToUpdate.id) {
           driverId_is_valid = false;
           setDriverIDInputHelpText("Driver ID already exists");
         }
@@ -215,30 +218,21 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
       newDriver.routesId = routesID;
     }
 
-    fetch("http://localhost:8080/api/drivers", {
+    fetch(api + "api/drivers", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newDriver),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Success:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    });
 
     handleCloseAddDriverModal();
   };
 
   // Delete Driver
   const handleDeleteDriver = (driverID) => {
-    fetch("http://localhost:8080/api/drivers/" + driverID, {
+    fetch(api + "api/drivers/" + driverID, {
       method: "DELETE",
-    }).catch((error) => {
-      console.error("Error:", error);
     });
     handleCloseConfirmDeleteDriver();
   };
@@ -262,14 +256,14 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
 
   // Fetch Driver Info
   const fetchDriverInfo = (driverId) => {
-    fetch("http://localhost:8080/api/drivers/" + driverId)
+    fetch(api + "api/drivers/" + driverId)
       .then((response) => response.json())
       .then((data) => {
         setDriverInfo(data);
         setDriverInfoIsLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
+        setDriverID(data.id);
+        setDriverFirstName(data.firstName);
+        setDriverLastName(data.lastName);
       });
     return true;
   };
@@ -284,7 +278,15 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
   const handleCloseInfoDriverModal = () => {
     setOpenInfoDriverModal(false);
     setDriverInfoIsLoading(true);
-    setDriverInfo({});
+    setDriverInfo({ routesId: [] });
+    setDriverID("");
+    setDriverIDIsValid(true);
+    setDriverIDInputHelpText("");
+    setDriverFirstName("");
+    setDriverFirstNameIsValid(true);
+    setDriverLastName("");
+    setDriverLastNameIsValid(true);
+    setSelectedRoutes([]);
   };
 
   // Handle Confirm Delete Driver
@@ -295,6 +297,64 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
 
   const handleCloseConfirmDeleteDriver = () => {
     setOpenConfirmDeleteDriver(false);
+  };
+
+  // Handle Update Driver
+  const handleOpenUpdateDriverModal = (driver) => {
+    setDriverToUpdate(driver);
+    fetchDriverInfo(driver.id);
+    setOpenUpdateDriverModal(true);
+  };
+
+  const handleCloseUpdateDriverModal = () => {
+    setOpenUpdateDriverModal(false);
+    setDriverInfoIsLoading(true);
+    setDriverInfo({ routesId: [] });
+    setDriverID("");
+    setDriverIDIsValid(true);
+    setDriverIDInputHelpText("");
+    setDriverFirstName("");
+    setDriverFirstNameIsValid(true);
+    setDriverLastName("");
+    setDriverLastNameIsValid(true);
+    setSelectedRoutes([]);
+  };
+
+  const handleUpdateDriver = () => {
+    let routesID = [];
+    selectedRoutes.forEach((route) => {
+      let content = route.split("|");
+      routesID.push({ id: content[0], shift: content[1] });
+    });
+
+    let updatedDriver = {
+      id: driverID,
+      firstName: driverFirstName,
+      lastName: driverLastName,
+    };
+
+    if (routesID.length != 0) {
+      updatedDriver.routesId = routesID;
+    }
+
+    fetch(api + "api/drivers/" + driverID, {
+      method: "PUT",
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedDriver),
+    });
+
+    handleCloseUpdateDriverModal();
+  };
+
+  const routesToList = (routes) => {
+    let routesList = [];
+    routes.forEach((route) => {
+      routesList.push(route.id + "|" + route.shift);
+    });
+    return routesList;
   };
 
   // useEffect
@@ -360,7 +420,7 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
                         </IconButton>
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton>
+                        <IconButton onClick={() => handleOpenUpdateDriverModal(driver)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -492,6 +552,115 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
           </Modal>
 
           <Modal
+            open={!driverInfoIsLoading && openUpdateDriverModal}
+            onClose={handleCloseUpdateDriverModal}
+            aria-labelledby="update-driver-modal"
+            aria-describedby="update-driver-modal"
+          >
+            <Box sx={style(viewportWidth)}>
+              <Grid container>
+                <Grid item xs={11} md={11} lg={11}>
+                  <Typography
+                    id="update-driver-modal"
+                    variant="h6"
+                    component="h2"
+                    sx={{ paddingBottom: 2 }}
+                  >
+                    Update Driver
+                  </Typography>
+                </Grid>
+                <Grid item xs={1} md={1} lg={1}>
+                  <IconButton onClick={handleCloseUpdateDriverModal}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Box>
+                <FormControl>
+                  <TextField label="Driver ID" defaultValue={driverInfo.id} disabled={true} />
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="First Name"
+                    defaultValue={driverInfo.firstName}
+                    onChange={handleDriverFirstNameInputChange}
+                    onFocus={handleDriverFirstNameInputFocus}
+                    onBlur={handleDriverFirstNameInputBlur}
+                    error={!driverFirstNameIsValid}
+                  />
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="Last Name"
+                    defaultValue={driverInfo.lastName}
+                    onChange={handleDriverLastNameInputChange}
+                    onFocus={handleDriverLastNameInputFocus}
+                    onBlur={handleDriverLastNameInputBlur}
+                    error={!driverLastNameIsValid}
+                  />
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="driver-routes">Routes</InputLabel>
+                  <Select
+                    multiple={true}
+                    defaultValue={routesToList(driverInfo.routesId) || []}
+                    onChange={handleRoutesChange}
+                    id="driver-routes"
+                    aria-describedby="driver-routes"
+                    sx={{ width: 200, marginTop: 1, height: 40 }}
+                    MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 250 } } }}
+                  >
+                    {driverInfo.routesId.length != 0 &&
+                      driverInfo.routesId.map((route) => (
+                        <MenuItem
+                          key={route.id + "|" + route.shift}
+                          value={route.id + "|" + route.shift}
+                        >
+                          {route.id} | {route.shift}
+                        </MenuItem>
+                      ))}
+
+                    {routes.map((route) =>
+                      route.busId == null ? (
+                        <MenuItem
+                          key={route.id.id + "|" + route.id.shift}
+                          value={route.id.id + "|" + route.id.shit}
+                        >
+                          {route.id.id} | {route.id.shift}
+                        </MenuItem>
+                      ) : null
+                    )}
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <Button
+                    variant="contained"
+                    onClick={handleUpdateDriver}
+                    disabled={
+                      driverFirstNameIsValid &&
+                      driverFirstName != "" &&
+                      driverLastNameIsValid &&
+                      driverLastName != ""
+                        ? false
+                        : true
+                    }
+                  >
+                    Update Driver
+                  </Button>
+                </FormControl>
+              </Box>
+            </Box>
+          </Modal>
+
+          <Modal
             open={!driverInfoIsLoading && openInfoDriverModal}
             onClose={handleCloseInfoDriverModal}
             aria-labelledby="info-driver-modal"
@@ -569,7 +738,10 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
                       <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
                         {driverInfo.routesId != undefined &&
                           driverInfo.routesId.map((route) => (
-                            <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                            <ListItem
+                              key={route.id + "|" + route.shift}
+                              sx={{ paddingLeft: 0, paddingTop: 0 }}
+                            >
                               {route.id}|{route.shift}
                             </ListItem>
                           ))}
@@ -594,17 +766,22 @@ export const DriverTable = ({ drivers, routes, ...rest }) => {
                   Are you sure you want to delete the driver with id {driverToDelete.id}?
                 </DialogContentText>
               ) : (
-                <DialogContentText id="confirm-delete-driver-description">
-                  You must remove from the driver the following routes:
+                <Box>
+                  <DialogContentText id="confirm-delete-driver-description">
+                    You must remove from the driver the following routes:
+                  </DialogContentText>
                   <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
                     {driverToDelete.routesId != undefined &&
                       driverToDelete.routesId.map((route) => (
-                        <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                        <ListItem
+                          key={route.id + "|" + route.shift}
+                          sx={{ paddingLeft: 0, paddingTop: 0 }}
+                        >
                           {route.id}|{route.shift}
                         </ListItem>
                       ))}
                   </List>
-                </DialogContentText>
+                </Box>
               )}
             </DialogContent>
             <DialogActions>

@@ -26,6 +26,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  TextField,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -35,6 +38,8 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useState, useEffect } from "react";
 
 export const StopTable = ({ stops, ...rest }) => {
+  const api = "http://localhost:8080/";
+
   const [lower_bound, setLowerBound] = useState(0);
   const [upper_bound, setUpperBound] = useState(5);
   const [limit, setLimit] = useState(5);
@@ -52,13 +57,27 @@ export const StopTable = ({ stops, ...rest }) => {
   const [stopLongitude, setStopLongitude] = useState("");
   const [stopLongitudeIsValid, setStopLongitudeIsValid] = useState(true);
   const [stopLongitudeInputHelpText, setStopLongitudeInputHelpText] = useState("");
+  const [selectedSchedules, setSelectedSchedules] = useState([]);
 
   const [openInfoStopModal, setOpenInfoStopModal] = useState(false);
-  const [stopInfo, setStopInfo] = useState({});
+  const [stopInfo, setStopInfo] = useState({
+    id: "",
+    schedulesId: [],
+    position: [],
+    designation: "",
+  });
   const [stopInfoIsLoading, setStopInfoIsLoading] = useState(true);
 
   const [openConfirmDeleteStop, setOpenConfirmDeleteStop] = useState(false);
   const [stopToDelete, setStopToDelete] = useState({ id: "", schedulesId: [] });
+
+  const [openUpdateStopModal, setOpenUpdateStopModal] = useState(false);
+  const [stopToUpdate, setStopToUpdate] = useState({
+    id: "",
+    schedulesId: [],
+    position: [],
+    designation: "",
+  });
 
   // functions to handle pagination
   const handleLimitChange = (event) => {
@@ -80,8 +99,6 @@ export const StopTable = ({ stops, ...rest }) => {
       setUpperBound(upper_bound - limit);
     } else {
       if (flag == 1) {
-        console.log("flag 1");
-        console.log("new_lim: " + new_lim);
         setUpperBound(upper_bound + new_lim);
       } else if (flag == -1) {
         setUpperBound(upper_bound - new_lim);
@@ -243,36 +260,25 @@ export const StopTable = ({ stops, ...rest }) => {
     let newStop = {
       id: stopID,
       designation: stopDesignation,
-      position: [stopLatitude, stopLongitude],
+      position: [Number(stopLatitude), Number(stopLongitude)],
     };
 
-    fetch("http://localhost:8080/api/stops", {
+    fetch(api + "api/stops", {
       method: "POST",
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newStop),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Success:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-
+    });
     handleCloseAddStopModal();
   };
 
   // Handle Delete Stop
   const handleDeleteStop = (stopID) => {
-    fetch("http://localhost:8080/api/stops/" + stopID, {
+    fetch(api + "api/stops/" + stopID, {
       method: "DELETE",
-    }).catch((error) => {
-      console.error("Error:", error);
     });
-    console.log(stopID + " deleted");
     handleCloseConfirmDeleteStop();
   };
 
@@ -298,15 +304,22 @@ export const StopTable = ({ stops, ...rest }) => {
 
   // Fetch Stop Info
   const fetchStopInfo = (stopId) => {
-    fetch("http://localhost:8080/api/stops/" + stopId)
+    fetch(api + "api/stops/" + stopId)
       .then((response) => response.json())
       .then((data) => {
         setStopInfo(data);
         setStopInfoIsLoading(false);
-        console.log("Success:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
+        setStopID(data.id);
+        setStopDesignation(data.designation);
+        setStopLatitude(data.position[0].toString());
+        setStopLongitude(data.position[1].toString());
+        setStopIDIsValid(true);
+        setStopDesignationIsValid(true);
+        setStopLatitudeIsValid(true);
+        setStopLongitudeIsValid(true);
+        setStopIDInputHelpText("");
+        setStopLatitudeInputHelpText("");
+        setStopLongitudeInputHelpText("");
       });
     return true;
   };
@@ -321,7 +334,19 @@ export const StopTable = ({ stops, ...rest }) => {
   const handleCloseInfoStopModal = () => {
     setOpenInfoStopModal(false);
     setStopInfoIsLoading(true);
-    setStopInfo({});
+    setStopInfo({ id: "", schedulesId: [], position: [], designation: "" });
+    setStopID("");
+    setStopDesignation("");
+    setStopLatitude("");
+    setStopLongitude("");
+    setStopIDIsValid(true);
+    setStopDesignationIsValid(true);
+    setStopLatitudeIsValid(true);
+    setStopLongitudeIsValid(true);
+    setStopIDInputHelpText("");
+    setStopLatitudeInputHelpText("");
+    setStopLongitudeInputHelpText("");
+    setSelectedSchedules([]);
   };
 
   // Handle Confirm Delete Stop
@@ -332,6 +357,90 @@ export const StopTable = ({ stops, ...rest }) => {
 
   const handleCloseConfirmDeleteStop = () => {
     setOpenConfirmDeleteStop(false);
+  };
+
+  // Handle Update Stop
+  const handleOpenUpdateStopModal = (stop) => {
+    setStopToUpdate(stop);
+    fetchStopInfo(stop.id);
+    setOpenUpdateStopModal(true);
+  };
+
+  const handleCloseUpdateStopModal = () => {
+    setOpenUpdateStopModal(false);
+    setStopInfoIsLoading(true);
+    setStopInfo({ id: "", schedulesId: [], position: [], designation: "" });
+    setStopID("");
+    setStopDesignation("");
+    setStopLatitude("");
+    setStopLongitude("");
+    setStopIDIsValid(true);
+    setStopDesignationIsValid(true);
+    setStopLatitudeIsValid(true);
+    setStopLongitudeIsValid(true);
+    setStopIDInputHelpText("");
+    setStopLatitudeInputHelpText("");
+    setStopLongitudeInputHelpText("");
+  };
+
+  const handleUpdateStop = () => {
+    let schedulesID = [];
+    selectedSchedules.forEach((schedule) => {
+      let content = schedule.split("_");
+      schedulesID.push({
+        routeId: { id: content[0], shift: content[1] },
+        stopId: content[2],
+        sequence: content[3],
+      });
+    });
+
+    let updatedStop = {
+      id: stopID,
+      designation: stopDesignation,
+      position: [stopLatitude, stopLongitude],
+    };
+
+    if (schedulesID.length != 0) {
+      updatedRoute.schedulesId = schedulesID;
+    }
+
+    fetch(api + "api/stops/" + stopID, {
+      method: "PUT",
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedStop),
+    });
+
+    handleCloseUpdateStopModal();
+  };
+
+  const schedulesToList = (schedules) => {
+    let schedulesList = [];
+    schedules.forEach((schedule) => {
+      schedulesList.push(
+        schedule.routeId.id +
+          "_" +
+          schedule.routeId.shift +
+          "_" +
+          schedule.stopId +
+          "_" +
+          schedule.sequence
+      );
+    });
+    return schedulesList;
+  };
+
+  // Schedules Selection
+  const handleSchedulesChange = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setSelectedSchedules(
+      // On autofill we get a stringified value.
+      typeof value === "string" ? value.split(",") : value
+    );
   };
 
   // useEffect
@@ -395,7 +504,7 @@ export const StopTable = ({ stops, ...rest }) => {
                         </IconButton>
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton>
+                        <IconButton onClick={() => handleOpenUpdateStopModal(stop)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -466,6 +575,7 @@ export const StopTable = ({ stops, ...rest }) => {
                   />
                 </FormControl>
               </Box>
+
               <Box sx={{ paddingTop: 4 }}>
                 <FormControl>
                   <InputLabel htmlFor="stop-latitude">Stop Latitude</InputLabel>
@@ -480,6 +590,7 @@ export const StopTable = ({ stops, ...rest }) => {
                   <FormHelperText id="stop-latitude">{stopLatitudeInputHelpText}</FormHelperText>
                 </FormControl>
               </Box>
+
               <Box sx={{ paddingTop: 4 }}>
                 <FormControl>
                   <InputLabel htmlFor="stop-longitude">Stop Longitude</InputLabel>
@@ -513,6 +624,141 @@ export const StopTable = ({ stops, ...rest }) => {
                     }
                   >
                     Add Stop
+                  </Button>
+                </FormControl>
+              </Box>
+            </Box>
+          </Modal>
+
+          <Modal
+            open={!stopInfoIsLoading && openUpdateStopModal}
+            onClose={handleCloseUpdateStopModal}
+            aria-labelledby="update-stop-modal"
+            aria-describedby="update-stop-modal"
+          >
+            <Box sx={style(viewportWidth)}>
+              <Grid container>
+                <Grid item xs={11} md={11} lg={11}>
+                  <Typography
+                    id="update-stop-modal"
+                    variant="h6"
+                    component="h2"
+                    sx={{ paddingBottom: 2 }}
+                  >
+                    Update Stop
+                  </Typography>
+                </Grid>
+                <Grid item xs={1} md={1} lg={1}>
+                  <IconButton onClick={handleCloseUpdateStopModal}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Box>
+                <FormControl>
+                  <TextField label="Stop ID" defaultValue={stopInfo.id} disabled={true} />
+                </FormControl>
+              </Box>
+
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="Designation"
+                    defaultValue={stopInfo.designation}
+                    onChange={handleStopDesignationInputChange}
+                    onFocus={handleStopDesignationInputFocus}
+                    onBlur={handleStopDesignationInputBlur}
+                    error={!stopDesignationIsValid}
+                  />
+                </FormControl>
+              </Box>
+
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="Stop Latitude"
+                    defaultValue={stopInfo.position[0]}
+                    onChange={handleStopLatitudeInputChange}
+                    onFocus={handleStopLatitudeInputFocus}
+                    onBlur={handleStopLatitudeInputBlur}
+                    error={!stopLatitudeIsValid}
+                  />
+                </FormControl>
+              </Box>
+
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="Stop Longitude"
+                    defaultValue={stopInfo.position[1]}
+                    onChange={handleStopLongitudeInputChange}
+                    onFocus={handleStopLongitudeInputFocus}
+                    onBlur={handleStopLongitudeInputBlur}
+                    error={!stopLongitudeIsValid}
+                  />
+                </FormControl>
+              </Box>
+
+              {stopInfo.schedulesId.length != 0 && (
+                <Box sx={{ paddingTop: 4 }}>
+                  <FormControl>
+                    <InputLabel htmlFor="stop-schedules">Schedules</InputLabel>
+                    <Select
+                      multiple={true}
+                      defaultValue={schedulesToList(stopInfo.schedulesId) || []}
+                      onChange={handleSchedulesChange}
+                      id="stop-schedules"
+                      aria-describedby="stop-schedules"
+                      sx={{ width: 200, marginTop: 1, height: 40 }}
+                      MenuProps={{ PaperProps: { style: { maxHeight: 300, width: 250 } } }}
+                    >
+                      {stopInfo.schedulesId.length != 0 &&
+                        stopInfo.schedulesId.map((schedule) => (
+                          <MenuItem
+                            key={
+                              schedule.routeId.id +
+                              "_" +
+                              schedule.routeId.shift +
+                              "_" +
+                              schedule.stopId +
+                              "_" +
+                              schedule.sequence
+                            }
+                            value={
+                              schedule.routeId.id +
+                              "_" +
+                              schedule.routeId.shift +
+                              "_" +
+                              schedule.stopId +
+                              "_" +
+                              schedule.sequence
+                            }
+                          >
+                            {schedule.stopId} ({schedule.sequence})
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
+
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <Button
+                    variant="contained"
+                    onClick={handleUpdateStop}
+                    disabled={
+                      stopDesignation != "" &&
+                      stopDesignationIsValid &&
+                      stopLatitude != "" &&
+                      stopLatitudeIsValid &&
+                      stopLongitude != "" &&
+                      stopLongitudeIsValid
+                        ? false
+                        : true
+                    }
+                  >
+                    Update Stop
                   </Button>
                 </FormControl>
               </Box>
@@ -599,7 +845,12 @@ export const StopTable = ({ stops, ...rest }) => {
                           <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
                             {stopInfo.schedulesId != undefined &&
                               stopInfo.schedulesId.map((schedule) => (
-                                <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                                <ListItem
+                                  key={
+                                    schedule.routeId.id + schedule.routeId.shift + schedule.sequence
+                                  }
+                                  sx={{ paddingLeft: 0, paddingTop: 0 }}
+                                >
                                   {schedule.routeId.id}|{schedule.routeId.shift}|{schedule.sequence}
                                 </ListItem>
                               ))}
@@ -626,17 +877,23 @@ export const StopTable = ({ stops, ...rest }) => {
                   Are you sure you want to delete the stop with id {stopToDelete.id}?
                 </DialogContentText>
               ) : (
-                <DialogContentText id="confirm-delete-stop-description">
-                  You must remove from the following schedules from the stop:
+                <Box>
+                  <DialogContentText id="confirm-delete-stop-description">
+                    You must remove from the following schedules from the stop:
+                  </DialogContentText>
+
                   <List sx={{ paddingTop: 0, overflow: "auto", maxHeight: "140px" }}>
                     {stopToDelete.schedulesId != undefined &&
                       stopToDelete.schedulesId.map((schedule) => (
-                        <ListItem sx={{ paddingLeft: 0, paddingTop: 0 }}>
+                        <ListItem
+                          key={schedule.routeId.id + schedule.routeId.shift + schedule.sequence}
+                          sx={{ paddingLeft: 0, paddingTop: 0 }}
+                        >
                           {schedule.routeId.id}|{schedule.routeId.shift} | {schedule.sequence}
                         </ListItem>
                       ))}
                   </List>
-                </DialogContentText>
+                </Box>
               )}
             </DialogContent>
             <DialogActions>

@@ -26,6 +26,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  TextField,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -35,6 +36,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useState, useEffect } from "react";
 
 export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
+  const api = "http://localhost:8080/";
   const [lower_bound, setLowerBound] = useState(0);
   const [upper_bound, setUpperBound] = useState(5);
   const [limit, setLimit] = useState(5);
@@ -51,12 +53,21 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
   const [scheduleTimeInputHelpText, setScheduleTimeInputHelpText] = useState("");
 
   const [openInfoScheduleModal, setOpenInfoScheduleModal] = useState(false);
-  const [scheduleInfo, setScheduleInfo] = useState({});
+  const [scheduleInfo, setScheduleInfo] = useState({
+    id: { routeId: { id: "", shift: "" }, stopId: "", sequence: -1 },
+    time: "",
+  });
   const [scheduleInfoIsLoading, setScheduleInfoIsLoading] = useState(true);
 
   const [openConfirmDeleteSchedule, setOpenConfirmDeleteSchedule] = useState(false);
   const [scheduleToDelete, setScheduleToDelete] = useState({
-    id: { routeId: { id: "", shift: "" }, stopId: "", sequence: 0 },
+    id: { routeId: { id: "", shift: "" }, stopId: "", sequence: -1 },
+    time: "",
+  });
+
+  const [openUpdateScheduleModal, setOpenUpdateScheduleModal] = useState(false);
+  const [scheduleToUpdate, setScheduleToUpdate] = useState({
+    id: { routeId: { id: "", shift: "" }, stopId: "", sequence: -1 },
     time: "",
   });
 
@@ -80,8 +91,6 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
       setUpperBound(upper_bound - limit);
     } else {
       if (flag == 1) {
-        console.log("flag 1");
-        console.log("new_lim: " + new_lim);
         setUpperBound(upper_bound + new_lim);
       } else if (flag == -1) {
         setUpperBound(upper_bound - new_lim);
@@ -102,10 +111,25 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
 
   // Schedule Sequence Input Handle Function and Validation
   const validateScheduleSequenceInput = (scheduleSequence) => {
-    if (scheduleSequence.length > 0 && !isNaN(Number(scheduleSequence))) {
+    if (
+      scheduleSequence.length > 0 &&
+      !isNaN(Number(scheduleSequence)) &&
+      Number(scheduleSequence) >= 0
+    ) {
+      for (var i = 0; i < schedules.length; i++) {
+        if (
+          schedules[i].id.routeId.id + "_" + schedules[i].id.routeId.shift == selectedRoute &&
+          Number(schedules[i].id.sequence) == scheduleSequence &&
+          Number(scheduleSequence) != scheduleToUpdate.id.sequence
+        ) {
+          setScheduleSequenceInputHelpText("Sequence already exists in giving route.");
+          return false;
+        }
+      }
+      setScheduleSequenceInputHelpText("");
       return true;
     } else {
-      setScheduleSequenceInputHelpText("You must enter a valid number");
+      setScheduleSequenceInputHelpText("You must enter a valid postive number");
       return false;
     }
   };
@@ -186,43 +210,23 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
       time: scheduleTime,
     };
 
-    fetch("http://localhost:8080/api/schedules", {
+    fetch(api + "api/schedules", {
       method: "POST",
       headers: {
         "Access-Control-Allow-Origin": "*",
         "Content-Type": "application/json",
       },
       body: JSON.stringify(newSchedule),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Success:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
+    });
 
     handleCloseAddScheduleModal();
   };
 
   // Handle Delete Schedule
   const handleDeleteSchedule = (routeID, routeShift, stopID, sequence) => {
-    fetch(
-      "http://localhost:8080/api/schedules/" +
-        routeID +
-        "_" +
-        routeShift +
-        "_" +
-        stopID +
-        "_" +
-        sequence,
-      {
-        method: "DELETE",
-      }
-    ).catch((error) => {
-      console.error("Error:", error);
+    fetch(api + "api/schedules/" + routeID + "_" + routeShift + "_" + stopID + "_" + sequence, {
+      method: "DELETE",
     });
-    console.log(routeID + "_" + routeShift + "_" + stopID + "_" + sequence + " deleted");
     handleCloseConfirmDeleteSchedule();
   };
 
@@ -245,24 +249,15 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
 
   // Fetch Schedule Info
   const fetchScheduleInfo = (routeId, routeShift, stopId, sequence) => {
-    fetch(
-      "http://localhost:8080/api/schedules/" +
-        routeId +
-        "_" +
-        routeShift +
-        "_" +
-        stopId +
-        "_" +
-        sequence
-    )
+    fetch(api + "api/schedules/" + routeId + "_" + routeShift + "_" + stopId + "_" + sequence)
       .then((response) => response.json())
       .then((data) => {
         setScheduleInfo(data);
         setScheduleInfoIsLoading(false);
-        console.log("Success:", data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
+        setSelectedRoute(data.id.routeId.id + "_" + data.id.routeId.shift);
+        setSelectedStop(data.id.stopId);
+        setScheduleSequence(data.id.sequence);
+        setScheduleTime(data.time);
       });
     return true;
   };
@@ -277,7 +272,15 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
   const handleCloseInfoScheduleModal = () => {
     setOpenInfoScheduleModal(false);
     setScheduleInfoIsLoading(true);
-    setScheduleInfo({});
+    setScheduleInfo({ id: { routeId: { id: "", shift: "" }, stopId: "", sequence: "" }, time: "" });
+    setSelectedRoute("");
+    setSelectedStop("");
+    setScheduleSequence("");
+    setScheduleTime("");
+    setScheduleTimeIsValid(true);
+    setScheduleSequenceIsValid(true);
+    setScheduleTimeInputHelpText("");
+    setScheduleSequenceInputHelpText("");
   };
 
   // Handle Confirm Delete Schedule
@@ -290,6 +293,66 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
 
   const handleCloseConfirmDeleteSchedule = () => {
     setOpenConfirmDeleteSchedule(false);
+  };
+
+  // Handle Update Schedule
+  const handleOpenUpdateScheduleModal = (schedule) => {
+    setScheduleToUpdate(schedule);
+    fetchScheduleInfo(
+      schedule.id.routeId.id,
+      schedule.id.routeId.shift,
+      schedule.id.stopId,
+      schedule.id.sequence
+    );
+    setOpenUpdateScheduleModal(true);
+  };
+
+  const handleCloseUpdateScheduleModal = () => {
+    setOpenUpdateScheduleModal(false);
+    setScheduleInfoIsLoading(true);
+    setScheduleInfo({ id: { routeId: { id: "", shift: "" }, stopId: "", sequence: "" }, time: "" });
+    setSelectedRoute("");
+    setSelectedStop("");
+    setScheduleSequence("");
+    setScheduleTime("");
+    setScheduleTimeIsValid(true);
+    setScheduleSequenceIsValid(true);
+    setScheduleTimeInputHelpText("");
+    setScheduleSequenceInputHelpText("");
+  };
+
+  const handleUpdateSchedule = () => {
+    let routeID = selectedRoute.split("_");
+    let updatedSchedule = {
+      id: {
+        routeId: { id: routeID[0], shift: routeID[1] },
+        stopId: selectedStop,
+        sequence: scheduleSequence,
+      },
+      time: scheduleTime,
+    };
+
+    fetch(
+      api +
+        "api/schedules/" +
+        routeID[0] +
+        "_" +
+        routeID[1] +
+        "_" +
+        selectedStop +
+        "_" +
+        scheduleSequence,
+      {
+        method: "PUT",
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updatedSchedule),
+      }
+    );
+
+    handleCloseUpdateScheduleModal();
   };
 
   // useEffect
@@ -381,7 +444,7 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
                         </IconButton>
                       </TableCell>
                       <TableCell align="right">
-                        <IconButton>
+                        <IconButton onClick={() => handleOpenUpdateScheduleModal(schedule)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
                       </TableCell>
@@ -511,6 +574,105 @@ export const ScheduleTable = ({ schedules, routes, stops, ...rest }) => {
                     }
                   >
                     Add Schedule
+                  </Button>
+                </FormControl>
+              </Box>
+            </Box>
+          </Modal>
+
+          <Modal
+            open={!scheduleInfoIsLoading && openUpdateScheduleModal}
+            onClose={handleCloseUpdateScheduleModal}
+            aria-labelledby="update-schedule-modal"
+            aria-describedby="update-schedule-modal"
+          >
+            <Box sx={style(viewportWidth)}>
+              <Grid container>
+                <Grid item xs={11} md={11} lg={11}>
+                  <Typography
+                    id="update-schedule-modal"
+                    variant="h6"
+                    component="h2"
+                    sx={{ paddingBottom: 2 }}
+                  >
+                    Update Schedule
+                  </Typography>
+                </Grid>
+                <Grid item xs={1} md={1} lg={1}>
+                  <IconButton onClick={handleCloseUpdateScheduleModal}>
+                    <CloseIcon fontSize="small" />
+                  </IconButton>
+                </Grid>
+              </Grid>
+              <Box>
+                <FormControl>
+                  <InputLabel htmlFor="schedule-route">Route</InputLabel>
+                  <Select
+                    defaultValue={
+                      scheduleInfo.id.routeId.id + "_" + scheduleInfo.id.routeId.shift || ""
+                    }
+                    id="schedule-route"
+                    aria-describedby="schedule-route"
+                    disabled={true}
+                    sx={{ width: 200, marginTop: 1, height: 40 }}
+                  >
+                    <MenuItem
+                      key={scheduleInfo.id.routeId.id + "_" + scheduleInfo.id.routeId.shift}
+                      value={scheduleInfo.id.routeId.id + "_" + scheduleInfo.id.routeId.shift}
+                    >
+                      {scheduleInfo.id.routeId.id} {scheduleInfo.id.routeId.shift}
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <InputLabel htmlFor="schedule-stop">Stop</InputLabel>
+                  <Select
+                    defaultValue={scheduleInfo.id.stopId || ""}
+                    id="schedule-stop"
+                    aria-describedby="schedule-stop"
+                    disabled={true}
+                    sx={{ width: 200, marginTop: 1, height: 40 }}
+                  >
+                    <MenuItem key={scheduleInfo.id.stopId} value={scheduleInfo.id.stopId}>
+                      {scheduleInfo.id.stopId}
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="Sequence"
+                    defaultValue={scheduleInfo.id.sequence}
+                    disabled={true}
+                  />
+                </FormControl>
+              </Box>
+
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <TextField
+                    label="Time"
+                    defaultValue={scheduleInfo.time}
+                    onChange={handleScheduleTimeInputChange}
+                    onFocus={handleScheduleTimeInputFocus}
+                    onBlur={handleScheduleTimeInputBlur}
+                    error={!scheduleTimeIsValid}
+                  />
+                </FormControl>
+              </Box>
+
+              <Box sx={{ paddingTop: 4 }}>
+                <FormControl>
+                  <Button
+                    variant="contained"
+                    onClick={handleUpdateSchedule}
+                    disabled={scheduleTimeIsValid && scheduleTime != "" ? false : true}
+                  >
+                    Update Schedule
                   </Button>
                 </FormControl>
               </Box>
