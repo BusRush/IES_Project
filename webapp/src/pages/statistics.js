@@ -16,8 +16,36 @@ class Page extends Component {
       buses: {},
       stops: [],
       drivers: [],
+      dataf : [],
+      days: 7,
     };
   }
+
+  getDays = (d) => {
+    let days = [];
+
+    const date = new Date();
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+    let today = year + '-' + month + '-' + day;
+    days.push(today);
+
+    date.setDate(date.getDate() - (d-1));
+    day = date.getDate();
+    month = date.getMonth() + 1;
+    year = date.getFullYear();
+    let aday = year + '-' + month + '-' + day;
+    days.push(aday);
+
+    return days;
+  };
+
+  handleDays = (daystemp) => {
+    this.updateDays(daystemp);
+    this.getData(daystemp)
+        .then(dataf => this.updateDataf(dataf));
+  };
 
   componentDidMount = () => {
     this.fetchAllStops()
@@ -26,7 +54,8 @@ class Page extends Component {
         .then(buses => this.updateBuses(buses));
     this.fetchAllDrivers()
         .then(drivers => this.updateDrivers(drivers));
-    this.fetchAllDevices()
+    this.getData(7)
+        .then(dataf => this.updateDataf(dataf));
   };
 
   fetchAllStops = async () => {
@@ -62,15 +91,24 @@ class Page extends Component {
     return drivers;
   };
 
-  fetchAllDevices = async () => {
-    let devices = null;
-    await fetch('http://localhost:8080/api/devices')
+  getData = async (d) => {
+    let dataf = null;
+    let days = this.getDays(d);
+    await fetch('http://localhost:8080/api/stats/day/delays?from=' + days[1] + '&to=' + days[0])
       .then(res => res.json())
-      .then(data => devices = data)
+      .then(data => dataf = data)
       .catch(err => console.log(err))
     ;
-    console.log(devices)
-    return devices;
+    console.log(dataf)
+    return dataf;
+  };
+
+  updateDays = (days) => {
+    this.setState({ days: days });
+  };
+
+  updateDataf = (dataf) => {
+    this.setState({ dataf: dataf });
   };
 
   updateStops = (stops) => {
@@ -146,7 +184,10 @@ class Page extends Component {
                 lg={6}
                 xl={8}
               >
-                <StatsBus />
+                <StatsBus
+                  dataf={this.state.dataf}
+                  onDaysChange={this.handleDays}
+                 />
               </Grid>
               <Grid
                 item
