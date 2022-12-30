@@ -10,6 +10,7 @@ import ies.project.busrush.dto.id.RouteIdDto;
 import ies.project.busrush.model.*;
 import ies.project.busrush.model.custom.StopWithDistance;
 import ies.project.busrush.repository.*;
+import ies.project.busrush.repository.cassandra.BusMetricsRepository;
 import ies.project.busrush.util.Coordinates;
 import ies.project.busrush.util.OSRMAdapter;
 import ies.project.busrush.util.StopDurationIndex;
@@ -34,6 +35,7 @@ public class BusRushService {
     private ScheduleRepository scheduleRepository;
     private StopRepository stopRepository;
     private UserRepository userRepository;
+    private BusMetricsRepository busMetricsRepository; 
 
     @Autowired
     public BusRushService(
@@ -43,7 +45,8 @@ public class BusRushService {
             RouteRepository routeRepository,
             ScheduleRepository scheduleRepository,
             StopRepository stopRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            BusMetricsRepository busMetricsRepository
     ) {
         this.busRepository = busRepository;
         this.deviceRepository = deviceRepository;
@@ -52,6 +55,7 @@ public class BusRushService {
         this.scheduleRepository = scheduleRepository;
         this.stopRepository = stopRepository;
         this.userRepository = userRepository;
+        this.busMetricsRepository = busMetricsRepository; 
     }
 
 
@@ -146,8 +150,16 @@ public class BusRushService {
 
             // Find the bus associated with the schedule's route
             Bus bus = os.getRoute().getBus();
-            // Find the current location of the bus
-            Coordinates busLocation = new Coordinates(40.643632, -8.643966); // TODO: Query Cassandra - use busId and routeId
+            // Find the current location of the bus -> static version -> Previous TODO (This is a "breakpoint" for debugging)
+            // Coordinates busLocation = new Coordinates(40.643632, -8.643966);
+
+            // Find the current location of the bus -> Query Cassandra - use busId and routeId
+            String bus_id = bus.getId(); 
+            String route_id = osRouteId.getId();  
+            String route_shift = osRouteId.getShift(); 
+            List<Double> location = busMetricsRepository.findpositionByBusIdandRouteIdandRouteShift(bus_id, route_id, route_shift); 
+            Coordinates busLocation = new Coordinates(location.get(0), location.get(1)); 
+            System.out.printf("CURRENT BUS LOCATION " + busLocation.toString()); 
 
             // Find the next stop of the bus
             StopDurationIndex busNext = OSRMAdapter.getNextStop(busLocation, allRouteStops);
@@ -205,10 +217,24 @@ public class BusRushService {
 
         // Find the bus associated with the target schedule's route
         Bus bus = ts.getRoute().getBus(); // Should never be null
-        // Find the current location of the bus
-        Coordinates busLocation = new Coordinates(40.643632, -8.643966); // TODO: Query Cassandra - use busId and routeId
-        // Find the current number of passengers on the bus
-        Integer busPassengers = 10; // TODO: Query Cassandra - use busId and routeId
+        
+        // Find the current location of the bus -> static -> previous TODO (this is another "breakpoint")
+        // Coordinates busLocation = new Coordinates(40.643632, -8.643966); 
+
+        // Find the current location of the bus -> Query Cassandra - use busId and routeId
+        String bus_id = bus.getId(); 
+        String route_id = ts.getRoute().getId().getId(); 
+        String route_shift = ts.getRoute().getId().getId(); 
+        List<Double> location = busMetricsRepository.findpositionByBusIdandRouteIdandRouteShift(bus_id, route_id, route_shift); 
+        Coordinates busLocation = new Coordinates(location.get(0), location.get(1)); 
+        System.out.printf("CURRENT BUS LOCATION " + busLocation.toString()); 
+        
+        // Find the current number of passengers on the bus -> static -> previous TODO (this is another "breakpoint")
+        // Integer busPassengers = 10;
+
+        // Find the current number of passengers on the bus -> Query Cassandra - use busId and routeId
+        Integer busPassengers = busMetricsRepository.findPassengersByBusId(bus_id);
+        System.out.printf("CURRENT PASSENGERS " + busPassengers);  
 
         // Find the next stop of the bus
         StopDurationIndex busNext = OSRMAdapter.getNextStop(busLocation, allRouteStops);
