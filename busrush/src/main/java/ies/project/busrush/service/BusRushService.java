@@ -7,7 +7,6 @@ import ies.project.busrush.dto.busrush.InfoScheduleDto;
 import ies.project.busrush.dto.busrush.NextScheduleDto;
 import ies.project.busrush.dto.busrush.ClosestStopDto;
 import ies.project.busrush.dto.cache.*;
-import ies.project.busrush.dto.id.RouteIdDto;
 import ies.project.busrush.model.*;
 import ies.project.busrush.model.custom.StopWithDistance;
 import ies.project.busrush.repository.*;
@@ -20,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
