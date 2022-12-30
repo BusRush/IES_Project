@@ -1,6 +1,15 @@
 package ies.project.busrush.service;
 
+import ies.project.busrush.model.RouteId;
+import ies.project.busrush.model.Schedule;
+import ies.project.busrush.model.Stop;
+import ies.project.busrush.repository.ScheduleRepository;
+import ies.project.busrush.repository.StopRepository;
+import ies.project.busrush.util.Coordinates;
+import ies.project.busrush.util.OSRMAdapter;
+import ies.project.busrush.util.StopDurationIndex;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 import ies.project.busrush.model.cassandra.BusMetrics;
@@ -9,6 +18,7 @@ import org.json.JSONObject;
 import ies.project.busrush.repository.BusRepository;
 import ies.project.busrush.repository.cassandra.BusMetricsRepository;
 
+import java.time.LocalTime;
 import java.util.*;
 
 import org.json.JSONArray;
@@ -17,20 +27,27 @@ import org.json.JSONArray;
 @Service
 public class QueueService {
     private BusRepository busRepository;
-    private BusMetricsRepository busMetricsRepository; 
-    //private CqlSession session;
+    private ScheduleRepository scheduleRepository;
+    private StopRepository stopRepository;
+    private BusMetricsRepository busMetricsRepository;
 
-    public QueueService(BusRepository busRepository, BusMetricsRepository busMetricsRepository) {
+    @Autowired
+    public QueueService(
+            BusRepository busRepository,
+            ScheduleRepository scheduleRepository,
+            StopRepository stopRepository,
+            BusMetricsRepository busMetricsRepository
+    ) {
         this.busRepository = busRepository;
+        this.scheduleRepository = scheduleRepository;
+        this.stopRepository = stopRepository;
         this.busMetricsRepository = busMetricsRepository; 
     }
 
     @RabbitListener(queues = "devices")
     public void receive(@Payload String msg) {
-
         System.out.println("Received: " + msg); 
-        processMessage(msg); 
-        
+        processMessage(msg);
     }
 
     public void processMessage(String msg) {
@@ -52,6 +69,36 @@ public class QueueService {
         // Get field bus_id from MySQL
         String bus_id = busRepository.findIdByDeviceId(device_id);
         System.out.println("BUS ID: " + bus_id);
+
+        //
+        // BEGIN: Compute delay
+        //
+
+        // Find all schedules and stops of the route the bus is serving
+        List<Schedule> allRouteSchedules = scheduleRepository.findAllByRouteId(new RouteId(route_id, route_shift));
+        List<Stop> allRouteStops = stopRepository.findAllByScheduleId(allRouteSchedules.get(0).getId());
+
+        // Find the next stop of the bus
+        StopDurationIndex busNext = OSRMAdapter.getNextStop(new Coordinates(position.get(0), position.get(1)), allRouteStops);
+        // Find the schedule for the next stop of the bus
+        Schedule ns = allRouteSchedules.get(busNext.getIndex());
+
+        // Find the time of arrival (in seconds without new day wrap) to next stop
+        LocalTime nsTime = ns.getTime();
+        Double nsTimeSeconds = (double) nsTime.toSecondOfDay();
+        // Compute the duration of the trip bus->next
+        Double busNextDuration = busNext.getDuration();
+        // Compute the time of arrival of the bus to next stop
+        Double busTimeSeconds = (timestamp % 86400) + busNextDuration;
+
+        // Compute the delay of the bus to next stop
+        Double busDelay = busTimeSeconds - nsTimeSeconds;
+
+        System.out.println("BUS DELAY: " + busDelay);
+
+        //
+        // END: Compute delay
+        //
 
         // Create an instance of BusMetrics with some values
         BusMetrics busMetrics = new BusMetrics(bus_id, timestamp, route_id, route_shift, device_id, position, speed, fuel, passengers);
