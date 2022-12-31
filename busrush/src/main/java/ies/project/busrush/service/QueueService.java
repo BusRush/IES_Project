@@ -3,8 +3,10 @@ package ies.project.busrush.service;
 import ies.project.busrush.model.RouteId;
 import ies.project.busrush.model.Schedule;
 import ies.project.busrush.model.Stop;
+import ies.project.busrush.model.cassandra.RouteMetrics;
 import ies.project.busrush.repository.ScheduleRepository;
 import ies.project.busrush.repository.StopRepository;
+import ies.project.busrush.repository.cassandra.RouteMetricsRepository;
 import ies.project.busrush.util.Coordinates;
 import ies.project.busrush.util.OSRMAdapter;
 import ies.project.busrush.util.StopDurationIndex;
@@ -19,7 +21,9 @@ import org.json.JSONObject;
 import ies.project.busrush.repository.BusRepository;
 import ies.project.busrush.repository.cassandra.BusMetricsRepository;
 
+
 import java.time.LocalTime;
+
 import java.util.*;
 
 import org.json.JSONArray;
@@ -32,6 +36,7 @@ public class QueueService {
     private ScheduleRepository scheduleRepository;
     private StopRepository stopRepository;
     private BusMetricsRepository busMetricsRepository;
+    private RouteMetricsRepository routeMetricsRepository;
 
     @Autowired
     public QueueService(
@@ -39,19 +44,22 @@ public class QueueService {
             BusRepository busRepository,
             ScheduleRepository scheduleRepository,
             StopRepository stopRepository,
-            BusMetricsRepository busMetricsRepository
+            BusMetricsRepository busMetricsRepository,
+            RouteMetricsRepository routeMetricsRepository
     ) {
         this.rabbitTemplate = rabbitTemplate;
         this.busRepository = busRepository;
         this.scheduleRepository = scheduleRepository;
         this.stopRepository = stopRepository;
         this.busMetricsRepository = busMetricsRepository;
+        this.routeMetricsRepository = routeMetricsRepository;
     }
 
     @RabbitListener(queues = "devices")
     public void receiveDevices(@Payload String msg) {
         System.out.println("Received: " + msg);
         processMessage(msg);
+
     }
 
     public void sendEvents(String msg) {
@@ -108,12 +116,14 @@ public class QueueService {
         // END: Compute delay
         //
 
-        // Create an instance of BusMetrics with some values
+        // Save metrics to Cassandra
         BusMetrics busMetrics = new BusMetrics(bus_id, timestamp, route_id, route_shift, device_id, position, speed, fuel, passengers, busDelay);
+        RouteMetrics routeMetrics = new RouteMetrics(route_id, route_shift, timestamp, bus_id, device_id, position, speed, fuel, passengers, busDelay);
         busMetricsRepository.save(busMetrics);
+        routeMetricsRepository.save(routeMetrics);
 
         // Send bus delayed event to RabbitMQ
-        if (busDelay > 0) {
+        if (busDelay > 5*60) {
             JSONObject event = new JSONObject();
             event.put("type", "DELAY");
             event.put("bus_id", bus_id);
