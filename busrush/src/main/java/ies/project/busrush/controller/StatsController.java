@@ -1,6 +1,7 @@
 package ies.project.busrush.controller;
 
 import ies.project.busrush.dto.stats.DayDelayDto;
+import ies.project.busrush.dto.stats.DayOccupationDto;
 import ies.project.busrush.service.StatsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,5 +25,12 @@ public class StatsController {
             @RequestParam(value = "to") String to
     ) {
         return statsService.getDayDelays(from, to);
+    }
+
+    @GetMapping("/stats/day/occupations")
+    public ResponseEntity<List<DayOccupationDto>> getDayOccupations(
+            @RequestParam(value = "of") String of
+    ) {
+        return statsService.getDayOccupations(of);
     }
 }
