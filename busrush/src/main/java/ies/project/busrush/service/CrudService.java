@@ -197,6 +197,8 @@ public class CrudService {
                 routeRepository.save(route);
             }
 
+
+
             busCrudDto.setId(bus.getId());
             busCrudDto.setRegistration(bus.getRegistration());
             busCrudDto.setBrand(bus.getBrand());
@@ -324,6 +326,15 @@ public class CrudService {
             if (bus != null) {
                 bus.setDevice(device);
                 busRepository.save(bus);
+
+            }
+
+            else if (device.getBus() != null) {
+                Bus oldBus = device.getBus();
+                oldBus.setDevice(null);
+                busRepository.save(oldBus);
+
+
             }
 
             deviceCrudDto.setId(device.getId());
@@ -449,12 +460,22 @@ public class CrudService {
                     if (route.getDriver() != null && !route.getDriver().equals(driver))
                         return new ResponseEntity<>(HttpStatus.CONFLICT);
                     routes.add(route);
+
+                }
+            }
+            else {
+                for (Route route : driver.getRoutes()) {
+                    route.setDriver(null);
+                    routeRepository.save(route);
+
+
                 }
             }
 
             driver.setFirstName(driverCrudDto.getFirstName());
             driver.setLastName(driverCrudDto.getLastName());
             driverRepository.save(driver);
+
 
             for (Route route : driver.getRoutes()) {
                 route.setBus(null);
@@ -651,6 +672,7 @@ public class CrudService {
             route.setDriver(driver);
             route.setBus(bus);
             routeRepository.save(route);
+
 
             List<Schedule> newSchedules = new ArrayList<>();
             for (Schedule schedule : schedules) {

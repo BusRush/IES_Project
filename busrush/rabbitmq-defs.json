@@ -28,11 +28,28 @@
       "auto_delete": false,
       "internal": false,
       "arguments": {}
+    },
+    {
+      "name": "events",
+      "vhost": "/",
+      "type": "fanout",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
     }
   ],
   "queues": [
     {
       "name": "devices",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+
+    {
+      "name": "events",
       "vhost": "/",
       "durable": true,
       "auto_delete": false,
@@ -44,6 +61,14 @@
       "source": "devices",
       "vhost": "/",
       "destination": "devices",
+      "destination_type": "queue",
+      "routing_key": "*",
+      "arguments": {}
+    },
+    {
+      "source": "events",
+      "vhost": "/",
+      "destination": "events",
       "destination_type": "queue",
       "routing_key": "*",
       "arguments": {}

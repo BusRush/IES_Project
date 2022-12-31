@@ -4,11 +4,14 @@ import ies.project.busrush.model.cassandra.BusMetrics;
 import org.springframework.data.cassandra.repository.CassandraRepository;
 import org.springframework.data.cassandra.repository.Query;
 
-import java.util.*; 
+import java.util.List;
 
 public interface BusMetricsRepository extends CassandraRepository<BusMetrics, String> {
-    @Query("SELECT position FROM bus_metrics WHERE bus_id = ?0 LIMIT 1;")
-    List<Double> findPositionByBusId(String bus_id);
-    @Query("SELECT passengers FROM bus_metrics WHERE bus_id = ?0 LIMIT 1;")
-    Integer findPassengersByBusId(String bus_id);
+
+    @Query("SELECT bus_id " +
+            "FROM bus_metrics " +
+            "WHERE delay > 300 AND timestamp >= ?0 AND timestamp < ?1 " +
+            "GROUP BY bus_id " +
+            "ALLOW FILTERING")
+    List<BusMetrics> findAllDelayed(Long from, Long to);
 }

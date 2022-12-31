@@ -10,8 +10,8 @@ import java.util.List;
 
 public class OSRMAdapter {
 
-    private static final String ROUTE_URI = "http://router.project-osrm.org/route/v1/driving/"; // TODO: Connect to local server
-    private static final String TABLE_URI = "http://router.project-osrm.org/table/v1/driving/"; // TODO: Connect to local server
+    private static final String ROUTE_URI = "http://osrm:5000/route/v1/driving/"; // TODO: Connect to local server
+    private static final String TABLE_URI = "http://osrm:5000/table/v1/driving/"; // TODO: Connect to local server
 
     public static Double getPathDuration(List<Coordinates> coordinates) {
 
