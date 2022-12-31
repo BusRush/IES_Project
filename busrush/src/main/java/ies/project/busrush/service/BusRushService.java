@@ -157,7 +157,7 @@ public class BusRushService {
             String bus_id = bus.getId(); 
             String route_id = osRouteId.getId();  
             String route_shift = osRouteId.getShift(); 
-            List<Double> location = busMetricsRepository.findpositionByBusIdandRouteIdandRouteShift(bus_id, route_id, route_shift); 
+            List<Double> location = busMetricsRepository.findPositionByBusId(bus_id); 
             Coordinates busLocation = new Coordinates(location.get(0), location.get(1)); 
             System.out.printf("CURRENT BUS LOCATION " + busLocation.toString()); 
 
@@ -222,10 +222,16 @@ public class BusRushService {
         // Coordinates busLocation = new Coordinates(40.643632, -8.643966); 
 
         // Find the current location of the bus -> Query Cassandra - use busId and routeId
-        String bus_id = bus.getId(); 
+        String bus_id = bus.getId();  
+        
         String route_id = ts.getRoute().getId().getId(); 
-        String route_shift = ts.getRoute().getId().getId(); 
-        List<Double> location = busMetricsRepository.findpositionByBusIdandRouteIdandRouteShift(bus_id, route_id, route_shift); 
+        String route_shift = ts.getRoute().getId().getId();
+       System.out.println("KILL ME " + bus_id);
+
+	System.out.println(busMetricsRepository.findPositionByBusId(bus_id));       
+        List<Double> location = busMetricsRepository.findPositionByBusId(bus_id);
+       System.out.println(location);
+       System.out.println(location.toString());       
         Coordinates busLocation = new Coordinates(location.get(0), location.get(1)); 
         System.out.printf("CURRENT BUS LOCATION " + busLocation.toString()); 
         

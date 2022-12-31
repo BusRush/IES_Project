@@ -34,7 +34,7 @@ public class BusMetrics {
         this.route_id = route_id;
         this.route_shift = route_shift;
         this.device_id = device_id;
-        this.position = position;
+	this.position = position;
         this.speed = speed;
         this.fuel = fuel;
         this.passengers = passengers;
