@@ -11,7 +11,7 @@ const RouteBanner = (props) => {
           <Title style={{ fontSize: 18, alignSelf: "center" }}>
             {props.buses.length == 1
               ? "Found 1 Route from:"
-              : "Found" + props.buses.length + " routes from:"}
+              : "Found " + props.buses.length + " routes from:"}
           </Title>
           <View style={{ flexDirection: "column", alignItems: "center" }}>
             {props.originStop != null ? (

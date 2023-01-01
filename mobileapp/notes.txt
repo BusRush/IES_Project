@@ -1,3 +1,0 @@
-TODO GERAL:
-* Adaptar screens à API
-* Global stylesheet
