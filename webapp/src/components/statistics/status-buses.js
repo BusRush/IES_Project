@@ -7,9 +7,43 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import { Component } from 'react';
+
 
 export const StatsBus = (props) => {
   const theme = useTheme();
+  
+  console.log("handleChange " + props.dataf);
+
+  const { dataf } = props.dataf;
+
+  const ontime = function() {
+    dataf = props.dataf;
+    const temp = [];
+    for(var i = 0; i < dataf.length; i++) {
+      temp.push(dataf[i].on_time);
+    };
+    return temp;
+  }
+
+  const delayed = function() {
+    dataf = props.dataf;
+    const temp = [];
+    for(var i = 0; i < dataf.length; i++) {
+      temp.push(dataf[i].delayed);
+    };
+    return temp;
+  }
+
+  const date = function() {
+    dataf = props.dataf;
+    const temp = [];
+    for(var i = 0; i < dataf.length; i++) {
+      temp.push(dataf[i].date);
+    };
+    return temp;
+  }
+
 
   const data = {
     datasets: [
@@ -19,8 +53,8 @@ export const StatsBus = (props) => {
         barThickness: 12,
         borderRadius: 4,
         categoryPercentage: 0.5,
-        data: [18, 5, 19, 27, 29, 19, 20],
-        label: 'In Time',
+        data: ontime(),
+        label: 'On Time',
         maxBarThickness: 10
       },
       {
@@ -29,12 +63,12 @@ export const StatsBus = (props) => {
         barThickness: 12,
         borderRadius: 4,
         categoryPercentage: 0.5,
-        data: [11, 20, 12, 29, 30, 25, 13],
+        data: delayed(),
         label: 'Delayed',
         maxBarThickness: 10
       }
     ],
-    labels: ['1 Aug', '2 Aug', '3 Aug', '4 Aug', '5 Aug', '6 Aug', '7 aug']
+    labels: date()
   };
 
   const options = {
@@ -86,10 +120,11 @@ export const StatsBus = (props) => {
     }
   };
 
-    const [space, setAge] = React.useState('');
+    const [age, setAge] = React.useState('');
 
     const handleChange = (event) => {
         setAge(event.target.value);
+        props.onDaysChange(event.target.value);
     };
 
   return (
@@ -102,14 +137,13 @@ export const StatsBus = (props) => {
                 <Select
                     labelId="demo-simple-select-label"
                     id="demo-simple-select"
-                    value={space}
-                    label="Space"
+                    value={age}
+                    label="Age"
                     onChange={handleChange}
                 >
-                    <MenuItem status={"3 days"}>3 days</MenuItem>
-                    <MenuItem status={"5 days"}>5 days</MenuItem>
-                    <MenuItem status={"Week"}>Week</MenuItem>
-                    <MenuItem status={"2 Weeks"}>2 Weeks</MenuItem>
+                    <MenuItem value={1}>1 day</MenuItem>
+                    <MenuItem value={3}>3 days</MenuItem>
+                    <MenuItem value={5}>5 days</MenuItem>
                 </Select>
                 </FormControl>
             </Box>)}
