@@ -1,4 +1,4 @@
-import { useRef, useState, componentDidMount } from "react";
+import { useRef, useState } from "react";
 import PropTypes from "prop-types";
 import styled from "@emotion/styled";
 import { AppBar, Avatar, Badge, Box, IconButton, Toolbar, Tooltip } from "@mui/material";
@@ -8,7 +8,6 @@ import { Bell as BellIcon } from "../icons/bell";
 import { UserCircle as UserCircleIcon } from "../icons/user-circle";
 import { Users as UsersIcon } from "../icons/users";
 import { AccountPopover } from "./account-popover";
-import Modal from "@mui/material";
 
 const DashboardNavbarRoot = styled(AppBar)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -64,7 +63,7 @@ export const DashboardNavbar = (props) => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Notifications">
-            <IconButton sx={{ ml: 1 }} onClick={() => console.log("hey")}>
+            <IconButton sx={{ ml: 1 }}>
               <Badge badgeContent={4} color="primary" variant="dot">
                 <BellIcon fontSize="small" />
               </Badge>

@@ -13,11 +13,22 @@ import Stomp from "stompjs";
 import { useEffect, useState } from "react";
 
 const Page = () => {
-  const [delayed_buses, setDelayedBuses] = useState(new Set());
+  const [delayed_buses, setDelayedBuses] = useState(new Map());
+  const [viewportWidth, setViewportWidth] = useState(window.innerWidth);
   const [open, setOpen] = useState(false);
 
-  const addFoo = (foo) => {
-    setDelayedBuses((prev) => new Set(prev.add(foo)));
+  // useEffect
+  useEffect(() => {
+    const handleResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const addDelayedBus = (bus) => {
+    const newMap = new Map(delayed_buses);
+    newMap.set(bus.bus_id, bus.delay);
+    console.log(newMap);
+    setDelayedBuses(newMap);
   };
 
   const handleOpen = () => {
@@ -38,7 +49,8 @@ const Page = () => {
       () => {
         stomp.subscribe("/queue/events", (msg) => {
           const data = JSON.parse(msg.body);
-          addFoo(data.bus_id);
+          addDelayedBus(data);
+          //addFoo({ bus: data.bus_id, delay: data.delay });
         });
       },
       (err) => {
@@ -90,10 +102,14 @@ const Page = () => {
         </Container>
       </Box>
       <Modal open={open} onClose={handleClose}>
-        <Box sx={{ width: 400, height: 400, bgcolor: "background.paper" }}>
+        <Box sx={style(viewportWidth)}>
+          <h2 id="transition-modal-title">Delayed Buses</h2>
+          <p>Bus - Delay</p>
           <List>
-            {Array.from(delayed_buses).map((bus) => (
-              <ListItem key={bus}>{bus}</ListItem>
+            {Array.from(delayed_buses).map(([bus, delay]) => (
+              <ListItem key={bus}>
+                {bus} - {delay}
+              </ListItem>
             ))}
           </List>
         </Box>
@@ -105,3 +121,20 @@ const Page = () => {
 Page.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>;
 
 export default Page;
+
+const style = (viewportWidth) => ({
+  position: "absolute",
+  top: "50%",
+  left: viewportWidth > 1200 ? "60%" : "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  border: "2px solid grey",
+  borderRadius: 1,
+  boxShadow: 24,
+  pt: 2,
+  px: 4,
+  pb: 3,
+  justifyContent: "center",
+  alignItems: "center",
+});
