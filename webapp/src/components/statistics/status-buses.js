@@ -141,9 +141,9 @@ export const StatsBus = (props) => {
                     label="Age"
                     onChange={handleChange}
                 >
+                    <MenuItem value={1}>1 day</MenuItem>
                     <MenuItem value={3}>3 days</MenuItem>
                     <MenuItem value={5}>5 days</MenuItem>
-                    <MenuItem value={7}>Week</MenuItem>
                 </Select>
                 </FormControl>
             </Box>)}

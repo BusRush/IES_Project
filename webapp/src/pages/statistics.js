@@ -7,6 +7,7 @@ import { TotalStops} from '../components/statistics/total-stops';
 import { TotalDrivers} from '../components/statistics/total-drivers';
 import { StatsBus } from '../components/statistics/status-buses';
 import { InfoBuses} from '../components/statistics/info-buses';
+import { getDay } from 'date-fns';
 
 class Page extends Component {
 
@@ -17,14 +18,23 @@ class Page extends Component {
       stops: [],
       drivers: [],
       dataf : [],
-      days: 7,
+      ocupation : [],
+      days: 5,
+      day: this.timetoday(new Date())
     };
   }
+
+  timetoday = (d) => {
+    let day = d.getDate();
+    let month = d.getMonth() + 1;
+    let year = d.getFullYear();
+    return year + '-' + month + '-' + day;
+  };
 
   getDays = (d) => {
     let days = [];
 
-    const date = new Date();
+    const date = new Date("2022-12-16");
     let day = date.getDate();
     let month = date.getMonth() + 1;
     let year = date.getFullYear();
@@ -47,6 +57,18 @@ class Page extends Component {
         .then(dataf => this.updateDataf(dataf));
   };
 
+  updateDay = (day) => {
+    this.setState({ day: day });
+  };
+
+  handleOcupation = (d) => {
+    let dt = d.toDate();
+    let day = this.timetoday(dt);
+    this.updateDay(day);
+    this.fetchOcupation(day)
+        .then(ocupation => this.updateOcupation(ocupation));
+  };
+
   componentDidMount = () => {
     this.fetchAllStops()
         .then(stops => this.updateStops(stops));
@@ -54,8 +76,21 @@ class Page extends Component {
         .then(buses => this.updateBuses(buses));
     this.fetchAllDrivers()
         .then(drivers => this.updateDrivers(drivers));
-    this.getData(7)
+    this.getData(5)
         .then(dataf => this.updateDataf(dataf));
+    this.fetchOcupation(this.state.day)
+        .then(ocupation => this.updateOcupation(ocupation));
+  };
+
+  fetchOcupation = async (d) => {
+    let ocupation = null;
+    await fetch('http://localhost:8080/api/stats/day/occupations?of=' + d)
+      .then(res => res.json())
+      .then(data => ocupation = data)
+      .catch(err => console.log(err))
+    ;
+    console.log(ocupation)
+    return ocupation;
   };
 
   fetchAllStops = async () => {
@@ -101,6 +136,10 @@ class Page extends Component {
     ;
     console.log(dataf)
     return dataf;
+  };
+
+  updateOcupation = (ocupation) => {
+    this.setState({ ocupation: ocupation });
   };
 
   updateDays = (days) => {
@@ -197,7 +236,8 @@ class Page extends Component {
                 xl={8}
               >
                 <InfoBuses 
-                  buses={buses}
+                  ocupation = {this.state.ocupation}
+                  onOcupationChange={this.handleOcupation}
                 />
               </Grid>
             </Grid>

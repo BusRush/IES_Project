@@ -25,6 +25,7 @@
     "@zalter/identity-js": "1.2.1",
     "chart.js": "3.9.1",
     "date-fns": "2.29.3",
+    "dayjs": "^1.11.7",
     "formik": "2.2.9",
     "leaflet": "1.9.3",
     "net": "^1.0.2",

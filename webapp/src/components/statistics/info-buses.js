@@ -17,67 +17,86 @@ import {
   TableSortLabel,
   Tooltip
 } from '@mui/material';
-import ArrowRightIcon from '@mui/icons-material/ArrowRight';
-import { SeverityPill } from '../severity-pill';
-import { busesLive } from '../../__mocks__/buses-live';
+import dayjs from 'dayjs';
+import TextField from '@mui/material/TextField';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
+
 
 export const InfoBuses = (props) => {
-    const [status, setAge] = React.useState('');
 
-    const handleChange = (event) => {
-        setAge(event.target.value);
-    };
+  const { ocupation } = props;    
 
-    const { buses } = props;    
+  const [value, setValue] = React.useState(dayjs('2022-12-31'));
+
+
+  const tostring = (ocupation) => {
+    const temp = ocupation.toString();
+    return temp.substring(0, 4) + "%";
+  }
+
+  const handleChange = (newValue) => {
+    setValue(newValue);
+    props.onOcupationChange(newValue);
+  };
 
  return (
   <Card {...props}>
-    <CardHeader
-        title="Info Buses" />
+    <CardHeader title="Info Ocupation"
+    action={
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <DesktopDatePicker
+          label="Date desktop"
+          inputFormat="MM/DD/YYYY"
+          value={value}
+          onChange={handleChange}
+          renderInput={(params) => <TextField {...params} />}
+        />
+      </LocalizationProvider>
+    }
+    />
     <Divider />
-    <PerfectScrollbar>
-      <Box sx={{ minWidth: 800 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>
-                ID
-              </TableCell>
-              <TableCell>
-                Registration
-              </TableCell>
-              <TableCell>
-                Device ID
-              </TableCell>
-              <TableCell>
-                Route ID
-              </TableCell>
-        </TableRow>
-          </TableHead>
-          <TableBody>
-            {Object.entries(buses).map((bus) => (
-              <TableRow
-                hover
-                key={bus[1].id}
-              >
+    {!(ocupation.error) && (ocupation.length > 0) &&
+      <PerfectScrollbar>
+        <Box sx={{ minWidth: 800 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
                 <TableCell>
-                  {bus[1].id}
+                  Route ID
                 </TableCell>
                 <TableCell>
-                  {bus[1].registration}
+                  Line
                 </TableCell>
                 <TableCell>
-                  {bus[1].deviceId}
+                  Ocupation (%)
                 </TableCell>
-                <TableCell>
-                  {bus[1].routesId.length > 0 ? bus[1].routesId[0].id : "No route"}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Box>
-    </PerfectScrollbar>
+          </TableRow>
+            </TableHead>
+            <TableBody>
+              {Object.entries(ocupation).map((r) => (
+                console.log(r[1].ocupation),
+                <TableRow
+                  hover
+                  key={r[1].route.id}
+                >
+                  <TableCell>
+                    {r[1].route.id}
+                  </TableCell>
+                  <TableCell>
+                    {r[1].route.designation}
+                  </TableCell>
+                  <TableCell>
+                    {tostring(r[1].occupation)}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
+      </PerfectScrollbar>
+    }
   </Card>
  );
 };
