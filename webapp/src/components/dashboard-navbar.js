@@ -8,6 +8,8 @@ import { Bell as BellIcon } from "../icons/bell";
 import { UserCircle as UserCircleIcon } from "../icons/user-circle";
 import { Users as UsersIcon } from "../icons/users";
 import { AccountPopover } from "./account-popover";
+import BusAlertIcon from "@mui/icons-material/BusAlert";
+import { NotificationPopover } from "./notification-popover";
 
 const DashboardNavbarRoot = styled(AppBar)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -15,9 +17,11 @@ const DashboardNavbarRoot = styled(AppBar)(({ theme }) => ({
 }));
 
 export const DashboardNavbar = (props) => {
-  const { onSidebarOpen, ...other } = props;
+  const { onSidebarOpen, delayed_buses, ...other } = props;
   const settingsRef = useRef(null);
+  const settingsRefado = useRef(null);
   const [openAccountPopover, setOpenAccountPopover] = useState(false);
+  const [openNotificationPopover, setOpenNotificationPopover] = useState(false);
 
   return (
     <>
@@ -53,6 +57,23 @@ export const DashboardNavbar = (props) => {
           </IconButton>
 
           <Box sx={{ flexGrow: 1 }} />
+          <IconButton
+            onClick={() => setOpenNotificationPopover(true)}
+            ref={settingsRefado}
+            sx={{
+              cursor: "pointer",
+              height: 40,
+              width: 40,
+              ml: 1,
+            }}
+          >
+            {delayed_buses.size > 0 ? (
+              <BusAlertIcon fontSize="medium" color="error" />
+            ) : (
+              <BusAlertIcon fontSize="medium" color="primary" />
+            )}
+          </IconButton>
+
           <Avatar
             onClick={() => setOpenAccountPopover(true)}
             ref={settingsRef}
@@ -72,6 +93,12 @@ export const DashboardNavbar = (props) => {
         anchorEl={settingsRef.current}
         open={openAccountPopover}
         onClose={() => setOpenAccountPopover(false)}
+      />
+      <NotificationPopover
+        anchorEl={settingsRefado.current}
+        open={openNotificationPopover}
+        onClose={() => setOpenNotificationPopover(false)}
+        delayed_bus={delayed_buses}
       />
     </>
   );
