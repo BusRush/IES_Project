@@ -12,8 +12,7 @@ import Passengers from "../components/Passengers";
 import { Dimensions } from "react-native";
 
 const ChosenBusInformationScreen = ({ route }) => {
-  //const api_addr = "http://192.168.160.222:8080";
-  const api_addr = "http://10.0.2.2:8080";
+  const api_addr = "http://192.168.160.222:8080";
   const navigation = useNavigation();
   const id = route.params.id;
   const linha = route.params.linha;

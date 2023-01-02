@@ -74,11 +74,11 @@ const WelcomingScreen = () => {
 
           <View style={{ width, height }}>
             <Image
-              source={require("../assets/nearest.png")}
+              source={require("../assets/closest_to.png")}
               style={styles.imageStyle}
             />
             <View style={styles.wrapper}>
-              <Text style={styles.header}>Browse The Nearest Bus Stops</Text>
+              <Text style={styles.header}>Browse The Nearest Bus Stops...</Text>
             </View>
             <View
               style={{
@@ -87,19 +87,19 @@ const WelcomingScreen = () => {
               }}
             >
               <Image
-                source={require("../assets/swipe_smaller.png")}
+                source={require("../assets/swipe.png")}
                 style={{ width: 150, height: 40 }}
               />
             </View>
           </View>
           <View style={{ width, height }}>
             <Image
-              source={require("../assets/businfo.png")}
+              source={require("../assets/origin.png")}
               style={styles.imageStyle}
             />
             <View style={styles.wrapper}>
               <Text style={styles.header}>
-                See in real-time the information of the bus you need to catch.
+                ... or from a personalized origin!
               </Text>
             </View>
             <View
@@ -109,23 +109,64 @@ const WelcomingScreen = () => {
               }}
             >
               <Image
-                source={require("../assets/swipe_smaller.png")}
+                source={require("../assets/swipe.png")}
                 style={{ width: 150, height: 40 }}
               />
             </View>
           </View>
+
+          <View style={{ width, height }}>
+            <Image
+              source={require("../assets/destination.png")}
+              style={styles.imageStyle}
+            />
+            <View style={styles.wrapper}>
+              <Text style={styles.header}>
+                You can also choose your destination!
+              </Text>
+            </View>
+            <View
+              style={{
+                alignContent: "center",
+                alignSelf: "center",
+              }}
+            >
+              <Image
+                source={require("../assets/swipe.png")}
+                style={{ width: 150, height: 40 }}
+              />
+            </View>
+          </View>
+
+          <View style={{ width, height }}>
+            <Image
+              source={require("../assets/bus_info.png")}
+              style={styles.imageStyle}
+            />
+            <View style={styles.wrapper}>
+              <Text style={styles.header}>
+                See details of a bus in real-time!
+              </Text>
+            </View>
+            <View
+              style={{
+                alignContent: "center",
+                alignSelf: "center",
+              }}
+            >
+              <Image
+                source={require("../assets/swipe.png")}
+                style={{ width: 150, height: 40 }}
+              />
+            </View>
+          </View>
+
           <View style={{ width, height }}>
             <Image
               source={require("../assets/aveirobus.jpg")}
               style={styles.imageStyle}
             />
             <View style={styles.wrapper}>
-              {/*<Text style={styles.header}>
-                Add your prefered route to your favourites list.
-              </Text>
-              <Text style={styles.paragraph}>
-                This way you can receive notifications from the app.
-              </Text>*/}
               <Text style={styles.header}>Never miss a bus again!</Text>
             </View>
           </View>
@@ -164,7 +205,7 @@ export default WelcomingScreen;
 
 const styles = StyleSheet.create({
   imageStyle: {
-    height: PixelRatio.getPixelSizeForLayoutSize(140),
+    height: PixelRatio.getPixelSizeForLayoutSize(155),
     width: "100%",
   },
   swipeImage: {
@@ -181,6 +222,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
+    fontFamily: "Courier New",
   },
   paragraph: {
     fontSize: 17,
