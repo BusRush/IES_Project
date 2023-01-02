@@ -55,21 +55,30 @@ const SearchBarDropDown = (props) => {
     setIsVisible(false);
   };
 
-  const handleOnClear = () => {
+  const handleOnClear = (flag) => {
     setSearch("");
-    if (props.setOriginInput != undefined) {
-      props.setOriginInput(null);
-    }
-    props.setQueryIsLoading(true);
+    if (flag == "origin") {
+      if (props.setOriginInput != undefined) {
+        props.setOriginInput(null);
+      }
+      props.setQueryIsLoading(true);
 
-    if (props.setOriginStop != undefined) {
-      props.setOriginStop(props.closestBusStopID);
+      if (props.setOriginStop != undefined) {
+        props.setOriginStop(props.closestBusStopID);
+      }
+      if (props.setDestinationStop != undefined) {
+        props.setDestinationStop(null);
+      }
+      props.getBusRoutes(props.closestBusStopID);
+      setIsVisible(false);
+    } else if (flag == "destination") {
+      if (props.setDestinationStop != undefined) {
+        props.setDestinationStop(null);
+      }
+      props.setQueryIsLoading(true);
+      props.getBusRoutes(props.originStop);
+      setIsVisible(false);
     }
-    if (props.setDestinationStop != undefined) {
-      props.setDestinationStop(null);
-    }
-    props.getBusRoutes(props.closestBusStopID);
-    setIsVisible(false);
   };
 
   const renderItem = ({ item }) => (
@@ -91,7 +100,7 @@ const SearchBarDropDown = (props) => {
         containerStyle={styles.container}
         inputContainerStyle={styles.inputContainer}
         inputStyle={styles.inputStyle}
-        onClear={handleOnClear}
+        onClear={() => handleOnClear(props.flag)}
         disabled={props.disabled}
       />
       {isVisible ? (

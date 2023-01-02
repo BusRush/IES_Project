@@ -3,7 +3,7 @@ services:
     container_name: busrush
     build: .
     ports:
-      - '8080:8080'
+      - "8080:8080"
     volumes:
       - .:/busrush
     # environment:
@@ -19,11 +19,11 @@ services:
     container_name: busrush-db
     image: mysql/mysql-server:5.7
     ports:
-      - '3306:3306'
+      - "3306:3306"
     volumes:
       - busrush-db:/var/lib/mysql
     environment:
-      MYSQL_ROOT_HOST: '%'
+      MYSQL_ROOT_HOST: "%"
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: busrush
       MYSQL_USER: admin
@@ -34,9 +34,9 @@ services:
     container_name: rabbitmq
     image: rabbitmq:3-management
     ports:
-      - '5672:5672'
-      - '15674:15674'
-      - '61613:61613'
+      - "5672:5672"
+      - "15674:15674"
+      - "61613:61613"
     volumes:
       - type: bind
         source: ./rabbitmq-enabled-plugins
@@ -53,7 +53,7 @@ services:
     container_name: cassandra
     image: cassandra:4.0
     ports:
-      - '9042:9042'
+      - "9042:9042"
     healthcheck:
       test: ["CMD", "cqlsh", "-e", "SELECT now() FROM system.local"]
       interval: 10s
@@ -62,14 +62,14 @@ services:
     volumes:
       - cassandra:/var/lib/cassandra
     environment:
-      CASSANDRA_CLUSTER_NAME: 'busrush'
+      CASSANDRA_CLUSTER_NAME: "busrush"
     networks:
       - api_bus-net
   osrm:
     container_name: osrm
     image: ghcr.io/project-osrm/osrm-backend
     ports:
-      - '5000:5000'
+      - "5000:5000"
     command: osrm-routed --algorithm mld /data/portugal-latest.osrm
     volumes:
       - type: bind
@@ -82,10 +82,10 @@ services:
     image: redis:6.2-alpine
     restart: always
     ports:
-      - '6379:6379'
+      - "6379:6379"
     command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
     environment:
-        REDIS_PASSWORD: eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+      REDIS_PASSWORD: eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
     volumes:
       - cache:/data
     networks:
@@ -95,7 +95,7 @@ services:
     depends_on:
       - cassandra
     restart: "no"
-    entrypoint: [ "/init_cassandra.sh" ]
+    entrypoint: ["/init_cassandra.sh"]
     volumes:
       - ./init_cassandra.sh:/init_cassandra.sh
     networks:
@@ -105,12 +105,11 @@ services:
     depends_on:
       - cache
     restart: "no"
-    entrypoint: [ "/redis_clean.sh" ]
+    entrypoint: ["/redis_clean.sh"]
     volumes:
       - ./redis_clean.sh:/redis_clean.sh
     networks:
       - api_bus-net
-
 
 volumes:
   busrush-db:

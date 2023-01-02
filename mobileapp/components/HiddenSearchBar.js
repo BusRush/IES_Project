@@ -18,6 +18,8 @@ const HiddenSearchBar = (props) => {
   const toggleVisibility = () => {
     // Set the component's visibility to the opposite of its current value
     setSearchBarVisible(!searchBarVisible);
+    props.setDestinationStop(null);
+    props.getBusRoutes(props.originStop);
   };
 
   return (
@@ -33,6 +35,7 @@ const HiddenSearchBar = (props) => {
           originStop={props.originStop}
           destinationStop={props.destinationStop}
           disabled={disable}
+          flag="destination"
         />
       ) : null}
       <TouchableOpacity onPress={toggleVisibility}>

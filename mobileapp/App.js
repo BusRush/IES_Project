@@ -5,9 +5,6 @@ import BusRoutes from "./screens/BusRoutesScreen.js";
 import ChosenBusInformationScreen from "./screens/ChosenBusInformationScreen";
 import WelcomingScreen from "./screens/WelcomingScreen.tsx";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
-import { useLayoutEffect } from "react";
-import { useNavigation } from "@react-navigation/native";
 
 const Stack = createNativeStackNavigator();
 
