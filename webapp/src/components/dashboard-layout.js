@@ -28,7 +28,7 @@ export const DashboardLayout = (props) => {
   };
 
   useEffect(() => {
-    const stomp = Stomp.client("ws://localhost:15674/ws");
+    const stomp = Stomp.client("ws://192.168.160.222:15674/ws");
     const headers = {
       login: "guest",
       passcode: "guest",

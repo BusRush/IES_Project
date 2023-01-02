@@ -1,8 +1,10 @@
 import Head from "next/head";
-import { Box, Button, Container, List, ListItem, Modal } from "@mui/material";
+import { Box, Button, Container, List, ListItem, Modal, Typography } from "@mui/material";
 import { DashboardLayout } from "../components/dashboard-layout";
 import Stomp from "stompjs";
 import { useEffect, useState } from "react";
+import WelcomeNavbar from "../components/navbar-welcome";
+import CarouselComponent from "../components/caroussel-welcome";
 
 const Page = () => {
   const [delayed_buses, setDelayedBuses] = useState(new Map());
@@ -12,21 +14,13 @@ const Page = () => {
   return (
     <>
       <Head>
-        <title>Dashboard | Material Kit</title>
+        <title>BusRush</title>
       </Head>
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          py: 8,
-        }}
-      ></Box>
+      <WelcomeNavbar />
+      <CarouselComponent />
     </>
   );
 };
-
-Page.getLayout = (page) => <DashboardLayout>{page}</DashboardLayout>;
-
 export default Page;
 
 const style = (viewportWidth) => ({

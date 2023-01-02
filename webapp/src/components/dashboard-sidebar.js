@@ -13,11 +13,6 @@ import { Avatar } from "@mui/material";
 
 const items = [
   {
-    href: "/",
-    icon: <ChartBarIcon fontSize="small" />,
-    title: "Dashboard",
-  },
-  {
     href: "/statistics",
     icon: <ChartBarIcon fontSize="small" />,
     title: "Statistics",
@@ -30,17 +25,7 @@ const items = [
   {
     href: "/topology",
     icon: <RouteIcon fontSize="small" />,
-    title: "Topology",
-  },
-  {
-    href: "/login",
-    icon: <LockIcon fontSize="small" />,
-    title: "Login",
-  },
-  {
-    href: "/register",
-    icon: <UserAddIcon fontSize="small" />,
-    title: "Register",
+    title: "Fleet",
   },
 ];
 
@@ -77,7 +62,6 @@ export const DashboardSidebar = (props) => {
       >
         <Box sx={{}}>
           <Avatar
-            ref={useRef("/")}
             sx={{
               height: 100,
               width: 280,

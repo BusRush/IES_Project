@@ -36,7 +36,7 @@ const Page = () => {
 
   const fetchAllBuses = async () => {
     let buses = null;
-    await fetch("http://localhost:8080/api/buses")
+    await fetch("http://192.168.160.222:8080/api/buses")
       .then((res) => res.json())
       .then((data) => (buses = data))
       .catch((err) => console.log(err));
@@ -46,7 +46,7 @@ const Page = () => {
 
   const fetchAllDevices = async () => {
     let devices = null;
-    await fetch("http://localhost:8080/api/devices")
+    await fetch("http://192.168.160.222:8080/api/devices")
       .then((res) => res.json())
       .then((data) => (devices = data))
       .catch((err) => console.log(err));
@@ -56,7 +56,7 @@ const Page = () => {
 
   const fetchAllDrivers = async () => {
     let drivers = null;
-    await fetch("http://localhost:8080/api/drivers")
+    await fetch("http://192.168.160.222:8080/api/drivers")
       .then((res) => res.json())
       .then((data) => (drivers = data))
       .catch((err) => console.log(err));
@@ -66,7 +66,7 @@ const Page = () => {
 
   const fetchAllRoutes = async () => {
     let routes = null;
-    await fetch("http://localhost:8080/api/routes")
+    await fetch("http://192.168.160.222:8080/api/routes")
       .then((res) => res.json())
       .then((data) => (routes = data))
       .catch((err) => console.log(err));
@@ -76,7 +76,7 @@ const Page = () => {
 
   const fetchAllSchedules = async () => {
     let schedules = null;
-    await fetch("http://localhost:8080/api/schedules")
+    await fetch("http://192.168.160.222:8080/api/schedules")
       .then((res) => res.json())
       .then((data) => (schedules = data))
       .catch((err) => console.log(err));
@@ -86,7 +86,7 @@ const Page = () => {
 
   const fetchAllStops = async () => {
     let stops = null;
-    await fetch("http://localhost:8080/api/stops")
+    await fetch("http://192.168.160.222:8080/api/stops")
       .then((res) => res.json())
       .then((data) => (stops = data))
       .catch((err) => console.log(err));
@@ -106,7 +106,7 @@ const Page = () => {
   return (
     <>
       <Head>
-        <title>BusRush - Topology</title>
+        <title>BusRush - Fleet</title>
       </Head>
       {busesIsLoading ||
       devicesIsLoading ||
@@ -132,7 +132,7 @@ const Page = () => {
                 mb: 2,
               }}
             >
-              Topology
+              Fleet
             </Typography>
             <Grid container sx={{ paddingBottom: 2 }}>
               <Typography>

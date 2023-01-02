@@ -24,7 +24,7 @@ class Page extends Component {
   componentDidMount = () => {
     this.fetchAllStops().then((stops) => this.updateStops(stops));
     // Setup buses
-    const stomp = Stomp.client("ws://localhost:15674/ws");
+    const stomp = Stomp.client("ws://192.168.160.222:15674/ws");
     const headers = {
       login: "guest",
       passcode: "guest",
@@ -59,7 +59,7 @@ class Page extends Component {
 
   fetchAllStops = async () => {
     let stops = null;
-    await fetch("http://localhost:8080/api/stops")
+    await fetch("http://192.168.160.222:8080/api/stops")
       .then((res) => res.json())
       .then((data) => (stops = data))
       .catch((err) => console.log(err));
@@ -68,7 +68,7 @@ class Page extends Component {
 
   fetchBusesByDeviceId = async (deviceId) => {
     let buses = null;
-    await fetch(`http://localhost:8080/api/buses?device_id=${deviceId}`)
+    await fetch(`http://192.168.160.222:8080/api/buses?device_id=${deviceId}`)
       .then((res) => res.json())
       .then((data) => (buses = data))
       .catch((err) => console.log(err));
