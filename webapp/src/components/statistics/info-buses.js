@@ -28,7 +28,7 @@ export const InfoBuses = (props) => {
 
   const { ocupation } = props;    
 
-  const [value, setValue] = React.useState(dayjs('2022-12-31'));
+  const [value, setValue] = React.useState(dayjs('2022-12-12'));
 
 
   const tostring = (ocupation) => {

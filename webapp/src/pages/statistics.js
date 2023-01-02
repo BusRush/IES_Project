@@ -20,7 +20,7 @@ class Page extends Component {
       dataf : [],
       ocupation : [],
       days: 5,
-      day: this.timetoday(new Date())
+      day: this.timetoday(new Date("2022-12-12"))
     };
   }
 
