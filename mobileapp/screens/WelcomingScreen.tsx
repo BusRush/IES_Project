@@ -173,7 +173,7 @@ const WelcomingScreen = () => {
         </ScrollView>
         <View style={{ paddingBottom: 50 }}>
           <View style={styles.paginationWrapper}>
-            {Array.from(Array(4).keys()).map((key, index) => (
+            {Array.from(Array(6).keys()).map((key, index) => (
               <View
                 style={[
                   styles.paginationDots,
