@@ -25,10 +25,9 @@ const Page = () => {
   }, []);
 
   const addDelayedBus = (bus) => {
-    const newMap = new Map(delayed_buses);
-    newMap.set(bus.bus_id, bus.delay);
-    console.log(newMap);
-    setDelayedBuses(newMap);
+    const delayed_buses = new Map();
+    delayed_buses.set(bus.bus_id, bus.delay);
+    setDelayedBuses(delayed_buses);
   };
 
   const handleOpen = () => {
@@ -108,7 +107,7 @@ const Page = () => {
           <List>
             {Array.from(delayed_buses).map(([bus, delay]) => (
               <ListItem key={bus}>
-                {bus} - {delay}
+                {bus} - {Math.round(delay, 2)}
               </ListItem>
             ))}
           </List>
