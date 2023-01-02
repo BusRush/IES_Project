@@ -222,7 +222,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 20,
     textAlign: "center",
-    fontFamily: "Courier New",
   },
   paragraph: {
     fontSize: 17,
