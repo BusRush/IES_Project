@@ -25,8 +25,8 @@ import { DesktopDatePicker } from "@mui/x-date-pickers/DesktopDatePicker";
 
 export const InfoBuses = (props) => {
   const { ocupation } = props;
-
   const [value, setValue] = React.useState(dayjs("2022-12-12"));
+
 
   const tostring = (ocupation) => {
     const temp = ocupation.toString();
