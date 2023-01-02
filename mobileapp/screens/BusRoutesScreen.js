@@ -3,7 +3,6 @@ import { View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { NextBuses } from "../components/NextBuses.js";
-import CalendarStrip from "react-native-calendar-strip";
 import { addDays } from "date-fns";
 import { Provider as PaperProvider } from "react-native-paper";
 import { Dimensions } from "react-native";
@@ -23,6 +22,8 @@ datesWhitelist = [
 ];
 
 function BusRoutes() {
+  const api_addr = "http://192.168.160.222:8080";
+
   // constants and useStates declaration
   const [errorMsg, setErrorMsg] = useState(null);
   const [closestBusStop, setClosestBusStop] = useState("Waiting...");
@@ -74,7 +75,7 @@ function BusRoutes() {
     let lon = location["coords"]["longitude"];
     try {
       const response = await fetch(
-        "http://192.168.160.222:8080/api/stops/closest?lat=" + lat + "&lon=" + lon
+        api_addr + "/api/stops/closest?lat=" + lat + "&lon=" + lon
       );
       const json = await response.json();
       setOriginStop(json.id);
@@ -92,12 +93,12 @@ function BusRoutes() {
       let nextBuses = [];
       if (designation_stop_id == null) {
         var response = await fetch(
-          "http://192.168.160.222:8080/api/schedules/next?origin_stop_id=" +
-            origin_stop_id
+          api_addr + "/api/schedules/next?origin_stop_id=" + origin_stop_id
         );
       } else {
         var response = await fetch(
-          "http://192.168.160.222:8080/api/schedules/next?origin_stop_id=" +
+          api_addr +
+            "/api/schedules/next?origin_stop_id=" +
             origin_stop_id +
             "&destination_stop_id=" +
             designation_stop_id
@@ -124,7 +125,7 @@ function BusRoutes() {
   const getBusStops = async () => {
     try {
       let busStops = [];
-      const response = await fetch("http://192.168.160.222:8080/api/stops");
+      const response = await fetch(api_addr + "/api/stops");
       const json = await response.json();
       for (let i = 0; i < json.length; i++) {
         busStops.push({ id: json[i].id, name: json[i].designation });
@@ -167,6 +168,7 @@ function BusRoutes() {
               originStop={originStop}
               destinationStop={destinationStop}
               setOriginInput={setOriginInput}
+              flag={"origin"}
             />
 
             <HiddenSearchBar
@@ -231,7 +233,3 @@ const styles = {
     paddingBottom: 20,
   },
 };
-
-{
-  /* <CalendarStrip datesWhitelist={datesWhitelist} /> */
-}

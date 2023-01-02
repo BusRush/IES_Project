@@ -91,6 +91,7 @@ const NextBuses = (props) => {
       data={props.dados}
       renderItem={renderItem}
       keyExtractor={(item) => item.linha}
+      style={{ height: 500 }}
     />
   );
 };
