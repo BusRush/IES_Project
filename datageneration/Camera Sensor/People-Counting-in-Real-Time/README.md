@@ -7,6 +7,12 @@ This in an implementation/adaption of the code from this public repository: http
 pip install -r requirements.txt
 ```
 > The requirements will be updated timely, but note that there can always be version conflicts between the dependencies themselves and other factors like OS, hardware etc.
+
+- **To run and receive data from the bus camera sensor, one must use this command where the device_id is specified**: 
+```
+python Run.py --prototxt mobilenet_ssd/MobileNetSSD_deploy.prototxt --model mobilenet_ssd/MobileNetSSD_deploy.caffemodel --input videos/example_01.mp4 --device_id AVRBUS-D0000
+```
+
 - To run inference on a test video file, head into the directory/use the command: 
 ```
 python3 Run.py --prototxt mobilenet_ssd/MobileNetSSD_deploy.prototxt --model mobilenet_ssd/MobileNetSSD_deploy.caffemodel --input videos/example_01.mp4
@@ -22,10 +28,6 @@ url = ''
 python3 Run.py --prototxt mobilenet_ssd/MobileNetSSD_deploy.prototxt --model mobilenet_ssd/MobileNetSSD_deploy.caffemodel
 ```
 > Set url = 0 for webcam 
-
-- **To run and receive data from the bus camera sensor, one must use this command where the device_id is specified**: 
-
-python Run.py --prototxt mobilenet_ssd/MobileNetSSD_deploy.prototxt --model mobilenet_ssd/MobileNetSSD_deploy.caffemodel --input videos/example_01.mp4 --device_id AVRBUS-D0000
 
 # People-Counting-in-Real-Time
 People Counting in Real-Time using live video stream/IP camera in OpenCV.
