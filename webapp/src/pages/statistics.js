@@ -20,8 +20,7 @@ class Page extends Component {
       ocupation: [],
       days: 5,
 
-      day: this.timetoday(new Date("2022-12-12"))
-
+      day: this.timetoday(new Date("2022-12-12")),
     };
   }
 
@@ -169,19 +168,19 @@ class Page extends Component {
         >
           <Container maxWidth={false}>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={12} lg={4} xl={8}>
+              <Grid item xs={12} sm={12} lg={4} xl={4}>
                 <TotalBuses buses={buses} />
               </Grid>
-              <Grid item xs={12} sm={12} lg={4} xl={8}>
+              <Grid item xs={12} sm={12} lg={4} xl={4}>
                 <TotalDrivers drivers={drivers} />
               </Grid>
-              <Grid item xs={12} sm={12} lg={4} xl={8}>
+              <Grid item xs={12} sm={12} lg={4} xl={4}>
                 <TotalStops stops={stops} />
               </Grid>
-              <Grid item xs={12} sm={12} lg={6} xl={8}>
+              <Grid item xs={12} sm={12} lg={6} xl={6}>
                 <StatsBus dataf={this.state.dataf} onDaysChange={this.handleDays} />
               </Grid>
-              <Grid item xs={12} sm={12} lg={6} xl={8}>
+              <Grid item xs={12} sm={12} lg={6} xl={6}>
                 <InfoBuses
                   ocupation={this.state.ocupation}
                   onOcupationChange={this.handleOcupation}

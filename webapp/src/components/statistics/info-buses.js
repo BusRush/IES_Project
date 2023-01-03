@@ -27,7 +27,6 @@ export const InfoBuses = (props) => {
   const { ocupation } = props;
   const [value, setValue] = React.useState(dayjs("2022-12-12"));
 
-
   const tostring = (ocupation) => {
     const temp = ocupation.toString();
     return temp.substring(0, 4) + "%";
@@ -57,7 +56,7 @@ export const InfoBuses = (props) => {
       <Divider />
       {!ocupation.error && ocupation.length > 0 && (
         <PerfectScrollbar>
-          <Box sx={{ width: 600 }}>
+          <Box sx={{ width: "auto" }}>
             <Table>
               <TableHead>
                 <TableRow>

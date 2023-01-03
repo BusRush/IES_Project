@@ -35,7 +35,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useState, useEffect } from "react";
 
 export const DeviceTable = ({ devices, buses, ...rest }) => {
-  const api = "http://localhost:8080/";
+  const api = "http://192.168.160.222:8080/";
   const [lower_bound, setLowerBound] = useState(0);
   const [upper_bound, setUpperBound] = useState(5);
   const [limit, setLimit] = useState(5);

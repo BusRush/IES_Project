@@ -37,7 +37,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useEffect, useState } from "react";
 
 export const BusTable = ({ buses, devices, routes, ...rest }) => {
-  const api = "http://localhost:8080/";
+  const api = "http://192.168.160.222:8080/";
   // use states
   const [lower_bound, setLowerBound] = useState(0);
   const [upper_bound, setUpperBound] = useState(5);
