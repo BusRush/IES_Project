@@ -1,7 +1,7 @@
 import { Marker, Popup, useMap } from 'react-leaflet';
 
 export const MarkerStopIcon = (props) => {
-  const { name, position } = props;
+  const { designation, position } = props;
 
   const customIcon = new L.Icon({
     iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
@@ -21,19 +21,19 @@ export const MarkerStopIcon = (props) => {
       eventHandlers={{ click: () => {map.flyTo(position, 18);} }}
     >
       <Popup>
-        {name}
+        {designation}
       </Popup>
     </Marker>
   );
 };
 
 export const MarkerBusIcon = (props) => {
-  const { name, position } = props;
+  const { deviceId, position, changeSelectedBus } = props;
 
   const customIcon = new L.Icon({
     iconUrl: '/static/images/icons/bus.png',
     iconSize: [30, 30],
-    popupAnchor: [0, -15],
+    popupAnchor: [0, -15]
   });
 
   const map = useMap();
@@ -42,11 +42,13 @@ export const MarkerBusIcon = (props) => {
     <Marker
       position={position}
       icon={customIcon}
-      eventHandlers={{ click: () => {map.flyTo(position, 18);} }}
+      eventHandlers={{
+        click: () => {
+          map.flyTo(position, 18);
+          changeSelectedBus(deviceId);
+        }
+      }}
     >
-      <Popup>
-        {name}
-      </Popup>
     </Marker>
   );
 };
