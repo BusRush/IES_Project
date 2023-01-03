@@ -1,8 +1,8 @@
-##To run the app through docker
+## To run the app through docker
 
 docker compose up --build
 
-##To run locally
+## To run locally
 
 npm install
 
