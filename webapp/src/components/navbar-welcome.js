@@ -11,7 +11,7 @@ export default function WelcomeNavbar() {
         <Typography variant="h6" sx={{ flexGrow: 1 }}>
           BusRush
         </Typography>
-        <Button href="/login" color="inherit" sx={{ alignSelf: "right" }}>
+        <Button href="/statistics" color="inherit" sx={{ alignSelf: "right" }}>
           Login
         </Button>
       </Toolbar>

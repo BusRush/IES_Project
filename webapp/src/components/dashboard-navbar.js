@@ -70,27 +70,8 @@ export const DashboardNavbar = (props) => {
               <BusAlertIcon fontSize="medium" color="primary" />
             )}
           </IconButton>
-
-          <Avatar
-            onClick={() => setOpenAccountPopover(true)}
-            ref={settingsRef}
-            sx={{
-              cursor: "pointer",
-              height: 40,
-              width: 40,
-              ml: 1,
-            }}
-            src="/static/images/avatars/avatar_1.png"
-          >
-            <UserCircleIcon fontSize="small" />
-          </Avatar>
         </Toolbar>
       </DashboardNavbarRoot>
-      <AccountPopover
-        anchorEl={settingsRef.current}
-        open={openAccountPopover}
-        onClose={() => setOpenAccountPopover(false)}
-      />
       <NotificationPopover
         anchorEl={settingsRefado.current}
         open={openNotificationPopover}
