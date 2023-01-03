@@ -1,6 +1,8 @@
 # BusRush
 
-BusRush is web and mobile application that allows users to monitor bus statistics in real-time. This data – location, speed, fuel consumption, number of passengers - is collected using a device onboard of every bus, that periodically sends relevant information about its current state to the system, to be processed, stored or shown to end users. Using this real-time data in combination with static information such as bus schedules, the system can, for instance, provide an estimation for the time of arrival at any given stop - or the user’s closest stop, based on his current location.
+BusRush is web and mobile application that allows users to monitor bus metrics such as delays in real-time. It hopes to solve the existing transparency issue attached to public bus service, where commuters aren’t aware of the current state of the bus they want to take. In a more administrative perspective, it can provide tools for control and analysis of a bus fleet, helping on the decision making process. 
+
+The system revolves around the Spring Boot framework, which provides a bridge between the frontend and backend components. 
 
 ## Project Structure 
 
@@ -17,3 +19,6 @@ BusRush is web and mobile application that allows users to monitor bus statistic
 
 Agile Backlog Management: https://nudibranchicb.atlassian.net/jira/software/projects/IP/boards/1
 
+Editable Report: https://uapt33090-my.sharepoint.com/:w:/g/personal/joao_fonseca_ua_pt/EWKHR8MgK25Mn2vZWIuS0m4B26eQAYKhHtW7r2NYdb4hqg?e=w8hrZl
+
+API Documentation: http://192.168.160.222:8080/swagger-ui/index.html
