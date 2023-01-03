@@ -37,7 +37,7 @@ def run():
 	args = vars(ap.parse_args())
 
 	device_id = args["device_id"]
-	output_filename = 'data/camera_{}.txt'.format(device_id)
+	output_filename = '../../data/camera_{}.txt'.format(device_id)
 
 	# Check if the file exists
 	if os.path.exists(output_filename):
