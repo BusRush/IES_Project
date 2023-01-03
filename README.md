@@ -8,13 +8,12 @@ BusRush is web and mobile application that allows users to monitor bus statistic
 
 | NMEC   | Name                            | Role          |
 |:------:|:-------------------------------:|:-------------:|
-| 98384  | Inês Castro Baptista            | Product Owner |
+| 98384  | Inês Castro Baptista            | Team Manager  |
 | 103154 | João Manuel Pedrosa Fonseca     | Architect     |
 | 103183 | Diogo Luís de Albuquerque Paiva | DevOps Master |
-| 103530 | André Gabriel Butuc             | Team Manager  |
+| 103530 | André Gabriel Butuc             | Product Owner |
 
 ## Links
 
 Agile Backlog Management: https://nudibranchicb.atlassian.net/jira/software/projects/IP/boards/1
 
-Project Specification Report: https://bit.ly/3FwcKd8
