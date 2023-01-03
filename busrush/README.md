@@ -13,7 +13,3 @@ And put all the files in a folder named data
 #### Then to initialize the container
 
 docker compose up --build
-
-
-## API Documentation
-Available on http://192.168.160.222:8080/swagger-ui/index.html
