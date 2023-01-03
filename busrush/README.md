@@ -8,12 +8,8 @@ mvn clean install -Dmaven.test.skip=true
 
 chmod +x init_osrm.sh && ./init_osrm.sh
 
+And put all the files in a folder named data
+
 #### Then to initialize the container
-
-docker compose up
-
-#### This will initialize all the images to run the API
-
-#### To reconsrruct the images 
 
 docker compose up --build
