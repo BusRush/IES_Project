@@ -27,6 +27,21 @@ python3 metric_generator_static.py --device_id AVRBUS-D0000 --route_id AVRBUS-R0
 ./generate_metrics_r0001.sh
 </pre>
 
+### To Read Events From RabbitMQ Events Queue
+<pre>
+python3 events_reader.py
+</pre>
+
+### To Insert Weekly Metrics to Cassandra through RabbitMQ and Spring Boot
+<pre>
+python3 metric_inserter --mode 'weekly'
+</pre>
+
+### To Insert MySQL Data
+<pre>
+python3 inserter.py --api_url http://localhost:8080/api
+</pre>
+
 ### Example on how to run the camera sensor (the Run.py file is inside the Camera Sensor/People-Counting-in-Real-Time directory): 
 <pre>
 python3 metric_generator.py --device_id AVRBUS-D0000 --route_id AVRBUS-R0011 --route_shift 092000 --sensor_camera True
